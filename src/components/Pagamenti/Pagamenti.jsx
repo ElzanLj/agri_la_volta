@@ -1,55 +1,51 @@
 import React, { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from './../NavBar/firebaseConfig';
 import './Pagamenti.css';
 
-const Pagamenti = ({ appartamento, checkIn, checkOut, numAdulti, numBambini, user }) => {
-  const [datiPersonali, setDatiPersonali] = useState({ nome: '', cognome: '', email: '' });
-  const [cartaDiCredito, setCartaDiCredito] = useState({ numero: '', scadenza: '', codiceSicurezza: '' });
-  const [loading, setLoading] = useState(false);
+// NOTA IMPORTANTE SUL PAGAMENTO
+// In precedenza questo componente raccoglieva numero di carta, scadenza e CVV
+// e li salvava in chiaro su Firestore. Questo è stato rimosso: memorizzare
+// dati di carta di credito non cifrati (specialmente il CVV, che non va MAI
+// salvato) viola gli standard di sicurezza PCI-DSS ed espone sia te che i
+// tuoi clienti a un rischio serio in caso di violazione dei dati.
+//
+// Qui sotto si raccolgono solo i dati di contatto necessari per confermare
+// la prenotazione. Per accettare pagamenti reali con carta, il modo corretto
+// è integrare un gestore di pagamenti certificato PCI (es. Stripe o PayPal):
+// il numero di carta passa direttamente dal browser del cliente al loro
+// server, e tu ricevi solo una conferma, senza mai toccare i dati sensibili.
 
-  const handleDatiPersonaliChange = (field, value) => {
-    setDatiPersonali({ ...datiPersonali, [field]: value });
+const Pagamenti = ({ onConfirm, disabled }) => {
+  const [datiPersonali, setDatiPersonali] = useState({ nome: '', cognome: '', email: '', telefono: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleChange = (field, value) => {
+    setDatiPersonali((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleCartaDiCreditoChange = (field, value) => {
-    setCartaDiCredito({ ...cartaDiCredito, [field]: value });
-  };
-
-  const handleConfermaPagamento = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
+    if (submitting || disabled) return;
+    setSubmitting(true);
     try {
-      await addDoc(collection(db, 'prenotazioni'), {
-        appartamentoId: appartamento.id,
-        checkIn: new Date(checkIn),
-        checkOut: new Date(checkOut),
-        numAdulti,
-        numBambini,
-        datiPersonali,
-        cartaDiCredito,
-        email: user?.email, // Utilizza l'email dell'utente se disponibile
-      });
-
-      alert('Prenotazione confermata!');
-    } catch (error) {
-      console.error('Errore durante la conferma del pagamento:', error);
-      alert('Si è verificato un errore durante la prenotazione. Riprova.');
+      await onConfirm(datiPersonali);
+    } finally {
+      setSubmitting(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleConfermaPagamento} className="pagamenti">
-      <h3>Conferma pagamento</h3>
+    <form onSubmit={handleSubmit} className="pagamenti">
+      <h3>I tuoi dati di contatto</h3>
+      <p className="pagamenti-nota">
+        Il pagamento verrà perfezionato in struttura o tramite un link di pagamento sicuro
+        che ti invieremo via email dopo la conferma.
+      </p>
       <div className="box">
         <label>Nome</label>
         <input
           type="text"
           value={datiPersonali.nome}
-          onChange={(e) => handleDatiPersonaliChange('nome', e.target.value)}
+          onChange={(e) => handleChange('nome', e.target.value)}
           required
         />
       </div>
@@ -58,7 +54,7 @@ const Pagamenti = ({ appartamento, checkIn, checkOut, numAdulti, numBambini, use
         <input
           type="text"
           value={datiPersonali.cognome}
-          onChange={(e) => handleDatiPersonaliChange('cognome', e.target.value)}
+          onChange={(e) => handleChange('cognome', e.target.value)}
           required
         />
       </div>
@@ -67,39 +63,21 @@ const Pagamenti = ({ appartamento, checkIn, checkOut, numAdulti, numBambini, use
         <input
           type="email"
           value={datiPersonali.email}
-          onChange={(e) => handleDatiPersonaliChange('email', e.target.value)}
+          onChange={(e) => handleChange('email', e.target.value)}
           required
         />
       </div>
       <div className="box">
-        <label>Numero di carta di credito</label>
+        <label>Telefono</label>
         <input
-          type="text"
-          value={cartaDiCredito.numero}
-          onChange={(e) => handleCartaDiCreditoChange('numero', e.target.value)}
+          type="tel"
+          value={datiPersonali.telefono}
+          onChange={(e) => handleChange('telefono', e.target.value)}
           required
         />
       </div>
-      <div className="box">
-        <label>Data di scadenza</label>
-        <input
-          type="text"
-          value={cartaDiCredito.scadenza}
-          onChange={(e) => handleCartaDiCreditoChange('scadenza', e.target.value)}
-          required
-        />
-      </div>
-      <div className="box">
-        <label>Codice di sicurezza</label>
-        <input
-          type="text"
-          value={cartaDiCredito.codiceSicurezza}
-          onChange={(e) => handleCartaDiCreditoChange('codiceSicurezza', e.target.value)}
-          required
-        />
-      </div>
-      <button type="submit" className="btn" disabled={loading}>
-        {loading ? 'Processing...' : 'Conferma pagamento'}
+      <button type="submit" className="btn" disabled={submitting || disabled}>
+        {submitting ? 'Invio in corso...' : 'Conferma prenotazione'}
       </button>
     </form>
   );

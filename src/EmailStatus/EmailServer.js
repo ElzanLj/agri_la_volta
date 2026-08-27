@@ -5,8 +5,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Funzione per impostare gli header CORS
+// In produzione, imposta CORS_ORIGIN nel .env con l'URL reale del sito
+// (es. https://www.agriturismolavolta.com), altrimenti resta aperto solo
+// al server di sviluppo locale di Vite.
+const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
 const setCorsHeaders = (res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -41,8 +46,9 @@ const server = http.createServer((req, res) => {
             });
 
             const mailOptions = {
-                from: process.env.GMAIL_USER, // Il tuo indirizzo Gmail
-                to: process.env.GMAIL_USER, // Destinatario reale
+                from: process.env.GMAIL_USER,
+                to: process.env.GMAIL_USER,
+                replyTo: contact.email || undefined,
                 subject: `Messaggio da ${contact.firstName} ${contact.lastName}`,
                 text: `Nome: ${contact.firstName} ${contact.lastName}\nEmail: ${contact.email}\nTelefono: ${contact.phone}\nMotivo: ${contact.reason}\nMessaggio: ${contact.message}`
             };
@@ -77,15 +83,22 @@ const server = http.createServer((req, res) => {
             });
 
             const mailOptions = {
-                from: process.env.GMAIL_USER, // Il tuo indirizzo Gmail
-                to: process.env.GMAIL_USER, // Il tuo indirizzo Gmail (per conferma prenotazione)
-                subject: 'Conferma Prenotazione',
-                text: `La tua prenotazione è stata confermata!
-                       Appartamento: ${bookingDetails.apartmentName}
-                       Check-in: ${bookingDetails.checkIn}
-                       Check-out: ${bookingDetails.checkOut}
-                       Adulti: ${bookingDetails.adults}
-                       Bambini: ${bookingDetails.children}`
+                from: process.env.GMAIL_USER,
+                to: process.env.GMAIL_USER, // notifica al gestore della struttura
+                replyTo: bookingDetails.email || undefined,
+                subject: `Nuova prenotazione: ${bookingDetails.apartmentName} (${bookingDetails.nome || ''} ${bookingDetails.cognome || ''})`,
+                text: `Nuova prenotazione ricevuta!
+
+Appartamento: ${bookingDetails.apartmentName}
+Check-in: ${bookingDetails.checkIn}
+Check-out: ${bookingDetails.checkOut}
+Adulti: ${bookingDetails.adults}
+Bambini: ${bookingDetails.children}
+
+Dati del cliente:
+Nome: ${bookingDetails.nome || '-'} ${bookingDetails.cognome || ''}
+Email: ${bookingDetails.email || '-'}
+Telefono: ${bookingDetails.telefono || '-'}`
             };
 
             transporter.sendMail(mailOptions, (error, info) => {
@@ -107,7 +120,7 @@ const server = http.createServer((req, res) => {
 });
 
 // Imposta la porta su cui il server ascolta
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
     console.log(`Server in ascolto sulla porta ${PORT}`);
 });

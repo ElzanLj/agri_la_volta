@@ -17,6 +17,9 @@ function ContactUs({ user }) {
         reason: '',
         message: ''
     });
+    const [sending, setSending] = useState(false);
+
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
     // Effetto per aggiornare i dati del modulo se l'utente è loggato
     useEffect(() => {
@@ -42,20 +45,29 @@ function ContactUs({ user }) {
     // Funzione per gestire l'invio del modulo
     const handleSubmit = async (event) => {
         event.preventDefault(); // Previene il comportamento di default del form
+        if (sending) return;
+        setSending(true);
 
-        // Invia i dati al server usando fetch
-        const response = await fetch('http://localhost:3001/send-email', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(contact),
-        });
+        try {
+            const response = await fetch(`${API_URL}/send-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(contact),
+            });
 
-        if (response.ok) {
-            alert('Email inviata con successo!');
-        } else {
-            alert('Errore nell\'invio dell\'email');
+            if (response.ok) {
+                alert('Messaggio inviato con successo!');
+                setContact({ firstName: '', lastName: '', email: '', phone: '', reason: '', message: '' });
+            } else {
+                alert('Errore nell\'invio del messaggio. Riprova più tardi.');
+            }
+        } catch (error) {
+            console.error('Errore di rete durante l\'invio:', error);
+            alert('Impossibile contattare il server. Controlla la connessione e riprova.');
+        } finally {
+            setSending(false);
         }
     };
 
@@ -84,6 +96,7 @@ function ContactUs({ user }) {
                             value={contact.firstName}
                             onChange={handleInputChange}
                             placeholder="Nome"
+                            required
                         />
                     </div>
                     <div className="row-input">
@@ -104,6 +117,7 @@ function ContactUs({ user }) {
                             value={contact.email}
                             onChange={handleInputChange}
                             placeholder="Email"
+                            required
                         />
                     </div>
                     <div className="row-input">
@@ -131,7 +145,9 @@ function ContactUs({ user }) {
                     rows="4"
                     className="row-input"
                 />
-                <button color="lightgrey" type="submit">Invia</button>
+                <button className="submit-btn" type="submit" disabled={sending}>
+                    {sending ? 'Invio in corso...' : 'Invia'}
+                </button>
             </form>
             {/* Informazioni aggiuntive e logo TripAdvisor */}
             <div className="contact-info">
