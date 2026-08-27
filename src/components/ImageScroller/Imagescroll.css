@@ -1,0 +1,72 @@
+/* Container principale per allineare e centrare i contenuti */
+.container {
+    display: flex; 
+    align-items: center; 
+    justify-content: center; /* Allinea orizzontalmente i figli al centro */
+    width: 100%;
+    max-width: 1200px; /* larghezza massima per il contenitore */
+    margin: auto;
+}
+
+/* Container per le immagini, con larghezza e altezza specifiche */
+.image-container {
+    width: 50%; 
+    height: 500px; 
+    overflow-y: auto; /* tiene ferme le scritte mentre le immagini scorrono */
+    scrollbar-width: none; /* Nasconde la barra di scorrimento per i browser che supportano questa proprietà */
+}
+
+/* Nasconde la barra di scorrimento per WebKit browsers (Chrome, Safari) */
+.image-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Stile per le immagini all'interno del container */
+.image {
+    background-size: contain; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    width: 100%; 
+    height: 600px; 
+}
+
+/* Container per i puntini di navigazione */
+.navigator {
+    display: flex;
+    flex-direction: column; /* Imposta i puntini in colonna */
+    align-items: center; 
+    justify-content: center;
+    margin: 0 20px; 
+}
+
+/* Stile per i puntini di navigazione */
+.dot {
+    height: 20px;
+    width: 20px;
+    margin: 10px 0;
+    border-radius: 50%; 
+    background-color: #f0ece2; /* colore di sfondo dei puntini non selezionati */
+}
+
+.dot.active {
+    background-color: var( --marrone); /* Colore di sfondo del puntino attivo */
+}
+
+
+/* Container per le informazioni con larghezza e altezza specifiche */
+.info-container {
+    width: 40%; /* spazio dedicato alle scritte sullo schermo */
+    padding: 20px; 
+    overflow-y: auto;
+    max-height: 600px; 
+}
+
+
+.info-container h1 {
+    color: var( --marrone); 
+}
+
+
+.info-container p {
+    color: #856d4d; 
+}

@@ -1,0 +1,154 @@
+
+nav {
+  width: 100%;
+  background: transparent;
+  color: white;
+  padding-top: 10px;
+  padding-left: 0; 
+  position: fixed;
+  z-index: 1000;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* spazio fra logo e nav items */
+  padding: 20px 12px; 
+}
+
+/* Container per navbar */
+.navbar-content {
+  display: flex;
+  align-items: center;
+  width: auto; 
+  max-width: 1200px;
+  padding: 0 5px; 
+  box-sizing: border-box; 
+}
+
+/* Styling del logo */
+nav .logo {
+  width: 60px;
+}
+
+/* Styling degli item della nav */
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 15px;
+  margin: 0; 
+  padding: 0; 
+}
+
+nav ul li {
+  display: flex;
+  align-items: center; /* centrati verticalemente */
+  margin: 0; 
+  font-size: 15px;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 80px; /* si assicura che gli item non diventino troppo piccoli */
+}
+
+
+nav ul li a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%; 
+  margin-bottom: 10px;
+}
+
+
+nav ul li a:hover {
+  color: #596e79;
+}
+
+
+.nav-logo {
+  width: 30px;
+  margin-right: 10px;
+  filter: brightness(0) invert(1); /* icone bianche */
+}
+
+/* Styling per bottone di accedi/registrati */
+.auth-btn {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+}
+
+.auth-btn:hover {
+  color: var(--primary);
+}
+
+.auth-section {
+  margin-left: auto; 
+  margin-right: 5px; 
+}
+
+
+
+/* Cambio di colore della navbar */
+nav.dark-nav {
+  background-color: var(--primary);
+  transition: 0.5s;
+}
+
+nav.solid {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Icona navbar verticale */
+.mobile-menu-icon {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.nav-links.mobile {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background-color: var(--primary);
+  width: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  padding: 20px;
+}
+
+.nav-links.mobile li {
+  margin: 10px 0;
+}
+
+
+/* Nasconde il bottone di login su schermo piccolo */
+@media (max-width: 900px) {
+  .auth-section {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .navbar-content {
+    flex-direction: row;
+    align-items: center;
+  }
+  .nav-links {
+    display: none;
+  }
+  .mobile-menu-icon {
+    display: block;
+  }
+}

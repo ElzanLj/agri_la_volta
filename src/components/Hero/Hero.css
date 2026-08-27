@@ -1,0 +1,68 @@
+
+.hero-container {
+  position: relative;
+  width: 100vw;
+  height: 900px;
+  background: linear-gradient(rgba(130, 116, 94, 0.6),rgba(115, 136, 200, 0.2)), url('https://inviaggiodasola.com/wp-content/uploads/2023/02/agriturismi-con-spa-in-toscana.jpg') no-repeat center center;
+  /* background: url('../../assets/fotoGenerali/agri7.JPG');  background di riserva*/
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin: 0;
+}
+
+/* Stile per il contenitore del testo all'interno della sezione hero */
+.hero-text {
+  text-align: center;
+  max-width: 800px;
+  padding: 20px;
+}
+
+/* Stile per il titolo principale */
+.hero-text h1 {
+  font-size: 60px;
+  font-weight: 600;
+}
+
+/* Stile per il paragrafo */
+.hero-text p {
+  max-width: 700px;
+  margin: 10px auto 20px;
+  line-height: 1.4;
+}
+
+/* Stile per il pulsante */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  color: var();
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background-color: var(--secondary);
+}
+
+
+/* Immagine di fondo nella parte inferiore della sezione hero */
+.hero-bottom-image {
+  position: absolute;
+  bottom: 0;
+  margin-bottom: -350px;
+  left: 0;
+  width: 100%; 
+  height: 100vh;
+  background-image: url('../../assets/fotoGenerali/sfondoColline.png');
+  background-repeat: repeat-x;
+  background-position: bottom center;
+  background-size: cover;
+  z-index: 1;
+}
+

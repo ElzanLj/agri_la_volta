@@ -1,0 +1,36 @@
+.slider {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.slider-inner {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  width: 100%;
+}
+
+.slider-item {
+  box-sizing: border-box;
+  cursor: pointer; 
+}
+
+/* Media query per schermi di dimensioni medie (due elementi visibili) */
+@media (max-width: 1024px) {
+  .slider-item {
+    flex: 0 0 50%; 
+  }
+}
+
+/* Media query per schermi di dimensioni piccole (un elemento visibile) */
+@media (max-width: 500px) {
+  .slider-item {
+    flex: 0 0 100%; 
+  }
+}
+
+
+/* Stile  per slider con un solo elemento visibile */
+.slider-single .slider-inner {
+  overflow: hidden;
+}

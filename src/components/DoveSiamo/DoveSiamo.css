@@ -1,0 +1,209 @@
+/* Reset CSS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --text-color: #333;
+  --header-font: 'Playfair Display', serif;
+  --body-font: 'Roboto', sans-serif;
+}
+
+body {
+  font-family: var(--body-font);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+
+
+
+/* Stili per l'intestazione */
+.header {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(rgba(75, 74, 73, 0.6), rgba(115, 136, 200, 0.6)), url('../../assets/fotoDintorni/CastelloTabiano.jpeg') center/cover no-repeat;
+  background-size: cover;
+  background-position: center;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  
+}
+
+.header-content {
+  padding: 30px;
+  border-radius: 10px;
+}
+
+
+
+.header h1 {
+  font-family: var(--header-font);
+  font-size: 48px;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-decoration: none; 
+}
+
+
+.header p {
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: 300;
+}
+
+.header img {
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+
+
+/* Stili per la sezione della mappa */
+.map-section {
+  display: flex;
+  padding: 20px;
+  background-color: var(--primary);
+  min-height: 450px;
+}
+
+.map {
+  flex: 2;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.dotStyles {
+  margin: -25px 3px;
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--accent-color);
+}
+
+.additional-content {
+  flex: 1;
+  text-align: center;
+  font-family: var(--body-font);
+  padding: 30px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.additional-content h2 {
+  font-family: var(--header-font);
+  padding-bottom: 15px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+
+
+/* Stili per lo slider dei castelli */
+.castle-slider {
+  padding: 60px 0;
+  background-color: var(--secondary);
+}
+
+.castle-slider h2 {
+  font-family: var(--header-font);
+  font-size: 32px;
+  margin-bottom: 50px;
+  text-align: center;
+  color: var(--primary);
+}
+
+.slider {
+  display: flex;
+  overflow-x: auto;
+  padding: 20px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--secondary);
+}
+
+.slider img {
+  max-width: 250px;
+  margin-right: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.slider img:hover {
+  transform: scale(1.05);
+}
+
+.castle-visit { /**/
+  padding: 40px;
+  background-image: url('../../assets/fotoSalso3.jpeg');
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  color: white;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-attachment: fixed;
+  position: relative;
+  border: 12px solid white; 
+}
+
+.castle-visit::before {
+  content: ''; /* filtro immagine*/
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.castle-visit-content {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.castle-visit h2 {
+  font-family: var(--header-font);
+  font-size: 36px;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.castle-visit p {
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+
+
+
+/* Stili per il footer */
+.footer {
+  background-color: var(--primary);
+  color: #fff;
+  padding: 30px 0;
+  text-align: center;
+}
+
+.contact-info p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+

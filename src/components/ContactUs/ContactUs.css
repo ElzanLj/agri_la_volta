@@ -1,0 +1,147 @@
+:root {
+    --accent: lightgrey; /* Colore per i pulsanti e gli hover */
+    --background: #f9f9f9; /* Colore di sfondo degli input */
+    --input-border: #ccc; /* Colore del bordo degli input */
+    --input-focus-border: var(--secondary); /* Colore del bordo degli input in focus */
+}
+
+.contactus-container {
+    width: 70%;
+    margin: 20px auto;
+    padding: 30px;
+    border-radius: 10px;
+    justify-content: center;
+    background-color: var(--primary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contact-info p {
+    justify-content: center;
+    margin: 10px 0;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.contact-form .row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form select,
+.contact-form textarea {
+    width: 100%;
+    margin: 10px 0;
+    padding: 15px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    resize: none;
+    font-size: 16px; 
+    color: var(--text-color);
+    background-color: var(--background);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.contact-form input[type="text"]:focus,
+.contact-form input[type="email"]:focus,
+.contact-form select:focus,
+.contact-form textarea:focus {
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.contact-form select,
+.contact-form textarea {
+    width: 100%; 
+}
+
+.contact-form button {
+    padding: 15px;
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.contact-form button:hover {
+    background-color: var(--secondary);
+}
+
+.row-input-group {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    text-align: center;
+}
+
+.row-input {
+    flex-basis: 48%; 
+    margin-bottom: 20px;
+}
+
+input::placeholder,
+textarea::placeholder {
+    text-align: center;
+    color: #aaa;
+    font-style: italic;
+}
+
+.contact-info p, .contact-info .logo-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin: 10px 0;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    font-size: 16px;
+}
+
+.logo {
+    width: 30px;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.logo img {
+    width: 100%;
+    height: auto;
+}
+
+.contact-info .logo-text {
+    font-size: 12px;
+    color: #d3d3d3;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .contactus-container {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .contact-form input[type="text"],
+    .contact-form input[type="email"],
+    .contact-form select,
+    .contact-form textarea {
+        width: 100%;
+    }
+
+    .row-input {
+        flex-basis: 100%;
+    }
+}

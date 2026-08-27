@@ -1,0 +1,213 @@
+
+/* Header */
+.header {
+  position: relative;
+  background: linear-gradient(rgba(155, 153, 150, 0.6), rgba(199, 159, 116, 0.6)), url('../../assets/fotoDintorni/CastelloTabiano.jpeg') center/cover no-repeat; 
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* per l'effetto di scorrimento */
+  text-align: center;
+  min-height: 100vh; 
+  z-index: 1;
+}
+
+.header-content {
+  position: absolute; /* il contenuto sta sopra l'immagine di sfondo */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centra il contenuto */
+  z-index: 2;
+}
+
+.header h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.header p {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+
+/* Bottone all'interno dell'header */
+.header button {
+  background-color: var(--accent);
+  color: var(--primary);
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombra per il bottone */
+  transition: background-color 0.3s ease, filter 0.3s ease; /* Transizione solo per colore e luminosità */
+}
+
+
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 36px;
+  }
+
+  .header p {
+    font-size: 18px;
+  }
+}
+
+
+
+
+
+/* CSS Schede appartamento */
+.appartamenti {
+  padding: 50px 50px;
+  display: flex;
+  flex-wrap: wrap;
+  overflow-x: hidden;
+}
+
+.appartamento {
+  flex: 1 0 30%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 20px rgba(110, 109, 109, 0.5);
+  margin: 10px;
+  padding: 30px;
+  border-radius: 13px;
+  background-color: rgb(228, 225, 225);
+  color: rgb(84, 83, 83);
+  position: relative;
+}
+
+/* immagini appartamenti */
+.containerStyles {
+  width: 100%;
+  height: 250px;
+  margin: 0 auto;
+}
+
+.servizi {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.info-appartamento h3 { /* titolo appartamento */
+  font-size: 30px;
+  color: rgb(39, 39, 39);
+  padding: 20px 0px;
+}
+
+.info-appartamento p { /* lista dei servizi */
+  font-size: 18px;
+  color: rgb(117, 117, 117);
+  padding: 10px;
+  line-height: 1.5rem;
+}
+
+.servizio {
+  display: flex;
+  align-items: center;
+}
+
+.icona {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 50px;
+  margin-right: 8px;
+}
+
+.stars {
+  margin-top: 20px;
+  font-size: 1.7rem;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.prezzo {
+  position: absolute;
+  top: 50px;
+  right: 50px;
+  background: var(--primary);
+  color: white;
+  font-size: 15px;
+  padding: 5px 5px;
+  border-radius: 3px;
+  text-transform: lowercase;
+  z-index: 1;
+}
+
+/* Bottone "vedi dettagli" dentro l'appartamento */
+.containerStyles button {
+  position: absolute;
+  z-index: 1;
+  bottom: 15px;
+  right: 25px;
+  background-color: var(--accent);
+  color: var(--primary);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombra per il bottone */
+  transition: background-color 0.3s ease, filter 0.3s ease; /* Transizione solo per colore e luminosità */
+}
+
+.containerStyles button:hover {
+  background-color: var(--secondary);
+  filter: brightness(1.1); /* Leggero cambiamento di luminosità al passaggio del mouse */
+}
+
+/* DA TOGLIEREE????
+@media (max-width: 1200px) {
+  .appartamento {
+    flex: 1 0 45%;
+  }
+}
+
+@media (max-width: 800px) {
+  .appartamento {
+    flex: 1 0 100%;
+  }
+}
+*/
+
+
+/* CSS informazioni sugli appartamenti */
+.info-aggiuntive {
+  background-color: var(--coloreBackground);
+  padding: 0px 20px;
+  margin-bottom: 100px;;
+
+}
+
+.info-aggiuntive h2 {
+  text-align: center;
+  color: #6f4e37;
+  margin-bottom: 30px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-item h3 {
+  color: #6f4e37;
+  margin-bottom: 10px;
+}
+
+.info-item p {
+  color: #666;
+  font-size: 17px;
+  line-height: 1.6;
+}

@@ -1,0 +1,76 @@
+/*
+body{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;  
+  overflow-x: hidden;  
+  background-color: 	#d47c59;
+}
+
+
+.container {
+  overflow: hidden;
+  width: 100%;
+  padding-top: 10px;
+  padding-bottom: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+}
+*/
+
+
+.card-gallery {
+  max-width: 100vw;
+  display: flex;
+  overflow: hidden; /* Assicura che non ci siano scrollbar */
+  flex-wrap: nowrap;
+  scroll-behavior: smooth;
+}
+
+.card {
+  flex: 0 0 auto;
+  width: 60vw; /* Incrementa la larghezza della card */
+  min-width: 450px; /* Aumentato per supportare dimensioni maggiori */
+  max-width: 450px; /* Aumentato per mantenere la consistenza */
+  transition: transform 0.3s, opacity 0.3s;
+  opacity: 0.5;
+  margin: 20px 20px; /* Riduci il margine laterale per evitare l'effetto affollato */
+}
+
+.card.active {
+  transform: scale(1.1); /* Leggero aumento di scala al focus */
+  opacity: 1;
+}
+
+.card img {
+  width: 100%;
+  height: 100%; /* Ajusta l'altezza per essere proporzionale */
+  object-fit: cover; /* Mantiene le proporzioni dell'immagine */
+  border-radius: 10px;
+}
+
+/*
+button {
+  
+  
+  background: none;
+  border: none;
+  font-size: 16px; 
+  cursor: pointer;
+  padding: 8px; 
+  color: #333;
+  background-color: #d5b39c;
+  margin-bottom: 5px;
+}
+
+button:hover {
+  background-color: #bf8c6a;
+}
+
+button.CameraRoll {
+  background-color: #d5b39c;
+}

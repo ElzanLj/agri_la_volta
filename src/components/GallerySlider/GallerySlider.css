@@ -1,0 +1,82 @@
+
+.gallery {
+  min-height: 100px; 
+  margin-bottom: 100px; 
+  margin-top: 50px; 
+  display: grid; 
+  place-items: center; 
+  overflow-x: hidden; /* Nasconde lo scorrimento orizzontale */
+  background: none; /* Nessuno sfondo */
+}
+
+/* Stile per il contenitore dello slider della galleria */
+.gallery-slider {
+  height: 320px; 
+  position: relative;
+  width: 100%; 
+  overflow: hidden; /* Nasconde il contenuto che esce dai bordi */
+  background: none; 
+}
+
+/* Stile per il contenitore delle diapositive dello slider */
+.gallery-slide-track {
+  display: flex; 
+  width: calc(300px * 18); /* Larghezza totale delle diapositive */
+  animation: scroll 40s linear infinite; /* Animazione continua per scorrere le diapositive */
+}
+
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0); /* Inizio dello scorrimento */
+  }
+  100% {
+    transform: translateX(calc(-300px * 9)); /* Scorrimento di metà delle diapositive */
+  }
+}
+
+/* Stile per ogni diapositiva della galleria */
+.gallery-slide {
+  height: 300px; 
+  width: 300px; 
+  display: flex; /* Usa il layout flex per centrare il contenuto */
+  align-items: center; /* Allinea verticalmente al centro */
+  justify-content: center; /* Allinea orizzontalmente al centro */
+  flex: 0 0 auto; /* Impedisce il restringimento delle diapositive */
+}
+
+/* Stile per le immagini all'interno delle diapositive */
+.gallery-img {
+  max-width: 100%; 
+  max-height: 100%; 
+  transition: transform 0.5s; /* Transizione per l'effetto di ingrandimento al passaggio del mouse */
+  object-fit: cover; /* Rende l'immagine adatta all'area senza distorsioni */
+}
+
+.gallery-img:hover {
+  transform: scale(1.1); /* Ingrandisce l'immagine del 10% se ci passa su il mouse*/
+}
+
+/* Ombra gradiente ai lati dello slider */
+.gallery-slider::before,
+.gallery-slider::after {
+  background: linear-gradient(to right, var(--coloreBackground) 0%, rgba(255, 255, 255, 0) 100%); 
+  content: ''; /* Contenuto vuoto per creare l'effetto gradiente */
+  height: 100%; 
+  position: absolute; 
+  width: 15%; /* Larghezza dell'ombra gradiente */
+  z-index: 2; 
+}
+
+/* Posizionamento dell'ombra gradiente a sinistra */
+.gallery-slider::before {
+  left: 0; 
+  top: 0; 
+}
+
+/* Posizionamento dell'ombra gradiente a destra */
+.gallery-slider::after {
+  right: 0; 
+  top: 0; 
+  transform: rotateZ(180deg); /* Ruota l'ombra gradiente per l'altro lato */
+}

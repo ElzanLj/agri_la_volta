@@ -1,0 +1,46 @@
+
+.sliderStyles{
+  height: 100%;
+  position: relative;
+}
+
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.dotStyles{
+  margin: 0 3px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.rightArrow,
+.leftArrow {
+  position: absolute; 
+  top: 50%; 
+  transform: translateY(-50%); /* Centra verticalmente le frecce */
+  padding: 8px;
+  cursor: pointer;
+  color: white; 
+  z-index: 1;
+  background-color: rgba(176, 176, 176, 0.5);
+  border-radius: 100%;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Aggiunta di una transizione per un effetto di transizione più fluido */
+}
+
+.rightArrow {
+  right: 5px; 
+}
+
+.leftArrow {
+  left: 5px; 
+}
+
+/* Hover effect */
+.rightArrow:hover,
+.leftArrow:hover {
+  background-color: rgba(255, 255, 255, 0.8); /* Cambia il colore di sfondo quando si passa sopra */
+
+
+}
