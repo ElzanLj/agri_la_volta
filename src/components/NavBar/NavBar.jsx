@@ -22,7 +22,7 @@ const scrollToTop = () => {
   });
 };
 
-const NavBar = ({ onAuthClick, scrollToSection }) => {
+const NavBar = ({ onAuthClick, onBookingClick, scrollToSection }) => {
   const [showSolidNavbar, setShowSolidNavbar] = useState(false);
   const [user, setUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -100,7 +100,7 @@ const NavBar = ({ onAuthClick, scrollToSection }) => {
           <NavItem logo={galleryLogo} text="Gallery" to="/" sectionName="Gallery" />
           <NavItem logo={hotelLogo} text="Appartamenti" to="/" sectionName="appartamenti" />
           <NavItem logo={whereLogo} text="Dove Siamo" to="/dovesiamo" onClick={() => { scrollToTop(); closeMobileMenu(); }} />
-          <NavItem logo={bookingLogo} text="Prenota" to="/prenota" />
+          <NavItem logo={bookingLogo} text="Prenota" to="/Prenota" sectionName="Booking" />
           <NavItem logo={contactLogo} text="Contattaci" to="/" sectionName="ContactUs" />
           
           <div className="auth-section">

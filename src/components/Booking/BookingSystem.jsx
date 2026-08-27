@@ -28,7 +28,7 @@ const scrollToRef = (ref) => {
   }
 };
 
-const BookingSystem = () => {
+const BookingSystem = ({ onNavigate }) => {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [adults, setAdults] = useState(0);
@@ -197,16 +197,21 @@ const BookingSystem = () => {
     setTimeout(() => scrollToRef(bookingConfirmationRef), 100);
   };
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
   const sendConfirmationEmail = async (bookingDetails) => {
     try {
-      const response = await fetch(`${API_URL}/send-booking-confirmation`, {
+      const response = await fetch('http://localhost:3001/send-booking-confirmation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(bookingDetails),
+        body: JSON.stringify({
+          email: 'cliente@example.com', // Sostituisci con l'email del cliente se la conosci
+          apartmentName: bookingDetails.apartmentName,
+          checkIn: bookingDetails.checkIn,
+          checkOut: bookingDetails.checkOut,
+          adults: bookingDetails.adults,
+          children: bookingDetails.children
+        }),
       });
   
       const data = await response.json();
@@ -220,54 +225,47 @@ const BookingSystem = () => {
     }
   };
   
-  const handleConfirmBooking = async (contactInfo) => {
-    if (!selectedApartment) return;
-
-    try {
-      const apartmentRef = doc(collection(db, "apartments"), selectedApartment);
-      const booking = {
-        checkIn,
-        checkOut,
-        adults,
-        children,
-        nome: contactInfo.nome,
-        cognome: contactInfo.cognome,
-        email: contactInfo.email,
-        telefono: contactInfo.telefono,
-        createdAt: new Date().toISOString(),
-      };
-
-      await updateDoc(apartmentRef, {
-        bookings: arrayUnion(booking),
-      });
-
-      // Dettagli della prenotazione da inviare via email al gestore
-      const apartment = availableApartments.find(a => a.id === selectedApartment);
-      const bookingDetails = {
-        apartmentName: apartment.name,
-        checkIn,
-        checkOut,
-        adults,
-        children,
-        ...contactInfo,
-      };
-
-      // Invia l'email di conferma (se il server email non è raggiungibile,
-      // la prenotazione resta comunque salvata su Firestore)
-      await sendConfirmationEmail(bookingDetails);
-
-      alert(`Prenotazione confermata per l'appartamento ${apartment.name}!`);
-      // Reset del form dopo una prenotazione riuscita
-      setCheckIn('');
-      setCheckOut('');
-      setAdults(0);
-      setChildren(0);
-      setSelectedApartment(null);
-      setAvailableApartments([]);
-      setTotalCost(0);
-    } catch (error) {
-      console.error("Errore durante la conferma della prenotazione:", error);
-      alert("Si è verificato un errore durante la conferma della prenotazione. Riprova più tardi.");
+  const handleConfirmBooking = async () => {
+    if (selectedApartment) {
+      try {
+        const apartmentRef = doc(collection(db, "apartments"), selectedApartment);
+        const booking = {
+          checkIn: checkIn,
+          checkOut: checkOut,
+          adults: adults,
+          children: children,
+        };
+  
+        await updateDoc(apartmentRef, {
+          bookings: arrayUnion(booking),
+        });
+  
+        // Dettagli della prenotazione da inviare via email
+        const apartment = availableApartments.find(a => a.id === selectedApartment);
+        const bookingDetails = {
+          apartmentName: apartment.name,
+          checkIn,
+          checkOut,
+          adults,
+          children
+        };
+  
+        // Invia l'email di conferma
+        await sendConfirmationEmail(bookingDetails);
+  
+        alert(`Prenotazione confermata per l'appartamento ${selectedApartment}!`);
+        // Reset form after successful booking
+        setCheckIn('');
+        setCheckOut('');
+        setAdults(0);
+        setChildren(0);
+        setSelectedApartment(null);
+        setAvailableApartments([]);
+        setTotalCost(0);
+      } catch (error) {
+        console.error("Errore durante la conferma della prenotazione:", error);
+        alert("Si è verificato un errore durante la conferma della prenotazione. Riprova più tardi.");
+      }
     }
   };
 
@@ -359,8 +357,11 @@ const BookingSystem = () => {
           </div>
 
           <div className='payment'>
-            <Pagamenti onConfirm={handleConfirmBooking} />
+            <Pagamenti></Pagamenti>
+
           </div>
+
+          <button className="confirm-button" onClick={handleConfirmBooking}>Conferma prenotazione</button>
         </div>
       )}
     </div>
