@@ -91,11 +91,11 @@ Test HTTP manuali con `curl` (vedi `docs/TEST_REPORT.md`). Nessuna suite automat
 ```bash
 cd legacy
 npm ci --no-audit --no-fund
-npm run build     # PASS con warning (verificato dopo lo spostamento)
-npm run lint      # FAIL: 90 errori preesistenti
+npm run build     # PASS con warning
+npm run lint      # FAIL: 43 errori preesistenti
 ```
 
-`legacy/src/EmailStatus/EmailServer.js` non va avviato. Il file `.env` locale in quella cartella non è più tracciato da Git.
+Il legacy non usa più Firebase, login, pagamenti né server email (rimossi in Fase 1b); `npm run lint` dà 43 errori preesistenti. Resta il file locale non tracciato `legacy/src/EmailStatus/.env` (credenziale già revocata): può essere cancellato dal titolare.
 
 ## Note hosting condiviso
 

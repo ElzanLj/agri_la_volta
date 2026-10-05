@@ -63,6 +63,20 @@ Ambiente: Docker, PHP 8.2.34 + Apache (document root = root repository, fallback
 | Cookie `Secure` in HTTPS | — | NOT RUN | ambiente locale solo HTTP |
 | Legacy dopo spostamento | `cd legacy && npm run build` | PASS | stessi warning della baseline |
 
+## Fase 1b — migrazione controllata (2026-10-05)
+
+| Controllo | Prima | Dopo | Note |
+|---|---|---|---|
+| `npm run build` (legacy) | PASS, JS 676 kB (174 kB gzip) | PASS, JS 184 kB (60 kB gzip) | restano i warning su `fotoSalso3.jpeg` e sintassi CSS |
+| `npm run lint` (legacy) | FAIL, 90 errori | FAIL, 43 errori (25 prop-types, 11 no-unused-vars, 7 no-unescaped-entities) | gli errori `no-undef` sono spariti con il codice morto; non corretti i restanti |
+| `npm audit --omit=dev` (legacy) | 14 vulnerabilità (8 moderate, 6 high) | 2 moderate | dipendenze di produzione ora: react, react-dom, react-router-dom |
+| Riferimenti a Firebase/nodemailer/pagamenti | presenti | assenti nel codice versionato | ricerca testuale fuori da `docs/`, `prompts/`, guide: nessun risultato tranne il file locale non tracciato `legacy/src/EmailStatus/.env` |
+| `php bin/migrate.php --status` | — | PASS | 0001 e 0002 applicate |
+| Pagine PHP | — | PASS | `/` 200, `/admin` 303, `/admin/login` 200, `/nope` 404, `/legacy/package.json` 404, `/.env` 404 |
+| Dati nel DB | — | PASS | 6 appartamenti, 1 admin |
+| `php -l` su tutti i file PHP | — | PASS | |
+| Regressioni visibili del legacy | — | — | rimossi dal sito legacy: login/registrazione, flusso di prenotazione e pagamento, modulo contatti. Intenzionale; il legacy non è pubblicato. Nessun test manuale nel browser del legacy (NOT RUN) |
+
 
 ## Test automatici
 

@@ -7,30 +7,30 @@
 - **Data aggiornamento:** 2026-10-05
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `556a2be` (audit); il lavoro della Fase 1 non è ancora committato
-- **Fase corrente:** Fase 1 — architettura, DB e fondamenta: **COMPLETATA** (in attesa di review/commit)
-- **Prompt corrente:** `prompts/02_ARCHITECTURE_DATABASE.md` (completato)
-- **Stato complessivo:** fondamenta PHP/MariaDB installabili e verificate in Docker
+- **Commit di riferimento:** `3a6762f` (Fase 1: fondamenta PHP/DB); le modifiche della Fase 1b non sono ancora committate
+- **Fase corrente:** Fase 1 — fondamenta: **COMPLETATA** (prompt 02 e 03)
+- **Prompt corrente:** `prompts/03_FOUNDATION_MIGRATION.md` (completato)
+- **Stato complessivo:** baseline PHP/MariaDB avviabile; codice legacy ripulito da pagamenti, Firebase, login e server email
 
 ## Obiettivo corrente
 
-Review dell'utente e commit della Fase 1. Poi `prompts/03_FOUNDATION_MIGRATION.md`.
+Review/commit della Fase 1b, poi Fase 2A: `prompts/04_BOOKING_AVAILABILITY.md`.
 
 ## Ultimo lavoro completato
 
-- `src/EmailStatus/.env` rimosso dal tracking (P7); `.gitignore` aggiornato.
-- SPA React spostata in `legacy/` con `git mv` (P4); `node_modules` spostato lì (non tracciato).
-- Nuovo scheletro PHP: `public/index.php` (front controller), `app/` (config, DB, router, view, sessione, CSRF, auth admin, rate limit, audit log, logger), `templates/`, `migrations/0001–0002`, `bin/migrate.php`, `bin/create-admin.php`, `storage/`.
-- Ambiente Docker: `docker/php/Dockerfile` (pdo_mysql, rewrite, headers), `docker-compose.yml` riscritto senza segreti (valori da `.env`, volume `db_data`, porte su 127.0.0.1).
-- `.env.example` nuovo (SPEC §35); quello Firebase è in `legacy/.env.example`.
+- Rimossi da `legacy/` pagamenti, `AuthPopup`, `BookingSystem`, Firebase, `EmailServer.js`, codice morto e le dipendenze `firebase`, `nodemailer`, `dotenv`, `all`, `react-datepicker`, `react-icons`.
+- `App.jsx`, `NavBar.jsx`, `ContactUs.jsx` del legacy adattati (niente login, niente Prenota, niente modulo contatti).
+- Baseline legacy: build PASS (JS 184 kB), lint 43 errori (era 90), audit 2 vulnerabilità moderate (erano 14).
+- Baseline PHP riverificata: migrazioni, pagine, DB, lint PHP.
+- `README_home.md` (duplicato) eliminato su richiesta dell'utente.
 
 ## Working tree / modifiche locali da preservare
 
-- `README_home.md` non tracciato: copia di `README.md` dell'utente. Non toccata.
+- Modifiche non committate della Fase 1b (solo `legacy/` e `docs/`).
+- File locale non tracciato `legacy/src/EmailStatus/.env` con la credenziale Gmail già revocata: non letto, non cancellato (può eliminarlo il titolare).
 - `.env` locale con password DB casuali di sviluppo (ignorato).
 - Copia del `docker-compose.yml` originale dell'utente nello scratchpad della sessione (conteneva solo una password di sviluppo).
-- Account admin di sviluppo `admin` creato con password casuale non salvata: rieseguire `docker compose exec web php bin/create-admin.php admin` per impostarne una propria.
-- Il volume Docker anonimo del vecchio container MariaDB (DB `agriturismo` vuoto) non è stato eliminato.
+- Password admin locale impostata dall'utente; volumi Docker vecchi puliti dall'utente.
 
 ## Test/comandi più recenti
 
@@ -47,12 +47,12 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1 registrate.
 
 ## Prossimo passo esatto
 
-Commit della Fase 1, poi `prompts/03_FOUNDATION_MIGRATION.md`.
+`prompts/04_BOOKING_AVAILABILITY.md` (dopo commit della Fase 1b).
 
 ## Note per il prossimo agente
 
-- Non leggere né stampare `legacy/src/EmailStatus/.env` né i valori di `legacy/src/components/NavBar/firebaseConfig.js`.
-- Non avviare `legacy/src/EmailStatus/EmailServer.js`. Non contattare Firebase.
+- Non leggere né stampare `legacy/src/EmailStatus/.env` (credenziale revocata, file locale non tracciato). Non contattare Firebase.
+- Il legacy è solo riferimento per contenuti/stile (Fase 5); non reintrodurre Firebase, login o pagamenti.
 - I prezzi nel codice legacy non sono dati validi.
 - Migrazioni: un file nuovo per ogni modifica di schema, mai modificare `0001`/`0002` già applicate.
 - Ogni nuovo form deve usare `csrf_field()` + `Csrf::isValid()`; output sempre con `e()`.

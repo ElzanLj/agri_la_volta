@@ -46,6 +46,16 @@ Registra qui solo decisioni tecniche o di prodotto realmente prese. Non usare il
 | 2026-10-05 | Rate limiting su tabella DB `rate_limit_hits` con chiave hash SHA-256, conservazione 24 h; login admin: 5 fallimenti / 15 min per IP | file su disco; servizi esterni | funziona su hosting condiviso; riusabile per i moduli pubblici | `app/Security/RateLimiter.php` |
 | 2026-10-05 | `docker-compose.yml` versionato senza segreti (valori da `.env`), porte legate a `127.0.0.1`, document root del container = root del repository | lasciarlo non tracciato | ambiente locale riproducibile; esercita il fallback `.htaccess` | `docker-compose.yml`, `docker/php/Dockerfile` |
 
+## Decisioni Fase 1b — migrazione controllata (2026-10-05)
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-05 | Rimossi da `legacy/`: `Pagamenti`, `PrenotazioniPopUp`, `AuthPopup`, `BookingSystem.jsx`, `GenitoreComponente.jsx`, `ListaAppartamenti.jsx`, `firebaseConfig.js`, `EmailStatus/EmailServer.js`, `.env.example` Firebase | lasciarli fino alla Fase 5 | la sostituzione PHP (DB, config, admin auth) è pronta e verificata; SPEC §3 impone la rimozione dei pagamenti | `legacy/src/**` |
+| 2026-10-05 | Rimosse le dipendenze `firebase`, `nodemailer`, `dotenv`, `all`, `react-datepicker`, `react-icons` da `legacy/package.json` | mantenerle | vietate (Firebase) o non usate | `legacy/package*.json` |
+| 2026-10-05 | `legacy/` resta come sola sorgente di contenuti/stile (Hero, Appartamenti, DoveSiamo, CSS): non viene servita né pubblicata. Rimossi dal legacy il modulo contatti (usava il server Node) e la voce "Prenota" | riscrivere i componenti per il legacy | il form contatti e il flusso di prenotazione saranno nuovi in PHP (Fasi 2A/4/5) | `ContactUs.jsx`, `NavBar.jsx`, `App.jsx` |
+| 2026-10-05 | Foto, hotlink e CSS legacy non migrati in `public/` in questa fase | migrare gli asset ora | le foto di provenienza dubbia vanno sostituite (decisione utente); i contenuti verranno riportati in Fase 5/6 con provenienza verificata | `legacy/src/assets` |
+| 2026-10-05 | Node/Vite resta solo come strumento di build del legacy, non richiesto in produzione | rimuovere subito | utile per consultare/compilare il riferimento fino alla sua eliminazione (Fase 5) | `legacy/` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

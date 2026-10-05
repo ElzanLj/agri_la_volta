@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { auth } from './firebaseConfig';
-import { signOut } from 'firebase/auth';
 import './Navbar.css';
 
 import homeLogo from '../../assets/icon/homeLogo.png';
 import galleryLogo from '../../assets/icon/galleryLogo.png';
 import whereLogo from '../../assets/icon/whereLogo.png';
-import bookingLogo from '../../assets/icon/bookingLogo.png';
 import contactLogo from '../../assets/icon/contactLogo.png';
 import appartamentLogo from '../../assets/icon/appartmentLogo.png';
 import drago from '../../assets/fotoGenerali/logo1.webp';
 import hotelLogo from '../../assets/icon/HotelLogo.png';
-import agriLogo from '../../assets/icon/agriLogo.png';
 
 // Funzione per scrollare verso l'alto della pagina Dove Siamo
 const scrollToTop = () => {
@@ -22,9 +18,8 @@ const scrollToTop = () => {
   });
 };
 
-const NavBar = ({ onAuthClick, onBookingClick, scrollToSection }) => {
+const NavBar = ({ scrollToSection }) => {
   const [showSolidNavbar, setShowSolidNavbar] = useState(false);
-  const [user, setUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -34,23 +29,6 @@ const NavBar = ({ onAuthClick, onBookingClick, scrollToSection }) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-    });
-    return unsubscribe;
-  }, []);
-
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => {
-        console.log('Logout effettuato con successo');
-      })
-      .catch((error) => {
-        console.error('Errore durante il logout:', error);
-      });
-  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -100,16 +78,7 @@ const NavBar = ({ onAuthClick, onBookingClick, scrollToSection }) => {
           <NavItem logo={galleryLogo} text="Gallery" to="/" sectionName="Gallery" />
           <NavItem logo={hotelLogo} text="Appartamenti" to="/" sectionName="appartamenti" />
           <NavItem logo={whereLogo} text="Dove Siamo" to="/dovesiamo" onClick={() => { scrollToTop(); closeMobileMenu(); }} />
-          <NavItem logo={bookingLogo} text="Prenota" to="/Prenota" sectionName="Booking" />
           <NavItem logo={contactLogo} text="Contattaci" to="/" sectionName="ContactUs" />
-          
-          <div className="auth-section">
-            {user ? (
-              <button className='btn' onClick={handleLogout}>Logout</button>
-            ) : (
-              <button className='btn' onClick={onAuthClick}>Accedi/Registrati</button>
-            )}
-          </div>
         </ul>
 
         <div className="mobile-menu-icon" onClick={toggleMobileMenu}>

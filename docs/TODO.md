@@ -14,7 +14,7 @@ Regole:
 - [x] Dipendenze analizzate
 - [x] Immagini analizzate e provenienza dubbia segnalata
 - [x] Codice morto individuato
-- [~] Sistemi di pagamento individuati/rimossi in sicurezza (individuato `Pagamenti` → Firestore; rimozione in Fase 1)
+- [x] Sistemi di pagamento individuati/rimossi in sicurezza (`Pagamenti` e `PrenotazioniPopUp` rimossi da `legacy/` senza leggerne i dati; nessuna dipendenza di pagamento)
 - [x] Servizi/configurazioni esterne censiti
 - [~] Possibili dati reali identificati senza esposizione (repo verificato; contenuto Firestore non accessibile → verifica titolare)
 - [x] Baseline build/test documentata
