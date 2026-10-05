@@ -8,6 +8,27 @@ Regole:
 - mantieni una sola fonte di stato: questo file, non checklist parallele nelle chat.
 
 
+## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-06)
+
+**Prossima sessione: eseguire `prompts/08_PUBLIC_FRONTEND.md`** (Fase 5: pagine pubbliche e flusso di richiesta). Fasi 0-4 completate e committate (ultimo commit: `3010439`); working tree pulito a fine sessione.
+
+Per ripartire:
+1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **613 test PASS**, circa 4,5 minuti; se `vendor/` manca: `docker compose exec web composer install`).
+2. Leggere `docs/SESSION_STATE.md` (stato, note per il prossimo agente), `docs/MISSING_DATA.md` e `docs/DECISIONS.md`, poi `prompts/08_PUBLIC_FRONTEND.md`.
+3. Come nelle fasi precedenti: **prima un piano conciso** (struttura delle pagine e degli URL IT/EN, flusso di richiesta, test) da far approvare, poi il codice.
+
+Da tenere presente nella Fase 5:
+- riusare `BookingService::createRequest` (prezzo, limiti, soggiorno minimo, notifica al gestore già gestiti lato server) e **mai fidarsi di prezzi inviati dal browser**; ottenere il servizio da `App::services()->bookingService()` così l'hook email è collegato;
+- ogni nuova rotta pubblica con form: CSRF, honeypot/rate limit (`RateLimiter` esiste), validazione server-side, escaping con `e()`, nessun cookie per le pagine che non servono;
+- contenuti e stile da `legacy/` (i prezzi e le regole legacy NON sono validi); **foto: solo con provenienza verificata** (le foto coperte da copyright vanno rimosse, nessuna è ancora confermata: usare segnaposto chiaramente marcati);
+- pulsante WhatsApp pubblico: `WhatsApp::businessMessage` + `WhatsApp::link` con `WHATSAPP_NUMBER`; da mostrare **solo se il numero è configurato** (oggi manca);
+- invio email dopo la risposta: `DeferredWork` già collegato in `public/index.php`;
+- IT/EN con contenuti separati, URL: IT senza prefisso, EN con `/en/` (decisione P5); `/admin` non deve comparire nella navigazione pubblica (c'è un test);
+- accessibilità, SEO e performance sono la Fase 6 (`prompts/09`), ma la struttura HTML semantica va impostata già qui.
+
+Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali (consegna email non verificata), testi definitivi delle email e dei contenuti, numero WhatsApp dell'agriturismo, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting (PHP-FPM, cron, `vendor/` da caricare).
+
+
 ## Audit
 
 - [x] Repository e struttura analizzati

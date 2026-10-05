@@ -14,7 +14,7 @@
 
 ## Obiettivo corrente
 
-Fase 5 (frontend pubblico e flusso di richiesta): `prompts/08_PUBLIC_FRONTEND.md`. Riuserà `BookingService::createRequest` (che già accoda la notifica al gestore e prezzo/limiti lato server), `WhatsApp::businessMessage/businessLink` per il pulsante pubblico e `DeferredWork` per l'invio dopo la risposta. Contenuti e stile da `legacy/`; foto solo con provenienza verificata.
+Fase 5 (frontend pubblico e flusso di richiesta): `prompts/08_PUBLIC_FRONTEND.md`. Riuserà `BookingService::createRequest` (che già accoda la notifica al gestore e prezzo/limiti lato server), `WhatsApp::businessMessage` + `WhatsApp::link(WhatsApp::normalize(WHATSAPP_NUMBER), ...)` per il pulsante pubblico (da mostrare solo se il numero è configurato) e `DeferredWork` per l'invio dopo la risposta. Contenuti e stile da `legacy/`; foto solo con provenienza verificata.
 
 ## Ultimo lavoro completato
 
