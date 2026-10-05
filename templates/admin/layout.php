@@ -17,6 +17,7 @@ $nav = [
     '/admin/blocchi' => 'Blocchi',
     '/admin/appartamenti' => 'Appartamenti',
     '/admin/listino' => 'Listino',
+    '/admin/email' => 'Email',
     '/admin/storico' => 'Storico',
     '/admin/export' => 'Export',
 ];

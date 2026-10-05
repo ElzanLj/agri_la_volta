@@ -37,3 +37,7 @@ dist-ssr
 
 # PHPUnit
 /.phpunit.cache/
+
+# Development mail "outbox" written by MAIL_TRANSPORT=log
+/storage/mail/*
+!/storage/mail/.gitkeep

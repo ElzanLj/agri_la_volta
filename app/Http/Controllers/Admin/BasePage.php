@@ -55,6 +55,11 @@ abstract class BasePage
         return preg_match('/^[1-9]\d{0,9}$/', $value) ? (int) $value : null;
     }
 
+    protected function defaultCountryCode(): string
+    {
+        return $this->app->config->string('WHATSAPP_DEFAULT_COUNTRY_CODE', '39');
+    }
+
     protected function today(): string
     {
         return (new DateTimeImmutable('now', new DateTimeZone(date_default_timezone_get())))->format('Y-m-d');
@@ -64,9 +69,10 @@ abstract class BasePage
      * Runs a service call and turns its business errors into a flash message and a redirect.
      *
      * @param callable(): mixed $action
+     * @param string|callable(mixed): string $successMessage
      * @param string|callable(mixed): string $successUrl
      */
-    protected function attempt(callable $action, string $successMessage, string|callable $successUrl, string $failureUrl): Response
+    protected function attempt(callable $action, string|callable $successMessage, string|callable $successUrl, string $failureUrl): Response
     {
         try {
             $result = $action();
@@ -84,7 +90,7 @@ abstract class BasePage
             return $this->redirect($failureUrl);
         }
 
-        Flash::ok($successMessage);
+        Flash::ok(is_callable($successMessage) ? $successMessage($result) : $successMessage);
         return $this->redirect(is_callable($successUrl) ? $successUrl($result) : $successUrl);
     }
 

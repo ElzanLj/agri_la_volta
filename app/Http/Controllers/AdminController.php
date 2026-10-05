@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\BasePage;
 use App\Http\Request;
 use App\Http\Response;
 use App\Http\View;
+use App\Repository\OutboxRepository;
 use App\Security\AdminAuth;
 use App\Security\RateLimiter;
 
@@ -28,6 +29,7 @@ final class AdminController extends BasePage
         return $this->render('admin/dashboard', [
             'title' => 'Area amministrativa',
             'counts' => $this->queries()->dashboardCounts($this->today()),
+            'mail' => (new OutboxRepository($this->app->db()))->countsByStatus(),
         ]);
     }
 

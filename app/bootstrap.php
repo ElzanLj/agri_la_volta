@@ -21,6 +21,12 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
+// Third-party libraries (PHPMailer). In production the vendor/ folder is built with
+// `composer install --no-dev` and uploaded; the application itself needs no Composer.
+if (is_file(BASE_PATH . '/vendor/autoload.php')) {
+    require BASE_PATH . '/vendor/autoload.php';
+}
+
 require __DIR__ . '/helpers.php';
 
 $config = App\Config::load(BASE_PATH . '/.env');

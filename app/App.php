@@ -16,6 +16,7 @@ final class App
     private static ?self $current = null;
 
     private ?PDO $db = null;
+    private ?Service\Services $services = null;
 
     public function __construct(
         public readonly Config $config,
@@ -36,6 +37,17 @@ final class App
     public function db(): PDO
     {
         return $this->db ??= Connection::connect($this->config);
+    }
+
+    public function services(): Service\Services
+    {
+        return $this->services ??= new Service\Services($this);
+    }
+
+    /** Replaces the service wiring (tests inject a mail transport this way). */
+    public function useServices(Service\Services $services): void
+    {
+        $this->services = $services;
     }
 
     /** URL path prefix when installed in a subdirectory ("" at the domain root). */

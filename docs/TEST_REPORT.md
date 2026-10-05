@@ -98,6 +98,76 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Fase 4 — email, robustezza SMTP e WhatsApp (2026-10-06)
+
+Comando: `docker compose exec web composer test`. Il vero `SmtpTransport` (PHPMailer) è provato contro un **server SMTP finto** (`tests/Support/fake-smtp-server.php`) che parla il protocollo e può guastarsi in 10 modi (più uno scenario lento). **Nessuna credenziale SMTP reale è stata usata né esiste ancora: la consegna reale NON è stata verificata** (vedi limiti).
+
+| Suite | Test | Asserzioni | Risultato |
+|---|---|---|---|
+| `unit` (+ `WhatsAppTest`, `MailUnitTest`) | 278 | 520 | PASS |
+| `integration` (+ `SmtpTransportTest`, `OutboxFlowTest`, `MailResilienceTest`) | 223 | circa 1900 | PASS |
+| `http` (+ `AdminMailTest`) | 101 | circa 1500 | PASS |
+| `concurrency` (+ `MailConcurrencyTest`) | 11 | circa 1700 | PASS |
+| **Totale** | **613** | **5285 e 5291 nelle due esecuzioni** | **PASS in 2 esecuzioni consecutive, circa 4,5 minuti ciascuna** |
+
+### La garanzia centrale: lo stato non si perde mai
+- **Commit prima dell'invio.** Il trasporto di prova apre, nel momento esatto dell'invio, una **seconda connessione** al database: vede già la richiesta salvata, la conferma con prenotazione e voce di audit, il rifiuto, e nessuna transazione aperta. Valido per nuova richiesta, conferma e rifiuto.
+- **13 tipi di guasto** (connessione rifiutata, timeout, 4xx, destinatario 5xx, autenticazione, non configurato, `RuntimeException`, `LogicException`, `TypeError`, `DivisionByZeroError`, `ErrorException` da warning di rete, `Error` da memoria esaurita, `PDOException`): per ognuno richiesta salvata, conferma intatta (richiesta, prenotazione, audit, nessuna sovrapposizione, nessuna transazione aperta), rifiuto intatto, nessuna eccezione al chiamante, riga della coda `failed` con codice, tentativi e testo **ripulito** (nessuna password, nessun indirizzo, nessun nome nei log).
+- **Server SMTP vero in 9 scenari** (destinatario 550, 450, autenticazione 535, rifiuto dopo DATA 554, rinvio dopo DATA 451, caduta a metà messaggio, caduta prima dell'esito, server che non risponde, 421 al saluto), in più porta chiusa e SMTP non configurato: l'intero flusso (richiesta → conferma) lascia lo stato intatto, classifica l'errore, pianifica o no il retry; poi, "riparato" il server, **un tentativo manuale consegna ogni messaggio una sola volta** ai destinatari giusti.
+- **Timeout:** un server che non risponde costa circa il timeout configurato (verificato: tra 0,8 e 4 s con timeout di 1 s; richiesta HTTP di rifiuto con timeout 2 s < 8 s).
+- **Anche registrare l'esito può fallire:** con un trigger che impedisce di aggiornare la riga a `sent`/`failed`, nessuna eccezione, stato intatto, riga "in invio" che torna disponibile alla scadenza della presa e viene poi consegnata.
+- **Hook dopo il commit rotto** (`Error` dentro l'hook): contenuto e registrato; i messaggi restano in coda.
+- **Outbox rotta o assente** (trigger che fa fallire l'INSERT; tabella rinominata come se la migrazione 0004 mancasse): richiesta, conferma e rifiuto vengono comunque salvati, l'errore è registrato (anche senza logger). *Trovato da una prova di sensibilità e corretto: prima l'INSERT nella transazione avrebbe annullato anche la prenotazione.*
+- **Atomicità:** se la transazione fallisce a metà (audit), non restano né richiesta/prenotazione né riga in coda; se un'operazione è rifiutata non si accoda nulla; cancellando una richiesta spariscono le sue righe in coda.
+
+### Coda, retry e concorrenza
+- Backoff 5, 30, 120 minuti, quarto tentativo ultimo; nessun ritentativo anticipato; errore permanente mai ritentato da solo ma ritentabile a mano; riga inviata mai rinviata; presa fresca rispettata, presa scaduta (10 min) ripresa; ordine per id; budget di tempo; id sconosciuto innocuo.
+- **Concorrenza reale** (8 processi PHP, 5 round): lo stesso messaggio tentato da 8 processi parte **una sola volta** (1 `sent`, 7 `busy`, 1 file); 8 processi che svuotano insieme la coda di 6 messaggi ne inviano esattamente 6, un tentativo ciascuno; un messaggio già consegnato non riparte.
+
+### Contenuto dei messaggi
+Notifica al gestore (riferimento, appartamento, date, notti, ospiti, cliente, email, telefono, lingua, prezzo calcolato o "da confermare", note, link alla richiesta, `Reply-To` sul cliente, oggetto con il solo riferimento); conferma e rifiuto in italiano e inglese (orari solo se configurati, totale solo se noto, nessun motivo inventato, nessun riferimento a pagamenti); nessun "richiesta ricevuta" al cliente; indirizzo del gestore mancante → errore di configurazione, non crash; cliente senza email → `skipped`; righe inviate senza dati personali né testo; header injection (a capo in nome, oggetto, destinatario) neutralizzata sia a livello di messaggio sia sul canale SMTP.
+
+### Protocollo SMTP reale
+Invio riuscito con busta, intestazioni (oggetto UTF-8, From, To, Reply-To, Content-Type), corpo con accenti e riga composta da un solo punto, sequenza `EHLO, AUTH, MAIL, RCPT, DATA, QUIT`, nessuna AUTH senza credenziali, la password mai nel registro del server, nessun banner `X-Mailer`; **TLS non declassato in chiaro** (con `tls` e server senza STARTTLS nessun messaggio parte); classificazione corretta di ogni guasto con messaggio privo di indirizzi e credenziali.
+
+### Admin (HTTP reale, con SMTP finto)
+Conferma con invio riuscito ("Email al cliente inviata") e con server giù (decisione salvata, messaggio onesto, riga `failed`, contatore in dashboard, pagina Email con prossimo tentativo, nulla di sensibile in pagina/DB/log); riprova a mano fino alla consegna e nessun doppio invio; rifiuto in inglese e con timeout; email in coda recapitate insieme alla decisione successiva; pagina Email con filtri validati (400 su valori non validi); **cancellazione che non invia né accoda nulla**; bozza modificabile (IT/EN), `mailto:`, rifiuto del segnaposto non modificato, validazione, invio del **testo modificato** e cancellazione del testo dopo l'invio, testo conservato se l'invio fallisce, solo per prenotazioni cancellate, senza indirizzo non si può inviare, testo del cliente escapato; script `bin/send-queued-mail.php`; pagine protette come le altre (anonimo 303/401, senza token 403, GET su azione 405).
+
+### WhatsApp
+31 casi di normalizzazione (più prefissi predefiniti diversi) (formati internazionali, `00`, nazionali, prefisso digitato senza `+`, fissi italiani, UK/US, prefissi predefiniti diversi; rifiutati testo, estensioni, doppio `+`, troppo corti/lunghi, iniezione HTML/query/`javascript:`, cifre non ASCII), URL `wa.me` valido riletto dopo la decodifica, **nulla nel testo può uscire dall'URL**, messaggio dell'agriturismo identico all'esempio SPEC (IT ed EN, combinazioni parziali), messaggi verso i clienti con plurali e animali, link nelle pagine di richiesta e prenotazione (anche manuale), nessun link per numeri inutilizzabili.
+
+### Prove di sensibilità (eseguite a mano su una copia pulita dei file, ripristino automatico)
+
+| Indebolimento introdotto | Test falliti |
+|---|---|
+| email inviata **dentro** la transazione (prima del commit) | 18 su 38 |
+| errori inattesi del trasporto non contenuti | 8 su 38 |
+| errori dell'hook dopo il commit propagati al chiamante | 1 su 38 |
+| presa atomica rimossa (chiunque può inviare) | 5 su 30 |
+| testi di errore non ripuliti | 4 su 62 |
+| a capo ammessi negli header | 7 su 73 |
+| WhatsApp accetta qualunque carattere | 3 su 46 |
+| la cancellazione accoda un'email da sola | 2 su 48 |
+| risposte SMTP ignorate (ogni errore sembra "connessione") | 12 su 60 |
+| TLS declassato in chiaro | 1 su 22 |
+| bozza inviabile con il segnaposto non modificato | 1 su 21 |
+| un messaggio consegnato può essere preso e inviato di nuovo | 3 su 30 |
+| i tentativi automatici non si fermano mai | 1 su 27 |
+| un'outbox rotta o assente blocca la prenotazione | 3 su 38 |
+
+### Difetti trovati e corretti durante la fase
+1. **Un'outbox rotta o mancante avrebbe annullato anche la prenotazione** (INSERT nella transazione): ora contenuto (`queueMail`) e coperto da test. Trovato perché una prova di sensibilità non rilevava lo spostamento dell'accodamento.
+2. La classificazione degli errori SMTP leggeva lo stato di PHPMailer dopo il suo `RSET` di pulizia (vuoto): destinatario 550, 450 e autenticazione 535 risultavano "connessione", e una porta chiusa "rifiutato" (`errno` scambiato per codice SMTP). Ora si classifica dalle risposte del server catturate durante la conversazione.
+3. `WhatsApp::link()` accettava un numero con a-capo finale (`$` prima del newline); corretto con `\z` (e nei filtri della lista).
+4. PHPMailer 6.12 emette il banner `X-Mailer` anche con valore vuoto: ora si sopprime con un valore blank.
+5. Una prova di sensibilità interrotta ha lasciato per un momento `BookingService.php` con una modifica di prova; individuata, ripristinata e resa impossibile per il futuro (le prove ripristinano sempre da una copia pulita).
+6. Errori nei miei test, corretti: confronto di chiavi di array, asserzioni prive di senso, numeri "inutilizzabili" che la validazione pubblica già rifiuta.
+
+### Limiti noti (NOT RUN)
+- **Consegna reale NON verificata**: TLS/STARTTLS con certificato vero (il server finto non ha TLS), autenticazione con un provider vero, SPF/DKIM/reputazione e rischio spam. Checklist a credenziali disponibili: (1) impostare `SMTP_*` e `MAIL_*` in produzione; (2) inviare una richiesta di prova e verificare notifica al gestore; (3) confermarla e verificare ricezione e intestazioni dal lato cliente; (4) controllare SPF/DKIM/DMARC del dominio con il fornitore (senza modificarli senza autorizzazione); (5) provare un errore di password per vedere il messaggio in Admin > Email.
+- **Invio dopo la chiusura della risposta con PHP-FPM** (`fastcgi_finish_request`) non provato (il test usa la CLI): verificata solo la logica di `DeferredWork` con un finto "chiudi connessione" e l'invio in linea.
+- Testi delle email provvisori (da approvare dal titolare), nessun test manuale nel browser, provato solo con MariaDB 10.11.
+
 ## Fase 3 — area amministrativa e sicurezza (2026-10-05)
 
 Ambiente come le fasi precedenti. Comando: `docker compose exec web composer test`. La nuova suite `http` avvia l'applicazione vera dietro il **server PHP built-in** (database di test) e usa un client HTTP con cookie: status, header, redirect e cookie sono quelli reali. Prezzi usati nei test: FITTIZI.

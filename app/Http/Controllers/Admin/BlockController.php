@@ -30,7 +30,7 @@ final class BlockController extends BasePage
         $apartmentId = preg_match('/^[1-9]\d{0,9}$/', $values['apartment_id']) ? (int) $values['apartment_id'] : 0;
 
         try {
-            (new BookingService($this->app->db()))->createBlock($apartmentId, $values['start_date'], $values['end_date'], $values['reason'] ?: null);
+            ($this->app->services()->bookingService())->createBlock($apartmentId, $values['start_date'], $values['end_date'], $values['reason'] ?: null);
         } catch (ValidationException $e) {
             return $this->page($values, $this->mapDateErrors(ErrorMessages::forFields($e->errors())), 422);
         } catch (ConflictException $e) {
@@ -53,7 +53,7 @@ final class BlockController extends BasePage
             return $this->notFound();
         }
         return $this->attempt(
-            fn () => (new BookingService($this->app->db()))->removeBlock($id),
+            fn () => ($this->app->services()->bookingService())->removeBlock($id),
             'Blocco rimosso: le date sono di nuovo disponibili.',
             '/admin/blocchi',
             '/admin/blocchi',

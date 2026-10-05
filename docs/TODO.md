@@ -87,16 +87,16 @@ Regole:
 
 ## Email e WhatsApp
 
-- [ ] SMTP da variabili d'ambiente
-- [ ] Richiesta salvata prima dell'email
-- [ ] Nuova richiesta → email gestore
-- [ ] Conferma → email cliente
-- [ ] Rifiuto → email cliente
-- [ ] Cancellazione → bozza modificabile, non inviata automaticamente
-- [ ] Fallimento SMTP non perde dati
-- [ ] Fallimento registrato senza segreti/dati inutili
-- [ ] Retry previsto se utile
-- [ ] WhatsApp con messaggio precompilato modificabile
+- [x] SMTP da variabili d'ambiente (`MAIL_TRANSPORT`, `SMTP_*`, `MAIL_*`; credenziali reali non ancora fornite)
+- [x] Richiesta salvata prima dell'email (outbox nella stessa transazione, invio dopo il commit)
+- [x] Nuova richiesta → email gestore (con tutti i dati previsti dalla SPEC e link all'admin)
+- [x] Conferma → email cliente (IT/EN)
+- [x] Rifiuto → email cliente (IT/EN)
+- [x] Cancellazione → bozza modificabile, non inviata automaticamente (invio solo con azione esplicita sul testo modificato)
+- [x] Fallimento SMTP non perde dati (verificato con 13 tipi di errore e con un server SMTP finto in 9 scenari)
+- [x] Fallimento registrato senza segreti/dati inutili (codice + testo ripulito; nessun indirizzo, password o nome nei log)
+- [x] Retry previsto se utile (backoff 5/30/120 min, pulsante "Riprova", script per cron)
+- [x] WhatsApp con messaggio precompilato modificabile (link `wa.me` verso i clienti dall'admin; funzione per il pulsante pubblico pronta, numero dell'agriturismo ancora mancante)
 
 ## Pubblico e contenuti
 
@@ -165,7 +165,7 @@ Regole:
 - [x] Test variazioni adulti/bambini/animali
 - [x] Test autorizzazione admin (matrice su tutte le rotte `/admin`, via HTTP reale)
 - [~] Test richieste pubbliche (a livello servizio; test HTTP del form in Fase 5)
-- [ ] Test fallimento email
+- [x] Test fallimento email
 - [~] Test validazione form (validazione server-side testata a livello servizio; form HTML in Fase 5)
 - [x] Test cancellazione
 - [x] Test export CSV
@@ -173,7 +173,7 @@ Regole:
 - [ ] README/installazione locale
 - [ ] Installazione hosting condiviso
 - [ ] Import database
-- [ ] Configurazione SMTP
+- [~] Configurazione SMTP (variabili e comportamento documentati in `docs/COMMANDS.md`; guida di consegna in Fase 8; credenziali reali mancanti)
 - [~] Creazione/modifica admin (`bin/create-admin.php` testato, cambio password chiude le sessioni; guida completa in Fase 8)
 - [ ] Backup/ripristino
 - [ ] Export CSV documentato

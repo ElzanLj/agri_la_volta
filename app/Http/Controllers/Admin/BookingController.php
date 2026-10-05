@@ -15,7 +15,8 @@ use App\Http\Admin\Labels;
 use App\Http\Admin\ListFilters;
 use App\Http\Request;
 use App\Http\Response;
-use App\Service\BookingService;
+use App\Repository\OutboxRepository;
+use App\Support\WhatsApp;
 
 final class BookingController extends BasePage
 {
@@ -42,7 +43,21 @@ final class BookingController extends BasePage
         if ($row === null) {
             return $this->notFound();
         }
-        return $this->render('admin/bookings/show', ['title' => 'Prenotazione n. ' . $row['id'], 'row' => $row]);
+        $request = $row['booking_request_id'] === null ? null : $this->queries()->request((int) $row['booking_request_id']);
+        $locale = $request === null ? 'it' : (string) $request['locale'];
+        $firstName = trim((string) strtok((string) $row['guest_name'], ' '));
+
+        return $this->render('admin/bookings/show', [
+            'title' => 'Prenotazione n. ' . $row['id'],
+            'row' => $row,
+            'emails' => (new OutboxRepository($this->app->db()))->forBooking((int) $row['id']),
+            'whatsapp' => WhatsApp::linkForPhone($row['phone'], WhatsApp::customerMessage($locale, [
+                'first_name' => $firstName === '' ? (string) $row['guest_name'] : $firstName,
+                'reference' => $row['request_reference'] === null ? null : (string) $row['request_reference'],
+                'apartment' => (string) $row['apartment_name'], 'check_in' => (string) $row['check_in'], 'check_out' => (string) $row['check_out'],
+                'adults' => (int) $row['adults'], 'children' => (int) $row['children'], 'pets' => (int) $row['pets'],
+            ]), $this->defaultCountryCode()),
+        ]);
     }
 
     /** Confirmation page: nothing changes on GET. @param array<string, string> $params */
@@ -68,8 +83,8 @@ final class BookingController extends BasePage
             return $this->notFound();
         }
         return $this->attempt(
-            fn () => (new BookingService($this->app->db()))->cancelBooking($id, $request->input('motivo') ?: null),
-            'Prenotazione cancellata: le date sono di nuovo disponibili. L\'email di cancellazione sarà una bozza (non ancora disponibile).',
+            fn () => ($this->app->services()->bookingService())->cancelBooking($id, $request->input('motivo') ?: null),
+            'Prenotazione cancellata: le date sono di nuovo disponibili. Nessuna email è stata inviata: puoi preparare la bozza di cancellazione dalla pagina della prenotazione.',
             '/admin/prenotazioni/' . $id,
             '/admin/prenotazioni/' . $id,
         );
@@ -101,7 +116,7 @@ final class BookingController extends BasePage
         ];
 
         try {
-            $bookingId = (new BookingService($this->app->db()))->createManualBooking($input);
+            $bookingId = ($this->app->services()->bookingService())->createManualBooking($input);
         } catch (ValidationException $e) {
             return $this->form($values, ErrorMessages::forFields($e->errors()), 422);
         } catch (ConflictException $e) {

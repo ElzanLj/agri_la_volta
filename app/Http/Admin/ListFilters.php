@@ -49,7 +49,7 @@ final class ListFilters
         $apartment = $request->query('appartamento');
         $apartmentId = null;
         if ($apartment !== '') {
-            if (preg_match('/^\d{1,9}$/', $apartment)) {
+            if (preg_match('/^\d{1,9}\z/', $apartment)) {
                 $apartmentId = (int) $apartment;
             } else {
                 $errors['appartamento'] = 'Appartamento non valido.';
@@ -80,7 +80,7 @@ final class ListFilters
         $page = $request->query('pagina');
         $pageNumber = 1;
         if ($page !== '') {
-            if (preg_match('/^\d{1,6}$/', $page) && (int) $page >= 1) {
+            if (preg_match('/^\d{1,6}\z/', $page) && (int) $page >= 1) {
                 $pageNumber = (int) $page;
             } else {
                 $errors['pagina'] = 'Pagina non valida.';

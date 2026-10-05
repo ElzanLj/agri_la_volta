@@ -75,7 +75,7 @@ Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
 
 ```bash
 docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
-docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (432 test, circa 3 minuti)
+docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (613 test, circa 4,5 minuti)
 ```
 
 Suite singole:
@@ -97,13 +97,40 @@ docker compose exec web vendor/bin/phpunit --testsuite unit --testdox
 
 Il listino non è nel codice né nelle migrazioni: si inserisce tramite `PricingConfigService` (interfaccia admin in Fase 3). Dopo `git pull` con nuove migrazioni eseguire `php bin/migrate.php`.
 
+## Email
+
+Configurazione (`.env` o variabili dell'hosting; esempio in `.env.example`):
+
+| Variabile | Significato |
+|---|---|
+| `MAIL_TRANSPORT` | `smtp` (predefinito) oppure `log` (solo sviluppo: scrive i messaggi in `storage/mail/`, **rifiutato in produzione**) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_ENCRYPTION` (`tls`/`ssl`/`none`), `SMTP_USERNAME`, `SMTP_PASSWORD` | server SMTP; con `SMTP_HOST` vuoto le email restano in coda |
+| `SMTP_TIMEOUT` | secondi di attesa del server (10) |
+| `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, `MAIL_ADMIN_ADDRESS` | mittente e destinatario delle notifiche |
+| `WHATSAPP_NUMBER`, `WHATSAPP_DEFAULT_COUNTRY_CODE` | numero dell'agriturismo (cifre, senza `+`) e prefisso per i numeri senza prefisso (39) |
+
+Come funziona: le email nascono nella stessa transazione della modifica (tabella `email_outbox`) e partono subito dopo il commit; un errore di invio non tocca mai richieste o prenotazioni. Stato e tentativi sono in **Admin > Email**, con pulsante "Riprova invio".
+
+Script per il cron (facoltativo): `php bin/send-queued-mail.php [--limit=20]` invia ciò che è in coda e scaduto (es. ogni 10 minuti).
+
+**Produzione:** PHPMailer richiede la cartella `vendor/`. Va generata in locale e caricata sull'hosting:
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
+
+Poi caricare `vendor/` insieme al resto del sito (non è versionata). Senza `vendor/` l'invio fallisce con "PHPMailer non installato" e le email restano in coda.
+
+Applicare la migrazione `0004` (`php bin/migrate.php` oppure importando `migrations/0004_email_outbox.sql`) **prima** di pubblicare; se manca, il sito continua a salvare tutto ma non accoda le email (viene registrato nei log).
+
 ## Area amministrativa
 
 - Indirizzo: `/admin` (sul container: http://localhost:8080/admin). Non compare nella navigazione pubblica e non è indicizzata.
 - Pagine: Home, Richieste, Prenotazioni (+ nuova manuale), Calendario, Blocchi, Appartamenti, Listino, Storico, Export (CSV richieste e prenotazioni).
 - Tutta l'area è protetta da tre guardie a livello di prefisso (vedi `app/routes_admin.php`): risposte private, autenticazione, CSRF. Le nuove rotte sotto `/admin` le ereditano automaticamente; regola: **le modifiche sono solo POST**.
 - Il cambio password si fa solo da riga di comando e chiude le sessioni aperte.
-- Conferma, rifiuto e cancellazione **non inviano email** (Fase 4).
+- Conferma e rifiuto inviano l'email al cliente (se l'invio fallisce la decisione resta salvata e lo stato è visibile in Admin > Email). La cancellazione **non invia nulla da sola**: prepara una bozza modificabile che si invia solo con un'azione esplicita.
+- Dal dettaglio di richiesta e prenotazione: link WhatsApp verso il cliente (testo modificabile prima dell'invio).
 
 ## Amministratore
 

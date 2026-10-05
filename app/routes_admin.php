@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AuditController;
 use App\Http\Controllers\Admin\BlockController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\CalendarController;
+use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\RequestController;
@@ -41,6 +42,7 @@ return static function (Router $router, App $app): void {
     $pricing = new PricingController($app);
     $audit = new AuditController($app);
     $export = new ExportController($app);
+    $email = new EmailController($app);
 
     $router->get('/admin', [$home, 'dashboard']);
     $router->get('/admin/login', [$home, 'loginForm']);
@@ -58,6 +60,12 @@ return static function (Router $router, App $app): void {
     $router->get('/admin/prenotazioni/{id}', [$bookings, 'show']);
     $router->get('/admin/prenotazioni/{id}/cancella', [$bookings, 'cancelForm']);
     $router->post('/admin/prenotazioni/{id}/cancella', [$bookings, 'cancel']);
+
+    $router->get('/admin/prenotazioni/{id}/bozza-cancellazione', [$email, 'draftForm']);
+    $router->post('/admin/prenotazioni/{id}/bozza-cancellazione', [$email, 'draftSend']);
+
+    $router->get('/admin/email', [$email, 'index']);
+    $router->post('/admin/email/{id}/riprova', [$email, 'retry']);
 
     $router->get('/admin/blocchi', [$blocks, 'index']);
     $router->post('/admin/blocchi', [$blocks, 'create']);

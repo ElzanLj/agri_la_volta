@@ -15,8 +15,10 @@ use App\Domain\ValidationException;
 use App\Repository\ApartmentRepository;
 use App\Repository\AvailabilityRepository;
 use App\Repository\BookingRepository;
+use App\Repository\OutboxRepository;
 use App\Repository\PricingRepository;
 use App\Support\AuditLog;
+use App\Support\Logger;
 use DateTimeImmutable;
 use DateTimeZone;
 use PDO;
@@ -47,6 +49,10 @@ final class BookingService
     private AuditLog $audit;
     private PriceQuoter $quoter;
     private TransactionRunner $tx;
+    private OutboxRepository $outbox;
+    /** @var (callable(list<int>): void)|null */
+    private $afterCommit = null;
+    private ?Logger $logger = null;
     /** @var callable(): string */
     private $today;
 
@@ -59,7 +65,59 @@ final class BookingService
         $this->audit = new AuditLog($db);
         $this->quoter = $quoter ?? new ConfiguredPriceQuoter(new PricingRepository($db));
         $this->tx = new TransactionRunner($db);
+        $this->outbox = new OutboxRepository($db);
         $this->today = $today ?? static fn (): string => (new DateTimeImmutable('now', new DateTimeZone(date_default_timezone_get())))->format('Y-m-d');
+    }
+
+    /**
+     * Registers what to do after a transaction that queued e-mails has COMMITTED. The hook receives
+     * the outbox ids and runs outside any transaction; whatever it does or throws can never undo or
+     * block the state change (exceptions are caught here and only logged).
+     *
+     * @param callable(list<int>): void $hook
+     */
+    public function afterCommit(callable $hook, ?Logger $logger = null): void
+    {
+        $this->afterCommit = $hook;
+        $this->logger = $logger;
+    }
+
+    /** Where problems that must not interrupt a booking (queueing, notifications) are reported. */
+    public function useLogger(Logger $logger): void
+    {
+        $this->logger = $logger;
+    }
+
+    /** @param list<int> $outboxIds */
+    private function runAfterCommit(array $outboxIds): void
+    {
+        if ($this->afterCommit === null || $outboxIds === []) {
+            return;
+        }
+        try {
+            ($this->afterCommit)($outboxIds);
+        } catch (\Throwable $e) {
+            $this->logger?->error('After-commit hook failed', ['exception' => $e::class]);
+        }
+    }
+
+    /**
+     * Queues an e-mail INSIDE the business transaction. A broken or missing outbox (for example a
+     * migration not yet applied on the server) must never block or undo a booking: the failure is
+     * logged and the state change goes ahead, only the e-mail is missing.
+     *
+     * @param list<int> $ids
+     */
+    private function queueMail(array &$ids, string $type, ?int $requestId, ?int $bookingId, string $locale): void
+    {
+        try {
+            $ids[] = $this->outbox->enqueue($type, $requestId, $bookingId, $locale);
+        } catch (\PDOException $e) {
+            $this->logger?->error('E-mail could not be queued; the change itself is saved', ['type' => $type, 'sqlstate' => (string) $e->getCode()]);
+            if ($this->logger === null) {
+                error_log('E-mail could not be queued (' . $type . '); the change itself is saved');
+            }
+        }
     }
 
     // === Public request =====================================================
@@ -156,7 +214,8 @@ final class BookingService
             }
         }
 
-        return $this->transactional(function () use ($apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote): array {
+        $outboxIds = [];
+        $result = $this->transactional(function () use (&$outboxIds, $apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote): array {
             $row = [
                 'apartment_id' => $apartmentId,
                 'check_in' => $stay->checkIn,
@@ -198,8 +257,14 @@ final class BookingService
                 'pets' => $guests->pets,
             ]);
 
+            // The notification is queued with the request: a plain INSERT, no SMTP involved.
+            $this->queueMail($outboxIds, 'new_request_admin', $id, null, $locale);
+
             return ['id' => $id, 'reference' => $row['reference']];
         });
+
+        $this->runAfterCommit($outboxIds); // after the commit, outside the transaction
+        return $result;
     }
 
     // === Admin: request decisions ===========================================
@@ -215,7 +280,8 @@ final class BookingService
         $request = $this->bookings->request($requestId) ?? throw new StateException('request_not_found');
         $apartmentId = (int) $request['apartment_id'];
 
-        return $this->withApartmentLock($apartmentId, function () use ($requestId, $apartmentId): array {
+        $outboxIds = [];
+        $result = $this->withApartmentLock($apartmentId, function () use (&$outboxIds, $requestId, $apartmentId): array {
             // Re-read under the lock: another admin action may have decided it meanwhile.
             $request = $this->bookings->request($requestId, true) ?? throw new StateException('request_not_found');
             if ($request['status'] !== 'pending') {
@@ -249,8 +315,13 @@ final class BookingService
                 'check_in' => $stay->checkIn, 'check_out' => $stay->checkOut, 'booking_request_id' => $requestId,
             ]);
 
+            $this->queueMail($outboxIds, 'request_confirmed', $requestId, $bookingId, (string) $request['locale']);
+
             return ['booking_id' => $bookingId];
         });
+
+        $this->runAfterCommit($outboxIds);
+        return $result;
     }
 
     /**
@@ -259,7 +330,8 @@ final class BookingService
     public function rejectRequest(int $requestId): void
     {
         // Rejecting never changes occupation, so it needs only the request row lock.
-        $this->transactional(function () use ($requestId): void {
+        $outboxIds = [];
+        $this->transactional(function () use (&$outboxIds, $requestId): void {
             $request = $this->bookings->request($requestId, true) ?? throw new StateException('request_not_found');
             if ($request['status'] !== 'pending') {
                 throw new StateException('request_not_pending');
@@ -267,7 +339,10 @@ final class BookingService
             $this->bookings->setRequestStatus($requestId, 'rejected', true);
             $this->audit->record('booking_request', $requestId, 'status_changed', 'Richiesta pending → rejected',
                 ['status' => 'pending'], ['status' => 'rejected']);
+            $this->queueMail($outboxIds, 'request_rejected', $requestId, null, (string) $request['locale']);
         });
+
+        $this->runAfterCommit($outboxIds);
     }
 
     // === Admin: manual bookings, cancellation, blocks ======================

@@ -23,6 +23,22 @@ final class Labels
         'seasonal_rate' => 'Tariffa', 'pricing_rule' => 'Regola di prezzo', 'apartment' => 'Appartamento', 'admin' => 'Amministratore',
     ];
 
+    public const EMAIL_TYPES = [
+        'new_request_admin' => 'Notifica al gestore', 'request_confirmed' => 'Conferma al cliente',
+        'request_rejected' => 'Rifiuto al cliente', 'cancellation' => 'Cancellazione al cliente',
+    ];
+    public const EMAIL_STATUSES = ['pending' => 'In coda', 'sending' => 'In invio', 'sent' => 'Inviata', 'failed' => 'Non inviata', 'skipped' => 'Saltata'];
+
+    public static function emailType(string $s): string
+    {
+        return self::EMAIL_TYPES[$s] ?? $s;
+    }
+
+    public static function emailStatus(string $s): string
+    {
+        return self::EMAIL_STATUSES[$s] ?? $s;
+    }
+
     public static function requestStatus(string $s): string
     {
         return self::REQUEST_STATUSES[$s] ?? $s;

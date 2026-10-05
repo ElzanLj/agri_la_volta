@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\PriceQuote;
+use App\Http\Admin\EmailStatusText;
 use App\Http\Admin\Labels;
 use App\Http\Admin\ListFilters;
 use App\Http\Request;
 use App\Http\Response;
-use App\Service\BookingService;
+use App\Repository\OutboxRepository;
+use App\Support\WhatsApp;
 
 final class RequestController extends BasePage
 {
@@ -45,6 +47,12 @@ final class RequestController extends BasePage
             'row' => $row,
             'booking' => $this->queries()->bookingOfRequest((int) $row['id']),
             'summary' => $summary,
+            'emails' => (new OutboxRepository($this->app->db()))->forRequest((int) $row['id']),
+            'whatsapp' => WhatsApp::linkForPhone($row['phone'], WhatsApp::customerMessage((string) $row['locale'], [
+                'first_name' => (string) $row['first_name'], 'reference' => (string) $row['reference'], 'apartment' => (string) $row['apartment_name'],
+                'check_in' => (string) $row['check_in'], 'check_out' => (string) $row['check_out'],
+                'adults' => (int) $row['adults'], 'children' => (int) $row['children'], 'pets' => (int) $row['pets'],
+            ]), $this->defaultCountryCode()),
         ]);
     }
 
@@ -56,8 +64,8 @@ final class RequestController extends BasePage
             return $this->notFound();
         }
         return $this->attempt(
-            fn (): array => (new BookingService($this->app->db()))->confirmRequest($id),
-            'Richiesta confermata: la prenotazione è stata creata. (Nessuna email è stata inviata.)',
+            fn (): array => ($this->app->services()->bookingService())->confirmRequest($id),
+            fn (array $result): string => 'Richiesta confermata: la prenotazione è stata creata. ' . EmailStatusText::forRequest($this->app->db(), $id, 'request_confirmed'),
             static fn (array $result): string => '/admin/prenotazioni/' . $result['booking_id'],
             '/admin/richieste/' . $id,
         );
@@ -71,8 +79,8 @@ final class RequestController extends BasePage
             return $this->notFound();
         }
         return $this->attempt(
-            fn () => (new BookingService($this->app->db()))->rejectRequest($id),
-            'Richiesta rifiutata. (Nessuna email è stata inviata.)',
+            fn () => ($this->app->services()->bookingService())->rejectRequest($id),
+            fn (): string => 'Richiesta rifiutata. ' . EmailStatusText::forRequest($this->app->db(), $id, 'request_rejected'),
             '/admin/richieste/' . $id,
             '/admin/richieste/' . $id,
         );

@@ -27,6 +27,11 @@ final class TestServer
             'APP_DEBUG' => 'false',
             'APP_URL' => 'http://127.0.0.1:' . $port,
             'DB_NAME' => getenv('TEST_DB_NAME') ?: 'agriturismo_test',
+            // Tests never send real mail: by default messages are written to a throw-away folder.
+            'MAIL_TRANSPORT' => 'log',
+            'MAIL_LOG_DIR' => sys_get_temp_dir() . '/lavolta-test-mail-' . $port,
+            'MAIL_ADMIN_ADDRESS' => 'gestore@example.test',
+            'MAIL_FROM_ADDRESS' => 'info@example.test',
         ], $env);
 
         $process = proc_open(
@@ -65,6 +70,11 @@ final class TestServer
             proc_close($this->process);
         }
         @unlink($this->logFile);
+        $mailDir = sys_get_temp_dir() . '/lavolta-test-mail-' . $this->port;
+        foreach (glob($mailDir . '/*') ?: [] as $file) {
+            @unlink($file);
+        }
+        @rmdir($mailDir);
     }
 
     private static function freePort(): int

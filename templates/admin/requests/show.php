@@ -27,6 +27,8 @@ $nights = (int) (new DateTimeImmutable((string) $row['check_in']))->diff(new Dat
     <dd><?= e($row['email']) ?></dd>
     <dt>Telefono</dt>
     <dd><?= e($row['phone']) ?></dd>
+    <dt>WhatsApp</dt>
+    <dd><?php if ($whatsapp !== null): ?><a href="<?= e($whatsapp) ?>" target="_blank" rel="noopener noreferrer">Scrivi al cliente su WhatsApp</a> (il testo è modificabile prima dell'invio)<?php else: ?>numero non utilizzabile per WhatsApp<?php endif; ?></dd>
     <dt>Lingua</dt>
     <dd><?= e($row['locale']) ?></dd>
     <dt>Note del cliente</dt>
@@ -69,7 +71,7 @@ $nights = (int) (new DateTimeImmutable((string) $row['check_in']))->diff(new Dat
 
 <?php if ($row['status'] === 'pending'): ?>
 <h2>Decisione</h2>
-<p>Confermare crea la prenotazione e occupa le date; il sistema ricontrolla la disponibilità al momento della conferma. Per ora non vengono inviate email.</p>
+<p>Confermare crea la prenotazione e occupa le date; il sistema ricontrolla la disponibilità al momento della conferma. Alla decisione il cliente riceve un'email (se l'invio fallisce la decisione resta comunque salvata).</p>
 <div class="actions">
     <form method="post" action="<?= e(url('/admin/richieste/' . $row['id'] . '/conferma')) ?>">
         <?= csrf_field() ?>
@@ -81,3 +83,5 @@ $nights = (int) (new DateTimeImmutable((string) $row['check_in']))->diff(new Dat
     </form>
 </div>
 <?php endif; ?>
+
+<?= \App\Http\View::capture('admin/_email_status', ['emails' => $emails]) ?>

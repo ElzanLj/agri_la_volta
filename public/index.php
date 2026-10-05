@@ -37,3 +37,6 @@ try {
 }
 
 $response->send($request->method !== 'HEAD');
+
+// E-mail sending queued by this request runs here, after the response (PHP-FPM) or inline.
+App\Support\DeferredWork::flush();

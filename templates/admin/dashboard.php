@@ -1,5 +1,9 @@
 <?php
-/** @var array{pending: int, upcoming: int, blocks: int, apartments: int} $counts */
+/**
+ * @var array{pending: int, upcoming: int, blocks: int, apartments: int} $counts
+ * @var array<string, int> $mail
+ */
+$mailProblems = ($mail['failed'] ?? 0) + ($mail['pending'] ?? 0) + ($mail['sending'] ?? 0);
 ?>
 <h1>Area amministrativa</h1>
 
@@ -15,6 +19,10 @@
     <div>
         <dt>Blocchi attivi o futuri</dt>
         <dd><a href="<?= e(url('/admin/blocchi')) ?>"><?= e((string) $counts['blocks']) ?></a></dd>
+    </div>
+    <div>
+        <dt>Email non inviate o in coda</dt>
+        <dd><a href="<?= e(url('/admin/email' . (($mail['failed'] ?? 0) > 0 ? '?stato=failed' : '')) ) ?>"><?= e((string) $mailProblems) ?></a></dd>
     </div>
     <div>
         <dt>Appartamenti</dt>

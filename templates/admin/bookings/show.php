@@ -25,6 +25,8 @@ $nights = (int) (new DateTimeImmutable((string) $row['check_in']))->diff(new Dat
     <dd><?= e((string) ($row['email'] ?? '—')) ?></dd>
     <dt>Telefono</dt>
     <dd><?= e((string) ($row['phone'] ?? '—')) ?></dd>
+    <dt>WhatsApp</dt>
+    <dd><?php if ($whatsapp !== null): ?><a href="<?= e($whatsapp) ?>" target="_blank" rel="noopener noreferrer">Scrivi all'ospite su WhatsApp</a> (il testo è modificabile prima dell'invio)<?php else: ?>numero non utilizzabile per WhatsApp<?php endif; ?></dd>
     <dt>Totale</dt>
     <dd><?= e(Labels::money($row['total_cents'] === null ? null : (int) $row['total_cents'])) ?></dd>
     <dt>Note</dt>
@@ -42,3 +44,8 @@ $nights = (int) (new DateTimeImmutable((string) $row['check_in']))->diff(new Dat
 <?php if ($row['status'] === 'confirmed'): ?>
 <p><a class="button button-secondary" href="<?= e(url('/admin/prenotazioni/' . $row['id'] . '/cancella')) ?>">Cancella prenotazione…</a></p>
 <?php endif; ?>
+<?php if ($row['status'] === 'cancelled'): ?>
+<p><a class="button" href="<?= e(url('/admin/prenotazioni/' . $row['id'] . '/bozza-cancellazione')) ?>">Prepara l'email di cancellazione…</a> (non viene inviata automaticamente)</p>
+<?php endif; ?>
+
+<?= \App\Http\View::capture('admin/_email_status', ['emails' => $emails]) ?>

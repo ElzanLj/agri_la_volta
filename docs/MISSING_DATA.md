@@ -14,7 +14,7 @@ Non compilare con valori inventati. Aggiorna questo file quando emergono informa
 | Regole Novasol | MANCANTE | — | Disponibilità | Non implementare integrazione automatica ora |
 | Traduzioni definitive EN | DA VERIFICARE | — | Contenuti | Correzione manuale possibile |
 | Fotografie sostitutive/licenze | DA VERIFICARE | — | Pubblicazione | Sostituire provenienza dubbia |
-| Parametri SMTP | MANCANTE | — | Email | Inserire solo in environment |
+| Parametri SMTP | MANCANTE | — | Email | Struttura pronta (Fase 4): `SMTP_HOST/PORT/ENCRYPTION/USERNAME/PASSWORD`, `MAIL_FROM_*`, `MAIL_ADMIN_ADDRESS`. Finché mancano le email restano in coda (Admin > Email) e le prenotazioni non ne risentono. Inserire solo in environment/hosting |
 | Informazioni legali definitive | DA VERIFICARE | — | Privacy/cookie | Verifica titolare/consulente |
 | Revoca App Password Gmail committata | FORNITO | revocata dal titolare | Sicurezza | Audit 2026-10-05: `src/EmailStatus/.env` tracciato con credenziali reali; revoca su account Google, non eseguibile dall'agente |
 | Contenuto Firestore `prenotazioni` (possibili dati carta/personali) | FORNITO | verificato dal titolare il 2026-10-05 (esito non dettagliato) | Sicurezza/privacy | Audit 2026-10-05: `Pagamenti.jsx` salva campi carta su Firestore; cancellazione solo con autorizzazione |
@@ -47,3 +47,9 @@ Quando un'informazione viene fornita, registra la fonte/nota e la data senza can
 | Pulizia finale e altri supplementi obbligatori | MANCANTE | — | Pricing | Il legacy citava 30 euro di pulizia finale: non confermato. Va inserito come regola `stay` per soggiorno |
 | Limiti bambini/animali per appartamento (`max_children`, `max_pets`) | MANCANTE | — | Disponibilità/form | Colonne vuote = nessun limite. Da compilare per appartamento |
 | Sconti soggiorni lunghi / offerte speciali | MANCANTE | — | Pricing | Il legacy citava formule da concordare: non implementate |
+| Testi definitivi delle email (notifica al gestore, conferma, rifiuto, bozza di cancellazione) in IT e EN | DA VERIFICARE | testi provvisori e sobri in `app/Mail/MessageBuilder.php` e `CancellationDraft.php` | Email | Da approvare dal titolare: formula di saluto, firma, indirizzo e telefono, istruzioni di arrivo, politica di cancellazione. Gli orari di arrivo/partenza compaiono solo se configurati per l'appartamento |
+| Numero WhatsApp dell'agriturismo (`WHATSAPP_NUMBER`) | MANCANTE | — | WhatsApp | Finché è vuoto il pulsante pubblico non viene mostrato (la funzione è pronta per la Fase 5) |
+| Prefisso internazionale predefinito per i numeri senza prefisso | FORNITO | 39 (Italia) | WhatsApp | Confermato dall'utente il 2026-10-06; configurabile con `WHATSAPP_DEFAULT_COUNTRY_CODE` |
+| Capacità dell'hosting per le email (PHP-FPM, cron, estensioni curl/openssl, caricamento della cartella `vendor/`) | DA DEFINIRE | — | Email/release | Con PHP-FPM l'invio avviene dopo la chiusura della risposta; senza, in linea con timeout di 10 s. Il cron è facoltativo (`bin/send-queued-mail.php`) |
+| Verifica di consegna reale (TLS/STARTTLS con certificato vero, autenticazione con il provider, SPF/DKIM, finire o no nello spam) | NON ESEGUITA | — | Email | Richiede le credenziali SMTP reali. Checklist in `docs/TEST_REPORT.md`. Nessuna modifica a DNS/posta senza autorizzazione |
+| Email di "richiesta ricevuta" al cliente | NON PREVISTA | — | Email | Scelta confermata dall'utente il 2026-10-06: la SPEC prevede solo la notifica al gestore e conferma/rifiuto al cliente |

@@ -31,7 +31,7 @@ abstract class DatabaseTestCase extends TestCase
     /** Empties all booking data and restores the apartments to their seeded state. */
     protected function resetDatabase(): void
     {
-        foreach (['audit_log', 'bookings', 'booking_requests', 'availability_blocks', 'seasonal_rates', 'pricing_rules', 'rate_limit_hits'] as $table) {
+        foreach (['email_outbox', 'audit_log', 'bookings', 'booking_requests', 'availability_blocks', 'seasonal_rates', 'pricing_rules', 'rate_limit_hits'] as $table) {
             $this->db->exec("DELETE FROM {$table}");
         }
         // Back to the seeded state (migration 0002): every field the admin can edit is restored.
