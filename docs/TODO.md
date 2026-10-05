@@ -10,22 +10,23 @@ Regole:
 
 ## Audit
 
-- [ ] Repository e struttura analizzati
-- [ ] Dipendenze analizzate
-- [ ] Immagini analizzate e provenienza dubbia segnalata
-- [ ] Codice morto individuato
-- [ ] Sistemi di pagamento individuati/rimossi in sicurezza
-- [ ] Servizi/configurazioni esterne censiti
-- [ ] Possibili dati reali identificati senza esposizione
-- [ ] Baseline build/test documentata
+- [x] Repository e struttura analizzati
+- [x] Dipendenze analizzate
+- [x] Immagini analizzate e provenienza dubbia segnalata
+- [x] Codice morto individuato
+- [~] Sistemi di pagamento individuati/rimossi in sicurezza (individuato `Pagamenti` → Firestore; rimozione in Fase 1)
+- [x] Servizi/configurazioni esterne censiti
+- [~] Possibili dati reali identificati senza esposizione (repo verificato; contenuto Firestore non accessibile → verifica titolare)
+- [x] Baseline build/test documentata
 
 ## Fondamenta
 
 - [ ] Backend principalmente PHP
 - [ ] MySQL/MariaDB configurato
 - [ ] Compatibilità hosting condiviso verificata
+- [~] Ambiente locale PHP/MariaDB via Docker (attivato dall'utente; da completare in Fase 1)
 - [ ] `.env.example` creato
-- [ ] Segreti esclusi dal repository
+- [~] Segreti esclusi dal repository (App Password Gmail revocata dal titolare; untrack in Fase 1)
 - [ ] Migrazioni SQL versionate
 - [ ] Gestione errori/404 predisposta
 

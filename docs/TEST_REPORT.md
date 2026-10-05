@@ -4,12 +4,24 @@
 
 ## Ambiente
 
-- Data:
-- Commit/branch:
-- PHP:
-- Database:
-- Browser/device:
-- Note ambiente:
+- Data: 2026-10-05 (baseline audit)
+- Commit/branch: `07baca4` / `main`
+- PHP: non installato
+- Database: non installato (legacy usa Firebase, non contattato)
+- Browser/device: nessuno (solo richieste HTTP al dev server)
+- Note ambiente: Windows 11, Node v24.18.0, npm 11.16.0
+
+## Baseline stack legacy (React/Vite)
+
+| Controllo | Comando | Risultato | Note |
+|---|---|---|---|
+| Install | `npm ci --no-audit --no-fund` | PASS | warning allow-scripts esbuild/protobufjs |
+| Lint | `npm run lint` | FAIL | 90 errori (42 prop-types, 25 no-unused-vars, 14 no-undef, 9 no-unescaped-entities) |
+| Build | `npm run build` | PASS | warning: `fotoSalso3.jpeg` non risolto, CSS syntax, chunk JS 676 kB |
+| Dev server | `npx vite --port 5179` | PASS | `/` e `/dovesiamo` → HTTP 200 |
+| Audit dipendenze | `npm audit --omit=dev` | 14 vulnerabilità | 8 moderate, 6 high |
+
+I test della tabella seguente riguardano il nuovo sistema PHP e non sono applicabili allo stack legacy.
 
 ## Test automatici
 
@@ -47,7 +59,8 @@
 
 ## Problemi aperti
 
-- Nessuno registrato.
+- Lint legacy in FAIL (90 errori): non corretto, stack destinato alla sostituzione.
+- Nessun test automatico esistente.
 
 
 ## Convenzioni evidenza
