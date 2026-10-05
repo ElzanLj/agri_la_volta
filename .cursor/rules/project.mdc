@@ -1,0 +1,17 @@
+---
+description: Regole permanenti Agriturismo La Volta; applicare a tutto il repository
+alwaysApply: true
+---
+
+# Cursor project bootstrap
+
+Questo progetto è AI-agnostic.
+
+- Leggi e rispetta `AGENTS.md` come regola operativa principale.
+- `docs/SPEC.md` è la fonte di verità funzionale.
+- All'inizio di una nuova sessione leggi `docs/SESSION_STATE.md`, `docs/TODO.md`, `docs/MISSING_DATA.md` e `docs/DECISIONS.md`.
+- Prima di modifiche sostanziali consulta le sezioni pertinenti di `docs/SPEC.md`.
+- Ispeziona `git status` e i diff locali prima di modificare file.
+- Non effettuare deploy, modifiche DNS/email provider, acquisti o operazioni distruttive senza autorizzazione esplicita.
+- Non inventare dati mancanti.
+- Se subentri a un altro agente, esegui `prompts/95_AGENT_HANDOFF.md`.
