@@ -7,23 +7,27 @@
 - **Data aggiornamento:** 2026-10-05
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `16ced96` (Fase 2A); la Fase 2B è nel commit successivo
-- **Fase corrente:** Fase 2B — pricing: **COMPLETATA** (prompt 05)
-- **Prompt corrente:** `prompts/05_PRICING.md` (completato)
-- **Stato complessivo:** motore tariffario configurabile, testato e integrato lato server; **nessun listino reale** inserito; 275 test PASS
+- **Commit di riferimento:** `e76dcea` (Fase 2B); la Fase 3 è nel commit successivo
+- **Fase corrente:** Fase 3 — area amministrativa e sicurezza: **COMPLETATA** (prompt 06)
+- **Prompt corrente:** `prompts/06_ADMIN.md` (completato)
+- **Stato complessivo:** `/admin` operativa (richieste, prenotazioni, blocchi, calendario, appartamenti, listino, storico, CSV), protetta da guardie di prefisso; 432 test PASS
 
 ## Obiettivo corrente
 
-Fase 3 (area admin): `prompts/06_ADMIN.md`. Esporrà via HTTP, con autenticazione e CSRF, i servizi già pronti (`BookingService`, `PricingConfigService`) e testerà l'autorizzazione server-side delle azioni.
+Fase 4 (email e WhatsApp): `prompts/07_EMAIL_WHATSAPP.md`. Collegherà l'invio SMTP agli eventi già presenti (nuova richiesta, conferma, rifiuto) e la bozza di cancellazione; **i dati SMTP non sono ancora stati forniti** (vedi `docs/MISSING_DATA.md`).
 
 ## Ultimo lavoro completato
 
-- Migrazione `0003_pricing.sql`: tabella `pricing_rules`, colonne `apartments.max_children`/`max_pets`, `seasonal_rates.label_en`. Nessun dato inserito.
-- `app/Domain`: `PriceCalculator` (puro), `PriceQuote`, `RatePeriod`, `ChargeRule`, `Money`, `DateRanges`; `PriceQuoter` ora restituisce sempre un `PriceQuote`.
-- `app/Service`: `ConfiguredPriceQuoter`, `PricingConfigService` (validazioni + audit), integrazione in `BookingService::createRequest` (limiti, soggiorno minimo, totale e istantanea salvati, prezzi del browser ignorati).
-- `app/Database/TransactionRunner` condiviso.
-- 275 test (142 unit, 125 integrazione, 8 concorrenza): PASS in 2 esecuzioni; 3 prove di sensibilità sul calcolatore.
-- `docs/MISSING_DATA.md` e `docs/DECISIONS.md` aggiornati (tassa di soggiorno, sconti, supplementi opzionali, listino, limiti per appartamento).
+- Livello HTTP: router con guardie per prefisso (default-deny), middleware `PrivateResponse`/`RequireAdmin`/`VerifyCsrf`, sessione legata all'hash password, controllo Origin, nessuna sessione per il traffico anonimo.
+- Controller admin sottili in `app/Http/Controllers/Admin/`, repository di sola lettura `AdminQueryRepository`, `ApartmentAdminService`, `ListFilters`, `Csv`, `Money::parse/plain`; 20 viste HTML senza JavaScript in `templates/admin/`.
+- Suite di sicurezza via HTTP reale (server PHP built-in sul DB di test): matrice non autenticato, matrice CSRF, sessioni, azioni end to end, CSV, escaping, SQL injection nei filtri.
+- 9 prove di sensibilità sulla sicurezza (tutte rilevate); 5 difetti trovati e corretti (vedi `docs/TEST_REPORT.md`).
+- 432 test (208 unit, 136 integrazione, 80 http, 8 concorrenza): PASS in 2 esecuzioni consecutive.
+
+## Azioni admin: verificate e incomplete
+
+- **Verificate end to end:** login/logout, elenchi con filtri e paginazione, dettaglio richiesta, conferma, rifiuto, prenotazione manuale, blocchi (crea/rimuovi), cancellazione, calendario, modifica appartamenti, listino (tariffe e regole), storico modifiche, export CSV, dashboard.
+- **Incomplete/rinviate:** invio email su conferma/rifiuto e bozza di cancellazione (Fase 4); link WhatsApp (Fase 4); foto e servizi degli appartamenti; cambio password da interfaccia (resta da riga di comando); test manuali nel browser (mobile/tastiera) NOT RUN.
 
 ## Working tree / modifiche locali da preservare
 
@@ -35,7 +39,7 @@ Fase 3 (area admin): `prompts/06_ADMIN.md`. Esporrà via HTTP, con autenticazion
 
 ## Test/comandi più recenti
 
-`docker compose exec web composer test` → 275 test, 2048-2054 asserzioni, PASS (2 esecuzioni). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 2B). Migrazione 0003 applicata anche al DB di sviluppo (0 tariffe, 0 regole).
+`docker compose exec web composer test` → 432 test, 3474-3480 asserzioni, PASS (2 esecuzioni, circa 3 minuti). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 3).
 
 ## Blocchi aperti
 
@@ -44,11 +48,11 @@ Fase 3 (area admin): `prompts/06_ADMIN.md`. Esporrà via HTTP, con autenticazion
 
 ## Decisioni da non reinterpretare
 
-Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A e 2B registrate (locking, tetti tecnici, tariffa per appartamento/notte con voci additive, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare").
+Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B e 3 registrate (locking, tetti tecnici, tariffa per appartamento/notte con voci additive, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare").
 
 ## Prossimo passo esatto
 
-`prompts/06_ADMIN.md`.
+`prompts/07_EMAIL_WHATSAPP.md` (richiede i parametri SMTP reali solo per l'invio vero; si sviluppa con un trasporto di prova).
 
 ## Note per il prossimo agente
 
@@ -61,3 +65,6 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A e 2B regis
 - Eseguire `composer test` (almeno le suite `unit` e `integration`) prima di ogni modifica a `app/Service`, `app/Repository` o `app/Domain`; la suite `concurrency` quando si tocca il locking.
 - Non inserire mai prezzi reali o inventati nel codice, nelle migrazioni o nei test: il listino lo inserisce il titolare dall'admin. I test usano solo `tests/Support/PricingFixtures.php` (etichette `[TEST]`).
 - Il prezzo è sempre calcolato da `PriceQuoter` lato server; mai fidarsi di importi ricevuti dal browser.
+- Ogni nuova rotta `/admin/...` va registrata in `app/routes_admin.php`: eredita le guardie. Le modifiche sono solo POST con `csrf_field()`; i GET non devono mai scrivere (un test lo verifica). Output sempre con `e()`.
+- Quando si aggiungono pagine admin, aggiungere i test in `tests/Http/` (la matrice non autenticato/CSRF le copre automaticamente se la rotta è registrata).
+- Il database di test viene ripristinato da `DatabaseTestCase::resetDatabase()`: se si aggiungono tabelle o campi modificabili dall'admin, aggiornarlo.

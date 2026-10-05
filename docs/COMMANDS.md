@@ -75,7 +75,7 @@ Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
 
 ```bash
 docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
-docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (275 test, circa 75 s)
+docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (432 test, circa 3 minuti)
 ```
 
 Suite singole:
@@ -83,17 +83,27 @@ Suite singole:
 ```bash
 docker compose exec web composer test -- --testsuite unit          # secondi, senza DB
 docker compose exec web composer test -- --testsuite integration   # circa 3 s
+docker compose exec web composer test -- --testsuite http          # circa 2 minuti: area admin via HTTP reale (sicurezza, azioni, CSV)
 docker compose exec web composer test -- --testsuite concurrency   # circa 70 s, processi PHP reali in parallelo
 docker compose exec web vendor/bin/phpunit --testsuite unit --testdox
 ```
 
 - I test usano il database `agriturismo_test` (creato da `tests/prepare-db.php` con `DB_ROOT_PASSWORD` di `.env`). Si rifiutano di partire se il nome non finisce con `_test`: non toccano mai i dati di sviluppo.
 - La suite `concurrency` avvia 2-16 processi PHP (`tests/Support/worker.php`), ciascuno con la propria connessione, rilasciati nello stesso istante; ripete ogni scenario per 8 round.
+- La suite `http` avvia l'applicazione dietro il server PHP built-in (porta libera casuale, DB `agriturismo_test`) e la interroga con un client HTTP che gestisce i cookie; confronta checksum delle tabelle prima e dopo ogni richiesta rifiutata.
 - Dopo ogni round la suite controlla con SQL che non esistano prenotazioni `confirmed` sovrapposte né prenotazioni sopra un blocco.
 
 ### Listino prezzi
 
 Il listino non è nel codice né nelle migrazioni: si inserisce tramite `PricingConfigService` (interfaccia admin in Fase 3). Dopo `git pull` con nuove migrazioni eseguire `php bin/migrate.php`.
+
+## Area amministrativa
+
+- Indirizzo: `/admin` (sul container: http://localhost:8080/admin). Non compare nella navigazione pubblica e non è indicizzata.
+- Pagine: Home, Richieste, Prenotazioni (+ nuova manuale), Calendario, Blocchi, Appartamenti, Listino, Storico, Export (CSV richieste e prenotazioni).
+- Tutta l'area è protetta da tre guardie a livello di prefisso (vedi `app/routes_admin.php`): risposte private, autenticazione, CSRF. Le nuove rotte sotto `/admin` le ereditano automaticamente; regola: **le modifiche sono solo POST**.
+- Il cambio password si fa solo da riga di comando e chiude le sessioni aperte.
+- Conferma, rifiuto e cancellazione **non inviano email** (Fase 4).
 
 ## Amministratore
 

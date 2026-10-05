@@ -13,6 +13,8 @@ final class View
 {
     private const ERROR_MESSAGES = [
         400 => ['Richiesta non valida', 'La richiesta non può essere elaborata.'],
+        401 => ['Accesso richiesto', 'Devi accedere come amministratore per eseguire questa operazione.'],
+        403 => ['Richiesta non consentita', 'Il modulo è scaduto o non è valido. Ricarica la pagina e riprova.'],
         404 => ['Pagina non trovata', 'La pagina richiesta non esiste o è stata spostata.'],
         405 => ['Metodo non consentito', 'Questa operazione non è consentita su questa pagina.'],
         413 => ['Richiesta troppo grande', 'I dati inviati superano la dimensione consentita.'],
@@ -29,10 +31,10 @@ final class View
         return Response::html($html, $status);
     }
 
-    public static function error(int $status): Response
+    public static function error(int $status, string $layout = 'layout'): Response
     {
         [$title, $message] = self::ERROR_MESSAGES[$status] ?? self::ERROR_MESSAGES[500];
-        return self::render('error', ['title' => $title, 'message' => $message, 'noindex' => true], $status);
+        return self::render('error', ['title' => $title, 'message' => $message, 'noindex' => true, 'loggedIn' => false, 'isAdminError' => $layout === 'admin/layout'], $status, $layout);
     }
 
     /** @param array<string, mixed> $data */

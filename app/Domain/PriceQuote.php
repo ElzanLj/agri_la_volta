@@ -31,6 +31,22 @@ final class PriceQuote
     ) {
     }
 
+    /**
+     * Rebuilds a quote from a stored snapshot (booking_requests.price_breakdown) for display.
+     *
+     * @param array<string, mixed> $snapshot
+     */
+    public static function fromSnapshot(array $snapshot): self
+    {
+        return new self(
+            isset($snapshot['total_cents']) ? (int) $snapshot['total_cents'] : null,
+            is_array($snapshot['lines'] ?? null) ? array_values($snapshot['lines']) : [],
+            is_array($snapshot['issues'] ?? null) ? array_values($snapshot['issues']) : [],
+            isset($snapshot['min_nights']) ? (int) $snapshot['min_nights'] : null,
+            (int) ($snapshot['nights'] ?? 0),
+        );
+    }
+
     public function isComplete(): bool
     {
         return $this->totalCents !== null;

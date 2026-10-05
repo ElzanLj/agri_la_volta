@@ -4,42 +4,37 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\App;
+use App\Http\Admin\Flash;
+use App\Http\Controllers\Admin\BasePage;
 use App\Http\Request;
 use App\Http\Response;
 use App\Http\View;
 use App\Security\AdminAuth;
-use App\Security\Csrf;
 use App\Security\RateLimiter;
 
-final class AdminController
+/**
+ * Login, logout and dashboard. Login and logout are reached through the prefix guards like every
+ * other admin route: POSTs are CSRF-checked before this code runs; only GET/POST /admin/login are
+ * exempt from the authentication guard.
+ */
+final class AdminController extends BasePage
 {
     private const LOGIN_BUCKET = 'admin_login';
     private const LOGIN_MAX_FAILURES = 5;
     private const LOGIN_WINDOW_SECONDS = 900;
 
-    public function __construct(private App $app)
-    {
-    }
-
     public function dashboard(Request $request): Response
     {
-        if (!AdminAuth::check()) {
-            return self::private(Response::redirect(url('/admin/login')));
-        }
-
-        $db = $this->app->db();
-        return $this->page('admin/dashboard', [
+        return $this->render('admin/dashboard', [
             'title' => 'Area amministrativa',
-            'pendingRequests' => (int) $db->query("SELECT COUNT(*) FROM booking_requests WHERE status = 'pending'")->fetchColumn(),
-            'apartments' => (int) $db->query('SELECT COUNT(*) FROM apartments')->fetchColumn(),
+            'counts' => $this->queries()->dashboardCounts($this->today()),
         ]);
     }
 
     public function loginForm(Request $request): Response
     {
-        if (AdminAuth::check()) {
-            return self::private(Response::redirect(url('/admin')));
+        if ((new AdminAuth($this->app->db()))->isAuthenticated()) {
+            return $this->redirect('/admin');
         }
         return $this->loginPage();
     }
@@ -47,10 +42,6 @@ final class AdminController
     public function login(Request $request): Response
     {
         $username = trim($request->input('username'));
-
-        if (!Csrf::isValid($request->input('_csrf'))) {
-            return $this->loginPage('La sessione è scaduta. Ricarica la pagina e riprova.', $username, 400);
-        }
 
         $limiter = new RateLimiter($this->app->db());
         $client = $request->ip();
@@ -69,38 +60,23 @@ final class AdminController
 
         $limiter->clear(self::LOGIN_BUCKET, $client);
         $this->app->logger->info('Admin login succeeded');
-        return self::private(Response::redirect(url('/admin')));
+        return $this->redirect('/admin');
     }
 
     public function logout(Request $request): Response
     {
-        if (Csrf::isValid($request->input('_csrf'))) {
-            AdminAuth::logout();
-        }
-        return self::private(Response::redirect(url('/admin/login')));
+        AdminAuth::logout();
+        return $this->redirect('/admin/login');
     }
 
     private function loginPage(?string $error = null, string $username = '', int $status = 200): Response
     {
-        return $this->page('admin/login', [
+        return View::render('admin/login', [
             'title' => 'Accesso amministratore',
             'error' => $error,
             'username' => $username,
-        ], $status);
-    }
-
-    /** @param array<string, mixed> $data */
-    private function page(string $template, array $data, int $status = 200): Response
-    {
-        $data['loggedIn'] = AdminAuth::check();
-        return self::private(View::render($template, $data, $status, 'admin/layout'));
-    }
-
-    /** Admin responses must never be indexed or cached. */
-    private static function private(Response $response): Response
-    {
-        return $response
-            ->withHeader('X-Robots-Tag', 'noindex, nofollow')
-            ->withHeader('Cache-Control', 'no-store');
+            'loggedIn' => false,
+            'flash' => [],
+        ], $status, 'admin/layout');
     }
 }

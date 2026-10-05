@@ -72,18 +72,18 @@ Regole:
 
 - [x] Login/logout
 - [x] Nessuna registrazione pubblica
-- [ ] Nuove richieste visibili
-- [ ] Filtri periodo/appartamento/stato
-- [ ] Dettaglio richiesta
-- [ ] Conferma/rifiuto
-- [ ] Prenotazione manuale
-- [ ] Cancellazione
-- [ ] Blocchi disponibilità
-- [ ] Calendario semplice
-- [ ] Modifica prezzi/regole
-- [ ] Modifica appartamenti
-- [ ] Export CSV
-- [ ] Audit log utile
+- [x] Nuove richieste visibili (elenco richieste, dashboard)
+- [x] Filtri periodo/appartamento/stato (anche origine sulle prenotazioni; filtri validati)
+- [x] Dettaglio richiesta (con riepilogo prezzo calcolato dal server)
+- [x] Conferma/rifiuto (nessuna email ancora: Fase 4)
+- [x] Prenotazione manuale (con origine)
+- [x] Cancellazione (con pagina di conferma; la bozza email è Fase 4)
+- [x] Blocchi disponibilità (creazione, rimozione, rifiuto su prenotazioni)
+- [x] Calendario semplice (tabella mensile, senza JavaScript)
+- [x] Modifica prezzi/regole (tariffe, regole, date senza tariffa)
+- [x] Modifica appartamenti (dati, capienza, limiti, orari, testi IT/EN; slug immutabile; foto e servizi rinviati)
+- [x] Export CSV (richieste e prenotazioni, `;` + BOM, formule neutralizzate)
+- [x] Audit log utile (registrazione + pagina di consultazione)
 
 ## Email e WhatsApp
 
@@ -109,7 +109,7 @@ Regole:
 - [ ] `/contatti`
 - [ ] `/privacy`
 - [ ] `/cookie`
-- [ ] `/admin` non esposto nella nav pubblica
+- [x] `/admin` non esposto nella nav pubblica (verificato da test)
 - [ ] IT e EN
 - [ ] Nessun dato mancante inventato
 
@@ -139,18 +139,18 @@ Regole:
 
 ## Sicurezza
 
-- [ ] Query parametrizzate
-- [ ] Escaping output
-- [ ] Validazione server-side
-- [~] CSRF (login/logout admin; da applicare a ogni nuovo form)
+- [x] Query parametrizzate (nessuna concatenazione di input; verificato con tentativi di SQL injection nei filtri)
+- [~] Escaping output (area admin verificata con payload XSS su ogni pagina; pagine pubbliche in Fase 5)
+- [~] Validazione server-side (servizi e area admin; form pubblico in Fase 5)
+- [x] CSRF (guardia a livello di prefisso su tutto `/admin`: token + controllo Origin, nessuna eccezione)
 - [x] Sessioni sicure
-- [~] HttpOnly/Secure/SameSite appropriati (HttpOnly/SameSite verificati; Secure in HTTPS non ancora verificato)
+- [x] HttpOnly/Secure/SameSite appropriati (verificati su HTTP e su sito https)
 - [x] Hash password admin sicuro (`password_hash` default/bcrypt)
 - [~] Rate limiting dove necessario (login admin; moduli pubblici in Fase 5/7)
 - [~] Limiti richieste (corpo max 1 MB nel front controller)
 - [x] Accesso admin controllato lato server
 - [ ] Honeypot/antispam semplice
-- [ ] Nessun pagamento/dato carta
+- [x] Nessun pagamento/dato carta (nessun codice o campo di pagamento nel progetto)
 
 ## Test e consegna
 
@@ -163,18 +163,18 @@ Regole:
 - [x] Test conferma concorrente (processi reali + prova con lock disattivato)
 - [x] Test prezzi stagionali
 - [x] Test variazioni adulti/bambini/animali
-- [ ] Test autorizzazione admin
+- [x] Test autorizzazione admin (matrice su tutte le rotte `/admin`, via HTTP reale)
 - [~] Test richieste pubbliche (a livello servizio; test HTTP del form in Fase 5)
 - [ ] Test fallimento email
 - [~] Test validazione form (validazione server-side testata a livello servizio; form HTML in Fase 5)
 - [x] Test cancellazione
-- [ ] Test export CSV
+- [x] Test export CSV
 - [ ] Test manuale mobile/desktop/tastiera/IT/EN
 - [ ] README/installazione locale
 - [ ] Installazione hosting condiviso
 - [ ] Import database
 - [ ] Configurazione SMTP
-- [ ] Creazione/modifica admin
+- [~] Creazione/modifica admin (`bin/create-admin.php` testato, cambio password chiude le sessioni; guida completa in Fase 8)
 - [ ] Backup/ripristino
 - [ ] Export CSV documentato
 - [ ] Limitazioni residue documentate

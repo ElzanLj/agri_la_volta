@@ -34,6 +34,15 @@ final class Response
         return new self('', $status, ['Location' => $location]);
     }
 
+    /** A CSV download. The BOM makes Excel read the file as UTF-8. */
+    public static function csv(string $content, string $filename): self
+    {
+        return new self("\xEF\xBB\xBF" . $content, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . preg_replace('/[^A-Za-z0-9._-]/', '_', $filename) . '"',
+        ]);
+    }
+
     public function withHeader(string $name, string $value): self
     {
         $clone = clone $this;

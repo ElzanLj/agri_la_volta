@@ -98,6 +98,67 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Fase 3 — area amministrativa e sicurezza (2026-10-05)
+
+Ambiente come le fasi precedenti. Comando: `docker compose exec web composer test`. La nuova suite `http` avvia l'applicazione vera dietro il **server PHP built-in** (database di test) e usa un client HTTP con cookie: status, header, redirect e cookie sono quelli reali. Prezzi usati nei test: FITTIZI.
+
+| Suite | Test | Asserzioni | Risultato |
+|---|---|---|---|
+| `unit` (+ `CsvTest`, `RouterGuardTest`, `ListFiltersTest`) | 208 | 368 | PASS |
+| `integration` (+ `ApartmentAdminServiceTest`) | 136 | 466 | PASS |
+| `http` (`AdminAccessTest`, `AdminCsrfTest`, `AdminSessionTest`, `AdminActionsTest`, `AdminExportTest`) | 80 | circa 1250 | PASS |
+| `concurrency` (invariata) | 8 | circa 1400 | PASS |
+| **Totale** | **432** | **3474 e 3480 nelle due esecuzioni** | **PASS in 2 esecuzioni consecutive, circa 3 minuti ciascuna** |
+
+### Sicurezza verificata
+
+- **Non autenticato:** le rotte `/admin/*` sono ricavate dal router (non scritte a mano; un test fallisce se l'elenco è vuoto). Ogni GET → 303 verso il login senza contenuti; ogni POST con più payload plausibili → 401; il database (checksum di 9 tabelle) non cambia. Anche URL inesistenti o strani (`/admin/.env`, `/admin/../...`, metodi DELETE/PUT/OPTIONS) si comportano come qualunque URL protetto: nessuna informazione sulla loro esistenza. `/administrator` e simili restano URL pubblici (404).
+- **Nessuna sessione né cookie per il traffico anonimo**; il sito pubblico non contiene link a `/admin`; non esiste alcuna registrazione.
+- **Header:** ogni risposta admin (redirect, 401, 403, 404, pagine) ha `Cache-Control: no-store`, `X-Robots-Tag: noindex, nofollow`, CSP rigida, `X-Frame-Options: DENY`, `nosniff`.
+- **CSRF:** per ogni rotta POST (login e logout inclusi) senza token / token vuoto / sbagliato / di un'altra sessione / passato come array → 403 e database invariato; il token nella query string è ignorato; `Origin` o `Referer` estranei (host, schema o porta diversi, `null`) → 403 anche con token valido; con token valido e Origin/Referer del sito o senza intestazioni → la richiesta arriva al gestore. Il token e l'id di sessione cambiano al login (il token di prima non vale più). I rifiuti sono registrati nel log senza token né dati.
+- **Nessuna modifica via GET:** con sessione valida tutte le rotte GET lasciano il database invariato; gli URL di azione (conferma, rifiuto, rimozione blocco, eliminazioni, logout) rispondono 405 a un GET; `_method` e PUT non fungono da scorciatoia.
+- **Sessioni:** logout con cookie rigiocato inutile; fissazione di sessione sconfitta (nuovo id al login, id sconosciuti non adottati); scadenza per inattività (2 h) e assoluta (12 h) verificate invecchiando il file di sessione; l'attività rinnova il timer; il **cambio password con `bin/create-admin.php` chiude tutte le sessioni aperte**; l'eliminazione o la sostituzione dell'account espelle la sessione; cookie `HttpOnly`, `SameSite=Lax`, senza `Secure` su HTTP e **con `Secure` su un sito https** (chiude il NOT RUN della Fase 1).
+- **Login:** password errata e utente inesistente producono pagine identiche; blocco dopo 5 tentativi falliti (429, anche per la password giusta); login senza token rifiutato.
+- **Input:** filtri con SQL injection, date impossibili, periodi invertiti, pagine negative, parametri in forma di array → 400 senza dati né errori SQL; ID di route non numerici → 404; corpo oltre 1 MB → 413. Testo con `<script>`, `<img onerror>`, `<b>`, `<i onmouseover>`, `<u>` inserito da cliente o admin risulta escapato in 11 pagine e anche negli attributi (`title`, `value`).
+
+### Azioni admin verificate end to end (token valido, effetto su database, audit e pagine)
+
+Elenco richieste con filtri (stato, appartamento, periodo semiaperto, combinati) e paginazione (50 per pagina); elenco prenotazioni con filtri (origine, stato, periodo); dettaglio richiesta con prezzo calcolato; **conferma** (prenotazione creata, flash mostrato una volta, voci nello storico, visibile in calendario); conferma su periodo occupato (spiega cosa blocca, nulla cambia); conferma ripetuta (nessun duplicato); **rifiuto**; **prenotazione manuale** (tutte le origini tranne `website`, dati conservati e messaggi accanto ai campi in caso di errore o conflitto, capienza); **blocchi** (creazione, rifiuto su prenotazione, rimozione, effetto sulle prenotazioni); **cancellazione** (pagina di conferma che non modifica nulla, date riaperte e riprenotabili, richiesta collegata aggiornata, doppia cancellazione); **modifica appartamenti** (valori, traduzioni IT/EN, slug immutabile, checkbox disattivati, audit solo dei campi cambiati, errori); **listino** (tariffe e regole: creazione, sovrapposizione rifiutata, modifica, eliminazione, date senza tariffa, effetto immediato sui prezzi delle nuove richieste e nessun effetto su quelle già date); **storico modifiche** con filtro; **dashboard**; **calendario** mensile (notti giuste, soggiorni a cavallo di mesi, mese non valido); **export CSV** richieste e prenotazioni.
+
+### CSV
+Delimitatore `;`, BOM UTF-8, righe CRLF, quoting RFC 4180 (punto e virgola, virgolette, a capo nelle note sopravvivono al round trip); **nessuna cella può iniziare con `=`, `+`, `-`, `@`, tab o CR** (preceduta da apostrofo, anche i telefoni che iniziano con `+`); filtri per stato, appartamento, origine e periodo; filtri non validi → 400; senza login nessun contenuto.
+
+### Prove di sensibilità (eseguite a mano, file ripristinati e verificati identici)
+
+| Indebolimento introdotto | Test falliti |
+|---|---|
+| guardia di autenticazione rimossa | 9 su 16 |
+| guardia CSRF rimossa | 5 su 11 |
+| token CSRF non controllato (solo Origin) | 4 su 11 |
+| controllo Origin disattivato | 1 su 11 |
+| sessione non più legata all'hash della password | 1 su 12 |
+| neutralizzazione formule CSV rimossa | 9 su 28 |
+| escaping rimosso dalla pagina dettaglio richiesta | 1 su 33 |
+| prefisso `/admin` confrontato troppo largo (`/administrator`) | 2 su 24 |
+| id di sessione non rigenerato al login | 2 su 23 |
+
+### Difetti trovati e corretti durante la fase
+
+1. I campi numerici lasciati vuoti nei form (bambini, animali, quantità gratuite, ordine) producevano un errore invece del valore 0: ora valgono 0.
+2. I parametri di filtro in forma di array (`?stato[]=x`) venivano ignorati in silenzio: ora sono rifiutati (400).
+3. Il redirect dopo una cancellazione non riuscita passava per un secondo redirect: ora va direttamente al dettaglio.
+4. (Test) `resetDatabase()` non ripristinava tutti i campi modificabili degli appartamenti e un test lasciava il nome «Hacked» ai test successivi: ora lo stato seminato è ripristinato per intero.
+5. (Test) un helper `follow()` sbagliato, e asserzioni sui flag del cookie sensibili alle maiuscole: corretti.
+
+### Limiti noti
+
+- **Nessuna email viene inviata** alla conferma, al rifiuto o alla cancellazione, e non esiste ancora la bozza di cancellazione: è la Fase 4. Le pagine lo dicono esplicitamente.
+- Nessun test manuale nel browser (mobile/desktop/tastiera): NOT RUN. L'accessibilità dell'admin è stata curata (etichette, errori collegati con `aria-describedby`, skip link, tabelle con `th scope`) ma non verificata con strumenti.
+- Il limite di tentativi di login usa l'indirizzo IP del client: dietro un proxy che nasconde l'IP reale tutti gli utenti potrebbero condividere lo stesso contatore. Da verificare con l'hosting scelto.
+- Il cambio password è solo da riga di comando (`bin/create-admin.php`).
+- Appartamenti: foto e dotazioni (servizi) non gestite.
+- Provato solo con MariaDB 10.11 e con il server built-in/Apache del container Docker.
+
 ## Fase 2B — pricing (2026-10-05)
 
 Ambiente come Fase 2A. Comando: `docker compose exec web composer test`. **Tutti i prezzi dei test sono FITTIZI** (`tests/Support/PricingFixtures.php`, etichette `[TEST]`, importi artificiali): non sono il listino del titolare.
@@ -169,12 +230,12 @@ Limiti noti:
 | Variazione adulti | `composer test` | PASS | adulti inclusi gratis, extra a pagamento, 1 adulto, limite esatto |
 | Variazione bambini | `composer test` | PASS | primo gratis, successivi a pagamento, limite `max_children` |
 | Animali | `composer test` | PASS | per notte/per soggiorno, primo gratis, limite `max_pets`, 0 = non ammessi |
-| Autorizzazione admin | | NOT RUN | |
+| Autorizzazione admin | `composer test` (suite `http`) | PASS | ogni rotta `/admin` enumerata dal router: anonimo GET → 303, scritture → 401, database invariato |
 | Richiesta pubblica | `composer test` | PASS (solo livello servizio) | sempre `pending`, mai confermata; form/endpoint HTTP non ancora esistenti |
 | Fallimento email | | NOT RUN | |
 | Validazione form | `composer test` | PASS (solo livello servizio) | validazione server-side di date, ospiti, contatti, privacy; form HTML in Fase 5 |
 | Cancellazione | `composer test` | PASS | date riaperte e riprenotabili, doppia cancellazione rifiutata, richiesta collegata `cancelled`, audit |
-| Export CSV | | NOT RUN | |
+| Export CSV | `composer test` (suite `http`, `AdminExportTest`) | PASS | formato, filtri, BOM, quoting, neutralizzazione formule |
 
 ## Verifica manuale
 

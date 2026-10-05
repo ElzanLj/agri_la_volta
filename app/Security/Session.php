@@ -15,6 +15,12 @@ final class Session
     private const NAME = 'lavolta_session';
     private const MAX_LIFETIME = 43200;
 
+    /** True when the request carries a session cookie; used to avoid creating sessions for anonymous traffic. */
+    public static function hasCookie(): bool
+    {
+        return isset($_COOKIE[self::NAME]) && is_string($_COOKIE[self::NAME]) && $_COOKIE[self::NAME] !== '';
+    }
+
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {

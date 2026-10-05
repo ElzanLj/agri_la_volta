@@ -26,3 +26,24 @@ function csrf_field(): string
 {
     return '<input type="hidden" name="_csrf" value="' . e(Csrf::token()) . '">';
 }
+
+/** Error text for a form field, linked to the input through aria-describedby (see invalid_attrs). */
+function field_error(array $errors, string $field, string $id): string
+{
+    if (!isset($errors[$field])) {
+        return '';
+    }
+    return '<p class="field-error" id="' . e($id) . '">' . e($errors[$field]) . '</p>';
+}
+
+function invalid_attrs(array $errors, string $field, string $id): string
+{
+    return isset($errors[$field]) ? ' aria-invalid="true" aria-describedby="' . e($id) . '"' : '';
+}
+
+/** Value of a form field after a failed submission, falling back to a default. */
+function old(array $values, string $field, string $default = ''): string
+{
+    $value = $values[$field] ?? $default;
+    return is_scalar($value) ? (string) $value : $default;
+}

@@ -9,12 +9,14 @@ final class Request
     /**
      * @param array<string, mixed> $post
      * @param array<string, mixed> $server
+     * @param array<string, mixed> $query
      */
     public function __construct(
         public readonly string $method,
         public readonly string $path,
         private array $post = [],
         private array $server = [],
+        private array $query = [],
     ) {
     }
 
@@ -28,7 +30,7 @@ final class Request
             $path = '/' . $path;
         }
 
-        return new self(strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')), $path, $_POST, $_SERVER);
+        return new self(strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')), $path, $_POST, $_SERVER, $_GET);
     }
 
     /** Returns a submitted form field as a string ("" when missing or not a string). */
@@ -38,8 +40,32 @@ final class Request
         return is_string($value) ? $value : '';
     }
 
+    /** Returns a query-string value as a string ("" when missing or not a string). Never used for tokens. */
+    public function query(string $key): string
+    {
+        $value = $this->query[$key] ?? '';
+        return is_string($value) ? $value : '';
+    }
+
+    /** True when a query parameter was sent as an array (e.g. ?stato[]=x). */
+    public function queryIsArray(string $key): bool
+    {
+        return is_array($this->query[$key] ?? null);
+    }
+
+    public function header(string $name): string
+    {
+        $value = $this->server['HTTP_' . strtoupper(str_replace('-', '_', $name))] ?? '';
+        return is_string($value) ? $value : '';
+    }
+
     public function ip(): string
     {
         return (string) ($this->server['REMOTE_ADDR'] ?? '');
+    }
+
+    public function isSafeMethod(): bool
+    {
+        return in_array($this->method, ['GET', 'HEAD', 'OPTIONS'], true);
     }
 }

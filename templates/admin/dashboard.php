@@ -1,20 +1,25 @@
 <?php
-/**
- * @var int $pendingRequests
- * @var int $apartments
- */
+/** @var array{pending: int, upcoming: int, blocks: int, apartments: int} $counts */
 ?>
 <h1>Area amministrativa</h1>
 
 <dl class="stats">
     <div>
         <dt>Richieste in attesa</dt>
-        <dd><?= e((string) $pendingRequests) ?></dd>
+        <dd><a href="<?= e(url('/admin/richieste?stato=pending')) ?>"><?= e((string) $counts['pending']) ?></a></dd>
+    </div>
+    <div>
+        <dt>Prenotazioni in corso o future</dt>
+        <dd><a href="<?= e(url('/admin/prenotazioni?stato=confirmed')) ?>"><?= e((string) $counts['upcoming']) ?></a></dd>
+    </div>
+    <div>
+        <dt>Blocchi attivi o futuri</dt>
+        <dd><a href="<?= e(url('/admin/blocchi')) ?>"><?= e((string) $counts['blocks']) ?></a></dd>
     </div>
     <div>
         <dt>Appartamenti</dt>
-        <dd><?= e((string) $apartments) ?></dd>
+        <dd><a href="<?= e(url('/admin/appartamenti')) ?>"><?= e((string) $counts['apartments']) ?></a></dd>
     </div>
 </dl>
 
-<p>Le funzioni di gestione (richieste, prenotazioni, blocchi, prezzi) verranno aggiunte nelle prossime fasi.</p>
+<p><a class="button" href="<?= e(url('/admin/prenotazioni/nuova')) ?>">Nuova prenotazione manuale</a></p>

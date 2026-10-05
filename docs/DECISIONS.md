@@ -94,6 +94,27 @@ Piano e assunzioni approvati dall'utente il 2026-10-05 (punti 1-4 sotto conferma
 | 2026-10-05 | Fixture di prezzo solo in `tests/Support/PricingFixtures.php`, etichette `[TEST]` e importi artificiali; un test verifica che le migrazioni non inseriscano tariffe, regole o limiti | fixture nelle migrazioni | separazione netta test/produzione | `tests/` |
 | 2026-10-05 | `TransactionRunner` estratto da `BookingService` e condiviso con `PricingConfigService`; comportamento invariato (verificato dalla suite di concorrenza) | duplicare il codice | un solo punto con isolamento READ COMMITTED e gestione timeout/deadlock | `app/Database/TransactionRunner.php` |
 
+## Decisioni Fase 3 — area amministrativa (2026-10-05)
+
+Piano e le 5 scelte tecniche approvati dall'utente il 2026-10-05.
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-05 | **Default-deny a livello di prefisso**: tre guardie (`PrivateResponse`, `RequireAdmin`, `VerifyCsrf`) coprono tutto `/admin`, anche gli URL inesistenti; solo `GET/POST /admin/login` sono esenti dall'autenticazione, nessuna rotta dal CSRF | controllo in ogni controller | una rotta dimenticata non può restare scoperta; un test enumera le rotte dal router | `app/Http/Router.php`, `app/Http/Middleware/`, `app/routes_admin.php` |
+| 2026-10-05 | Anonimo: **GET → 303** verso il login, **qualunque scrittura → 401** senza eseguire nulla; token CSRF mancante/errato o Origin estraneo → **403** | 401 ovunque | redirect comodo per il browser, rifiuto netto per le scritture | `RequireAdmin`, `VerifyCsrf` |
+| 2026-10-05 | CSRF: token di sessione (`hash_equals`, mai dalla query string) **più** controllo `Origin`/`Referer` quando presenti (`null` rifiutato); token e id di sessione rigenerati al login | solo token | difesa in profondità oltre a `SameSite=Lax` | `VerifyCsrf`, `AdminAuth`, `Csrf` |
+| 2026-10-05 | Sessione **legata all'impronta SHA-256 dell'hash password** e riconvalidata nel DB a ogni richiesta admin; cambiare la password con `bin/create-admin.php` o eliminare l'account chiude tutte le sessioni | sessioni indipendenti dalla password | sicurezza dopo reset delle credenziali, senza nuove colonne | `AdminAuth` |
+| 2026-10-05 | Il traffico anonimo non crea sessioni né cookie (la sessione parte solo se arriva il cookie, o sulla pagina di login) | sessione per ogni visitatore | meno file di sessione e nessun cookie sulle pagine pubbliche | `Session::hasCookie`, `AdminAuth::isAuthenticated` |
+| 2026-10-05 | Nessuna modifica via GET: azioni solo POST; la cancellazione passa da una pagina di conferma (GET di sola lettura) | `confirm()` JavaScript | nessun JavaScript e nessuna azione accidentale | `routes_admin.php` |
+| 2026-10-05 | Interfaccia spartana: HTML server-side, nessun JavaScript, CSP senza `unsafe-inline`; italiano soltanto; flash message in sessione | libreria UI, SPA | semplicità e manutenibilità (SPEC §2) | `templates/admin/` |
+| 2026-10-05 | URL admin in italiano (`/admin/richieste`, `/prenotazioni`, `/calendario`, `/blocchi`, `/appartamenti`, `/listino`, `/storico`, `/export`) | URL inglesi | admin usato in italiano; non indicizzato | `routes_admin.php` |
+| 2026-10-05 | Controller admin sottili: tutte le scritture passano da `BookingService`, `PricingConfigService` e il nuovo `ApartmentAdminService`; le letture da `AdminQueryRepository`; filtri validati da `ListFilters` (valori non validi → 400, mai usati nelle query) | query nei controller | nessuna logica di business duplicata | `app/Http/Controllers/Admin/` |
+| 2026-10-05 | Importi digitati in euro (`80`, `80,50`, `80.5`) e convertiti in centesimi con `Money::parse`; massimo 2 decimali, niente separatore delle migliaia | importi in centesimi nel form | più naturale per il titolare | `Money` |
+| 2026-10-05 | Campi numerici vuoti nei form valgono 0 (bambini, animali, quantità gratuite, ordine); parametri di filtro in forma di array rifiutati | trattarli come errore / ignorarli | trovati dai test; comportamento atteso dall'utente | `BookingController`, `PricingController`, `ListFilters` |
+| 2026-10-05 | CSV: `;` + BOM UTF-8 + CRLF; neutralizzazione di formule (`=`, `+`, `-`, `@`, tab, CR) con apostrofo iniziale, **anche per i telefoni che iniziano con `+`**; lingua e date in ISO, orari locali `gg/mm/aaaa hh:mm`; massimo 20.000 righe | `,`; esenzione per i telefoni | sicurezza prima della comodità | `Csv`, `ExportController` |
+| 2026-10-05 | Slug degli appartamenti immutabile; foto e servizi rinviati; prezzo indicativo solo per visualizzazione (mai nei calcoli) | slug modificabile | URL stabili (SEO) | `ApartmentAdminService` |
+| 2026-10-05 | Test di sicurezza via **HTTP reale** (server PHP built-in sul DB di test, client con cookie), con confronto del database prima/dopo | simulazioni in memoria | misurano ciò che vede un browser | `tests/Support/TestServer.php`, `tests/Http/` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

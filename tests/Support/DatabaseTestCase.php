@@ -34,7 +34,14 @@ abstract class DatabaseTestCase extends TestCase
         foreach (['audit_log', 'bookings', 'booking_requests', 'availability_blocks', 'seasonal_rates', 'pricing_rules', 'rate_limit_hits'] as $table) {
             $this->db->exec("DELETE FROM {$table}");
         }
-        $this->db->exec('UPDATE apartments SET is_active = 1, accepts_online_requests = 1, max_guests = NULL, max_children = NULL, max_pets = NULL');
+        // Back to the seeded state (migration 0002): every field the admin can edit is restored.
+        $this->db->exec('DELETE FROM apartment_translations');
+        $this->db->exec(
+            "UPDATE apartments SET name = CONCAT(UPPER(LEFT(slug, 1)), SUBSTRING(slug, 2)), is_active = 1, accepts_online_requests = 1,
+                    management_mode = 'direct', managing_agency = NULL, max_guests = NULL, max_children = NULL, max_pets = NULL,
+                    bedrooms = NULL, beds = NULL, check_in_from = NULL, check_in_until = NULL, check_out_until = NULL,
+                    indicative_price_cents = NULL, sort_order = FIELD(slug, 'margherita', 'girasole', 'rosa', 'mimosa', 'ciclamino', 'viola')"
+        );
     }
 
     protected function apartmentId(string $slug = 'margherita'): int

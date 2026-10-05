@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Security;
 
-/** Synchronizer token stored in the session; one token per session. */
+/** Synchronizer token stored in the session; one token per session, rotated at login. */
 final class Csrf
 {
     public static function token(): string
@@ -14,6 +14,12 @@ final class Csrf
             $_SESSION['_csrf'] = bin2hex(random_bytes(32));
         }
         return $_SESSION['_csrf'];
+    }
+
+    public static function rotate(): void
+    {
+        Session::start();
+        $_SESSION['_csrf'] = bin2hex(random_bytes(32));
     }
 
     public static function isValid(string $token): bool
