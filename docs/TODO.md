@@ -21,25 +21,25 @@ Regole:
 
 ## Fondamenta
 
-- [ ] Backend principalmente PHP
-- [ ] MySQL/MariaDB configurato
-- [ ] Compatibilità hosting condiviso verificata
-- [~] Ambiente locale PHP/MariaDB via Docker (attivato dall'utente; da completare in Fase 1)
-- [ ] `.env.example` creato
-- [~] Segreti esclusi dal repository (App Password Gmail revocata dal titolare; untrack in Fase 1)
-- [ ] Migrazioni SQL versionate
-- [ ] Gestione errori/404 predisposta
+- [x] Backend principalmente PHP (scheletro: front controller, router, view, admin login)
+- [x] MySQL/MariaDB configurato (MariaDB 10.11 Docker, PDO)
+- [~] Compatibilità hosting condiviso verificata (fallback `.htaccess` verificato in Docker; hosting reale non ancora scelto)
+- [x] Ambiente locale PHP/MariaDB via Docker
+- [x] `.env.example` creato
+- [x] Segreti esclusi dal repository (App Password revocata; `.env` non tracciato e ignorato; resta nella cronologia Git, vedi P7)
+- [x] Migrazioni SQL versionate
+- [x] Gestione errori/404 predisposta
 
 ## Database
 
-- [ ] apartments
-- [ ] booking_requests
-- [ ] bookings
-- [ ] availability_blocks
-- [ ] seasonal_rates / struttura tariffe equivalente
-- [ ] admin
-- [ ] audit_log
-- [ ] eventuali tabelle supplementi/regole/traduzioni/email retry solo se necessarie
+- [x] apartments (+ apartment_translations)
+- [x] booking_requests
+- [x] bookings
+- [x] availability_blocks
+- [~] seasonal_rates / struttura tariffe equivalente (tabella base; regole ospiti/animali/supplementi in Fase 2B)
+- [x] admin
+- [x] audit_log
+- [~] eventuali tabelle supplementi/regole/traduzioni/email retry solo se necessarie (traduzioni appartamenti e rate limit fatti; foto/servizi Fase 5, email outbox Fase 4, regole prezzi Fase 2B)
 
 ## Booking e disponibilità
 
@@ -70,8 +70,8 @@ Regole:
 
 ## Admin
 
-- [ ] Login/logout
-- [ ] Nessuna registrazione pubblica
+- [x] Login/logout
+- [x] Nessuna registrazione pubblica
 - [ ] Nuove richieste visibili
 - [ ] Filtri periodo/appartamento/stato
 - [ ] Dettaglio richiesta
@@ -142,13 +142,13 @@ Regole:
 - [ ] Query parametrizzate
 - [ ] Escaping output
 - [ ] Validazione server-side
-- [ ] CSRF
-- [ ] Sessioni sicure
-- [ ] HttpOnly/Secure/SameSite appropriati
-- [ ] Hash password admin sicuro
-- [ ] Rate limiting dove necessario
-- [ ] Limiti richieste
-- [ ] Accesso admin controllato lato server
+- [~] CSRF (login/logout admin; da applicare a ogni nuovo form)
+- [x] Sessioni sicure
+- [~] HttpOnly/Secure/SameSite appropriati (HttpOnly/SameSite verificati; Secure in HTTPS non ancora verificato)
+- [x] Hash password admin sicuro (`password_hash` default/bcrypt)
+- [~] Rate limiting dove necessario (login admin; moduli pubblici in Fase 5/7)
+- [~] Limiti richieste (corpo max 1 MB nel front controller)
+- [x] Accesso admin controllato lato server
 - [ ] Honeypot/antispam semplice
 - [ ] Nessun pagamento/dato carta
 

@@ -23,6 +23,47 @@
 
 I test della tabella seguente riguardano il nuovo sistema PHP e non sono applicabili allo stack legacy.
 
+## Fase 1 — fondamenta PHP/MariaDB (2026-10-05)
+
+Ambiente: Docker, PHP 8.2.34 + Apache (document root = root repository, fallback `.htaccess`), MariaDB 10.11. Verifiche manuali eseguite con `curl` e client `mariadb`; nessuna suite automatica ancora.
+
+| Verifica | Procedura | Risultato | Evidenza |
+|---|---|---|---|
+| Sintassi PHP | `php -l` su `app/ bin/ public/ templates/` | PASS | nessun errore |
+| DB da zero + migrazioni | `php bin/migrate.php` su DB vuoto | PASS | 2 migrazioni applicate, 10 tabelle, InnoDB `utf8mb4_unicode_ci` |
+| Idempotenza migrazioni | seconda esecuzione | PASS | "Nothing to migrate." |
+| Import alternativo (phpMyAdmin) | file SQL importati col client in DB di prova, poi eliminato | PASS | `schema_migrations` con 0001 e 0002, 6 appartamenti |
+| Seed appartamenti | `SELECT` | PASS | 6 righe, solo nome/slug, altri campi NULL |
+| CHECK date (`check_out = check_in`) | INSERT in `bookings` | PASS (rifiutato) | errore 4025 `chk_bookings_dates` |
+| CHECK origine non valida | INSERT `origin='airbnb'` | PASS (rifiutato) | `chk_bookings_origin` |
+| CHECK stato richiesta non valido | INSERT `status='approved'` | PASS (rifiutato) | `chk_booking_requests_status` |
+| FK appartamento inesistente | INSERT `availability_blocks` | PASS (rifiutato) | errore 1452 |
+| Default stato richiesta | INSERT senza stato (in transazione, rollback) | PASS | `pending` |
+| Connessione app → DB | dashboard admin | PASS | conteggi 0 richieste / 6 appartamenti |
+| Routing | `/` 200, `/non-esiste` 404, `POST /` 405, `/admin/` → 301 `/admin`, `HEAD /` 200 | PASS | |
+| File privati non raggiungibili | `/.env`, `/app/...`, `/migrations/...`, `/bin/...`, `/templates/...`, `/legacy/.../.env`, `/.git/config`, `/docker-compose.yml`, `/AGENTS.md` | PASS | tutti 404 dall'app, nessun contenuto |
+| Directory | `/assets`, `/storage` | PASS dopo correzione | inizialmente loop di redirect + esposizione del percorso `/public/assets/` (FAIL); risolto con `DirectorySlash Off`; ora 404. `/public` → 403 senza contenuto |
+| Asset statici | `/assets/css/site.css` | PASS | 200 |
+| Header di sicurezza | risposta di `/` | PASS | CSP, X-Frame-Options, nosniff, Referrer-Policy; nessun cookie sulle pagine pubbliche |
+| Limite dimensione richiesta | POST 1,1 MB | PASS | 413 |
+| `create-admin.php` | password corta / non coincidente / username non valido / valida | PASS dopo correzione | inizialmente fatal error su `stream_isatty` dopo lettura STDIN (FAIL), corretto; ora exit 1/1/1/0 |
+| Login senza CSRF | POST | PASS | 400 |
+| Login utente inesistente / password errata | POST | PASS | 422, messaggio generico |
+| Escaping input nel form | username `<script>` | PASS | reso come `&lt;script&gt;` |
+| Login corretto | POST | PASS | 303 → `/admin`, nuovo ID di sessione, cookie `HttpOnly; SameSite=Lax` |
+| Header admin | `/admin` | PASS | `X-Robots-Tag: noindex, nofollow`, `Cache-Control: no-store` |
+| Accesso admin non autenticato | `/admin` | PASS | 303 → `/admin/login` |
+| Logout con CSRF errato | POST | PASS | sessione mantenuta |
+| Logout | POST con token | PASS | dopo logout `/admin` → login |
+| Rate limiting login | 6 tentativi errati | PASS | 5×422 poi 429; anche la password corretta riceve 429 durante il blocco |
+| Audit log | creazione admin | PASS | riga `admin / created` |
+| Log senza segreti | ricerca della password di test nei log | PASS | 0 occorrenze |
+| Errore DB in development | DB fermo, POST login | PASS | dettaglio eccezione mostrato (solo debug) |
+| Errore DB in production | DB fermo, `APP_ENV=production` | PASS | pagina generica 500, dettaglio solo nel log |
+| Cookie `Secure` in HTTPS | — | NOT RUN | ambiente locale solo HTTP |
+| Legacy dopo spostamento | `cd legacy && npm run build` | PASS | stessi warning della baseline |
+
+
 ## Test automatici
 
 | Test | Comando / procedura | Risultato | Evidenza / note |
@@ -60,7 +101,8 @@ I test della tabella seguente riguardano il nuovo sistema PHP e non sono applica
 ## Problemi aperti
 
 - Lint legacy in FAIL (90 errori): non corretto, stack destinato alla sostituzione.
-- Nessun test automatico esistente.
+- Nessuna suite di test automatica PHP: PHPUnit previsto in Fase 2A.
+- Cookie `Secure` sotto HTTPS non verificato (NOT RUN).
 
 
 ## Convenzioni evidenza

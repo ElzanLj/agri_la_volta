@@ -29,7 +29,7 @@ Non compilare con valori inventati. Aggiorna questo file quando emergono informa
 | Orari check-in/check-out | DA VERIFICARE | — | Appartamenti/email | Legacy: consegna 11:00–18:00, rilascio entro 9:00 |
 | Servizio "affitto sala per eventi" | DA VERIFICARE | — | Contenuti | Presente tra i motivi di contatto legacy |
 | Valutazioni a stelle per appartamento | DA VERIFICARE | — | Contenuti | Fonte ignota; non pubblicare senza fonte |
-| Hosting di produzione (versione PHP, mod_rewrite, cron) | DA DEFINIRE | — | Architettura/release | Non ancora scelto |
+| Hosting di produzione (versione PHP, mod_rewrite, cron) | DA DEFINIRE | — | Architettura/release | Requisiti minimi: PHP 8.1+ con pdo_mysql, MySQL 5.7+/MariaDB 10.3+, Apache con mod_rewrite e .htaccess (vedi `docs/COMMANDS.md`) |
 
 ## Regola
 

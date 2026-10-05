@@ -28,6 +28,24 @@ Registra qui solo decisioni tecniche o di prodotto realmente prese. Non usare il
 | 2026-10-05 | Ambiente di sviluppo locale con Docker (`docker-compose.yml`: PHP 8.2 + Apache, MariaDB 10.11) | XAMPP/Laragon; PHP portable | scelto e attivato dall'utente. **Solo sviluppo**: la produzione resta hosting condiviso senza Docker | `docker-compose.yml` |
 | 2026-10-05 | Le foto coperte da copyright verranno rimosse | richiedere licenze | decisione dell'utente dopo l'audit | `src/assets`, Fase 6 |
 
+## Decisioni Fase 1 — architettura e database (2026-10-05)
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-05 | Autoloader PSR-4 interno (`App\` → `app/`), Composer rinviato a quando serve PHPMailer/PHPUnit | Composer subito | nessuna dipendenza esterna necessaria per le fondamenta; i namespace sono già compatibili con l'autoload di Composer | `app/bootstrap.php` |
+| 2026-10-05 | Struttura `public/` (document root) + `app/`, `templates/`, `migrations/`, `bin/`, `storage/`; `.htaccess` in root come fallback che mappa tutto in `public/` | solo `public/`; file PHP sparsi nella root | funziona sia con document root configurabile sia senza, senza esporre file privati | `.htaccess`, `public/.htaccess` |
+| 2026-10-05 | Migrazioni SQL solo in avanti, eseguite da `bin/migrate.php`; ogni file registra sé stesso in `schema_migrations` (compatibile con import phpMyAdmin) | tool di migrazione esterni; down-migration | semplicità su hosting condiviso; DDL MySQL non è transazionale | `migrations/`, `app/Database/Migrator.php` |
+| 2026-10-05 | DATETIME in UTC (sessione DB `time_zone = '+00:00'`); date soggiorno come DATE; importi in centesimi interi | DATETIME locali; DECIMAL | nessuna ambiguità con l'ora legale; niente errori di arrotondamento | schema, `Connection.php` |
+| 2026-10-05 | Intervalli semiaperti `[start, end)` anche per blocchi e tariffe stagionali | intervalli chiusi per blocchi/tariffe | un'unica regola di overlap in tutto il sistema | schema |
+| 2026-10-05 | Stati separati: `booking_requests` (`pending/confirmed/rejected/cancelled`), `bookings` (`confirmed/cancelled`) con `origin`; solo `bookings.confirmed` e `availability_blocks` occupano date | tabella unica | SPEC §10: richiesta distinta dalla prenotazione | schema |
+| 2026-10-05 | `bookings.guest_name` testo libero, email/telefono facoltativi | nome/cognome obbligatori | le prenotazioni manuali da agenzia possono avere solo un riferimento | schema |
+| 2026-10-05 | Gestione agenzia come `management_mode` (`direct`/`agency`) + `managing_agency` + `accepts_online_requests` | tabella agenzie | SPEC §12 chiede solo la predisposizione; regole Novasol ancora ignote | `apartments` |
+| 2026-10-05 | Migrazione `0002` inserisce solo nomi e slug dei 6 appartamenti (da SPEC §4); tutti gli altri campi NULL | nessun seed; seed da contenuti legacy | i nomi sono dati certi; il resto è da confermare | `migrations/0002_seed_apartments.sql` |
+| 2026-10-05 | Foto, servizi/dotazioni e tabelle email/regole prezzi rinviate alle fasi che le usano | crearle ora | solo tabelle motivate (prompt 02); verranno aggiunte con nuove migrazioni | Fasi 2B, 4, 5 |
+| 2026-10-05 | Sessioni PHP native in `storage/sessions` (GC proprio), avviate solo su admin/moduli; cookie `HttpOnly`, `SameSite=Lax`, `Secure` in HTTPS; timeout inattività 2 h, assoluto 12 h | sessioni in DB | semplice e sufficiente per un solo admin; le pagine pubbliche non impostano cookie | `app/Security/Session.php`, `AdminAuth.php` |
+| 2026-10-05 | Rate limiting su tabella DB `rate_limit_hits` con chiave hash SHA-256, conservazione 24 h; login admin: 5 fallimenti / 15 min per IP | file su disco; servizi esterni | funziona su hosting condiviso; riusabile per i moduli pubblici | `app/Security/RateLimiter.php` |
+| 2026-10-05 | `docker-compose.yml` versionato senza segreti (valori da `.env`), porte legate a `127.0.0.1`, document root del container = root del repository | lasciarlo non tracciato | ambiente locale riproducibile; esercita il fallback `.htaccess` | `docker-compose.yml`, `docker/php/Dockerfile` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

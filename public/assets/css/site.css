@@ -1,0 +1,189 @@
+/* Base styles. The full public design comes in Phase 5. */
+
+:root {
+    --color-bg: #faf8f3;
+    --color-text: #2b2a26;
+    --color-muted: #5f5b50;
+    --color-primary: #4f6b3a;
+    --color-primary-dark: #3a5129;
+    --color-border: #d8d2c4;
+    --color-error-bg: #fbeaea;
+    --color-error: #8a1f1f;
+    --focus: 3px solid #b5651d;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background: var(--color-bg);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+.container {
+    width: min(100% - 2rem, 70rem);
+    margin-inline: auto;
+}
+
+main {
+    padding-block: 2rem;
+}
+
+a {
+    color: var(--color-primary-dark);
+}
+
+:focus-visible {
+    outline: var(--focus);
+    outline-offset: 2px;
+}
+
+.skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -10rem;
+    padding: 0.5rem 1rem;
+    background: #fff;
+    color: var(--color-text);
+    z-index: 100;
+}
+
+.skip-link:focus {
+    top: 1rem;
+}
+
+.site-header,
+.site-footer {
+    background: #fff;
+    border-bottom: 1px solid var(--color-border);
+    padding-block: 1rem;
+}
+
+.site-footer {
+    border-top: 1px solid var(--color-border);
+    border-bottom: 0;
+    color: var(--color-muted);
+}
+
+.brand {
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.header-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-row form {
+    margin: 0;
+}
+
+/* Forms */
+
+.form-narrow {
+    max-width: 24rem;
+}
+
+.field {
+    margin-bottom: 1rem;
+}
+
+.field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.field input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    border: 1px solid var(--color-muted);
+    border-radius: 4px;
+    background: #fff;
+}
+
+.button {
+    min-height: 2.75rem;
+    padding: 0.5rem 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background: var(--color-primary-dark);
+}
+
+.button-secondary {
+    color: var(--color-primary-dark);
+    background: #fff;
+}
+
+.button-secondary:hover {
+    background: var(--color-bg);
+}
+
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+}
+
+.alert-error {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    border: 1px solid currentColor;
+}
+
+/* Admin */
+
+.stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0;
+}
+
+.stats div {
+    min-width: 12rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.stats dt {
+    color: var(--color-muted);
+}
+
+.stats dd {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

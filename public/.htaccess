@@ -1,0 +1,10 @@
+Options -Indexes
+# The app owns URL canonicalisation (no trailing slash); directories are not browsable.
+DirectorySlash Off
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Existing files (CSS, JS, images) are served directly; everything else goes to the app.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>

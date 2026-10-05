@@ -1,0 +1,18 @@
+# Fallback for hosting where the document root cannot point to public/.
+# Every request is mapped into public/, so nothing else in the project
+# (.env, app/, migrations/, storage/, ...) is reachable from the web.
+# When the document root can be set to public/, this file is not used.
+
+Options -Indexes
+# Directories never get an automatic trailing-slash redirect (it would leak the public/ path).
+DirectorySlash Off
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Without mod_rewrite the project files would be exposed: refuse everything instead.
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
