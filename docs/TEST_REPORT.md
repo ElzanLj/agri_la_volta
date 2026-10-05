@@ -98,6 +98,46 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Fase 2B — pricing (2026-10-05)
+
+Ambiente come Fase 2A. Comando: `docker compose exec web composer test`. **Tutti i prezzi dei test sono FITTIZI** (`tests/Support/PricingFixtures.php`, etichette `[TEST]`, importi artificiali): non sono il listino del titolare.
+
+| Suite | Test | Asserzioni | Risultato |
+|---|---|---|---|
+| `unit` (+ `PriceCalculatorTest`, `MoneyAndRangesTest`) | 142 | 243 | PASS |
+| `integration` (+ `PricingIntegrationTest`, `PricingConfigTest`) | 125 | 415 | PASS |
+| `concurrency` (invariata, rieseguita) | 8 | circa 1400 | PASS |
+| **Totale** | **275** | **2054 e 2048 nelle due esecuzioni** | **PASS in 2 esecuzioni consecutive, circa 74 s ciascuna** |
+
+Copertura richiesta dal piano:
+
+- **Soggiorni a cavallo di più stagioni:** 13-17 giugno = 2 notti bassa + 2 alta; check-out sul confine non addebita la stagione successiva; check-in sul confine = tutto stagione successiva; 1 notte per lato; 3 stagioni; cambio d'anno; notte senza tariffa (lacuna all'inizio, in mezzo, alla fine, nessuna tariffa, periodo non attivo, altro appartamento, periodi sovrapposti).
+- **Limiti bambini/animali:** `max_children`/`max_pets` vuoti = nessun limite; al limite passa, oltre rifiutato senza salvare nulla; `max_pets = 0` = animali non ammessi; limiti per appartamento; non si applicano alle prenotazioni manuali dell'admin.
+- **Supplementi:** fisso una volta per soggiorno, per notte, con finestra di validità che copre solo parte del soggiorno, finestra prima/dopo il soggiorno, finestra per-soggiorno decisa dalla data di arrivo (4 casi di confine), regole globali + di appartamento additive, regole di altri appartamenti e disattivate ignorate, ordine stabile (`sort_order`, `id`).
+- **Soggiorno minimo:** sotto/uguale/sopra, nessun minimo configurato, minimo deciso dal periodo della data di arrivo (3 casi), nessun minimo se la notte di arrivo non ha tariffa; rifiutato in `createRequest` senza salvare nulla; non applicato alle prenotazioni manuali.
+- **Integrazione server-side:** totale e istantanea salvati con la richiesta; prezzi inviati dal browser ignorati; quote già date non cambiano se il listino viene modificato dopo; la conferma copia il totale in `bookings.total_cents`; listino assente o parziale = richiesta salvata con totale NULL e istantanea `unquoted` con le date scoperte.
+- **Consistenza e audit del listino (`PricingConfigService`):** sovrapposizioni parziali/totali/contenute/contenenti rifiutate; periodi adiacenti, appartamenti diversi e bozze inattive ammessi; riattivare una bozza sovrapposta rifiutato; un aggiornamento fallito non cambia nulla; appartamento immutabile; validazione di date, importi, minimo, etichette, tipi di regola, finestre; vincoli CHECK del DB; audit con valori vecchi/nuovi per creazione, modifica ed eliminazione; elenco dei periodi senza tariffa.
+- **Nessun dato di produzione:** un test controlla che nessuna migrazione inserisca tariffe o regole, e un altro migra un database vuoto temporaneo verificando 0 tariffe, 0 regole, 6 appartamenti e nessun limite/capienza/prezzo indicativo.
+- **Regressioni:** i 177 test della Fase 2A passano invariati; la suite di concorrenza passa dopo l'estrazione di `TransactionRunner` e l'integrazione del pricing in `createRequest`.
+
+Prove di sensibilità sul calcolatore (eseguite a mano, codice ripristinato e verificato identico):
+
+| Errore introdotto | Test falliti |
+|---|---|
+| confine di stagione inclusivo (`night < end` → `night <= end`) | 14 (1 errore + 13 failure) |
+| minimo soggiorno preso dall'ultima notte invece che dalla notte di arrivo | 2 |
+| `free_units` ignorato | 10 |
+
+Difetti trovati: nessuno nel codice di prodotto. Tre errori miei nei test, corretti: un `+` tra array che non sovrascriveva un valore, un periodo di "10 anni" che era in realtà sotto il tetto di 3660 notti, un test senza asserzioni.
+
+Limiti noti:
+
+- Nessun listino reale: il motore non è mai stato provato con i prezzi del titolare.
+- Interfaccia admin per il listino e anteprima prezzo nel form: Fase 3 e Fase 5 (qui solo servizi).
+- Tassa di soggiorno, sconti percentuali/per età, supplementi opzionali non implementati (vedi `docs/MISSING_DATA.md`).
+- Autorizzazione admin delle azioni di configurazione prezzi: non applicabile finché non esistono le route (Fase 3).
+- Provato solo su MariaDB 10.11.
+
 ## Fase 1b — migrazione controllata (2026-10-05)
 
 | Controllo | Prima | Dopo | Note |
@@ -125,10 +165,10 @@ Limiti noti:
 | Overlap completo | `composer test` | PASS | identico, contenuto, contenente, una notte |
 | Blocchi manuali | `composer test` | PASS | blocco occupa le notti, giorno finale libero, rimozione libera, blocco su prenotazione rifiutato |
 | Conferma concorrente | `composer test` (suite `concurrency`) | PASS | 8 processi x 8 round: 1 sola conferma; con lock disattivato i test FALLISCONO come atteso (vedi sotto) |
-| Prezzi stagionali | | NOT RUN | |
-| Variazione adulti | | NOT RUN | |
-| Variazione bambini | | NOT RUN | |
-| Animali | | NOT RUN | |
+| Prezzi stagionali | `composer test` | PASS | `PriceCalculatorTest`: confini di stagione, 3 stagioni, cambio d'anno, lacune. Dati FITTIZI |
+| Variazione adulti | `composer test` | PASS | adulti inclusi gratis, extra a pagamento, 1 adulto, limite esatto |
+| Variazione bambini | `composer test` | PASS | primo gratis, successivi a pagamento, limite `max_children` |
+| Animali | `composer test` | PASS | per notte/per soggiorno, primo gratis, limite `max_pets`, 0 = non ammessi |
 | Autorizzazione admin | | NOT RUN | |
 | Richiesta pubblica | `composer test` | PASS (solo livello servizio) | sempre `pending`, mai confermata; form/endpoint HTTP non ancora esistenti |
 | Fallimento email | | NOT RUN | |

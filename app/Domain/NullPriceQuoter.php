@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain;
 
-/** Used while no rates are configured: no invented amounts. */
+/** Quoter that never prices anything: used by tests that do not care about prices. */
 final class NullPriceQuoter implements PriceQuoter
 {
-    public function quote(int $apartmentId, StayDates $stay, GuestCounts $guests): ?PriceQuote
+    public function quote(int $apartmentId, StayDates $stay, GuestCounts $guests): PriceQuote
     {
-        return null;
+        return new PriceQuote(null, [], [['code' => 'pricing_not_configured', 'severity' => 'info']], null, $stay->nights());
     }
 }

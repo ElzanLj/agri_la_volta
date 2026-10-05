@@ -31,10 +31,10 @@ abstract class DatabaseTestCase extends TestCase
     /** Empties all booking data and restores the apartments to their seeded state. */
     protected function resetDatabase(): void
     {
-        foreach (['audit_log', 'bookings', 'booking_requests', 'availability_blocks', 'rate_limit_hits'] as $table) {
+        foreach (['audit_log', 'bookings', 'booking_requests', 'availability_blocks', 'seasonal_rates', 'pricing_rules', 'rate_limit_hits'] as $table) {
             $this->db->exec("DELETE FROM {$table}");
         }
-        $this->db->exec('UPDATE apartments SET is_active = 1, accepts_online_requests = 1, max_guests = NULL');
+        $this->db->exec('UPDATE apartments SET is_active = 1, accepts_online_requests = 1, max_guests = NULL, max_children = NULL, max_pets = NULL');
     }
 
     protected function apartmentId(string $slug = 'margherita'): int

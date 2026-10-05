@@ -82,11 +82,33 @@ final class StayDates
         return self::diffDays(self::parseDate($this->checkIn), self::parseDate($this->checkOut));
     }
 
+    /**
+     * The nights of the stay, as the "YYYY-MM-DD" date each night starts on.
+     *
+     * @return list<string>
+     */
+    public function nightDates(): array
+    {
+        $dates = [];
+        $day = self::parseDate($this->checkIn);
+        for ($i = 0, $n = $this->nights(); $i < $n; $i++) {
+            $dates[] = $day->format('Y-m-d');
+            $day = $day->modify('+1 day');
+        }
+        return $dates;
+    }
+
     /** True when the two half-open intervals share at least one night. */
     public function overlaps(self $other): bool
     {
         // Y-m-d strings compare chronologically.
         return $this->checkIn < $other->checkOut && $this->checkOut > $other->checkIn;
+    }
+
+    /** True for a real calendar date written as YYYY-MM-DD within the supported range. */
+    public static function isValidDate(string $value): bool
+    {
+        return self::parseDate($value) !== null;
     }
 
     private static function parseDate(string $value): ?DateTimeImmutable

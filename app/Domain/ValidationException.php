@@ -9,8 +9,11 @@ use RuntimeException;
 /** Input rejected by validation. errors() maps field name => error code. */
 final class ValidationException extends RuntimeException
 {
-    /** @param array<string, string> $errors */
-    public function __construct(private array $errors)
+    /**
+     * @param array<string, string> $errors
+     * @param array<string, mixed> $context extra details for the caller (e.g. the minimum stay)
+     */
+    public function __construct(private array $errors, private array $context = [])
     {
         parent::__construct('Validation failed: ' . json_encode($errors));
     }
@@ -19,5 +22,11 @@ final class ValidationException extends RuntimeException
     public function errors(): array
     {
         return $this->errors;
+    }
+
+    /** @return array<string, mixed> */
+    public function context(): array
+    {
+        return $this->context;
     }
 }

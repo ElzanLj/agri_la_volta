@@ -58,15 +58,15 @@ Regole:
 
 ## Prezzi
 
-- [ ] Tariffe modificabili senza codice
-- [ ] Intervalli/stagioni supportati
-- [ ] Adulti supportati
-- [ ] Bambini supportati
-- [ ] Animali supportati
-- [ ] Supplementi supportati
-- [ ] Soggiorno minimo configurabile se previsto
-- [ ] Prezzo ricalcolato lato server prima del salvataggio
-- [ ] Nessun importo inventato
+- [x] Tariffe modificabili senza codice (`PricingConfigService` con validazioni e audit; interfaccia admin in Fase 3)
+- [x] Intervalli/stagioni supportati (`seasonal_rates`, soggiorni a cavallo di più stagioni)
+- [x] Adulti supportati (adulti inclusi + extra per notte/soggiorno)
+- [x] Bambini supportati (bambini gratis + a pagamento; limite `max_children`; niente fasce d'età: dato non raccolto)
+- [x] Animali supportati (a pagamento per notte/soggiorno; limite `max_pets`)
+- [x] Supplementi supportati (obbligatori, fissi o per notte, con finestra di validità; opzionali rinviati)
+- [x] Soggiorno minimo configurabile se previsto (per periodo, deciso dalla data di arrivo)
+- [x] Prezzo ricalcolato lato server prima del salvataggio (`createRequest`; prezzi del browser ignorati)
+- [x] Nessun importo inventato (migrazioni senza dati di prezzo, verificato da test; fixture solo in `tests/` con etichetta `[TEST]`)
 
 ## Admin
 
@@ -161,8 +161,8 @@ Regole:
 - [x] Test overlap parziale/completo
 - [x] Test blocchi manuali
 - [x] Test conferma concorrente (processi reali + prova con lock disattivato)
-- [ ] Test prezzi stagionali
-- [ ] Test variazioni adulti/bambini/animali
+- [x] Test prezzi stagionali
+- [x] Test variazioni adulti/bambini/animali
 - [ ] Test autorizzazione admin
 - [~] Test richieste pubbliche (a livello servizio; test HTTP del form in Fase 5)
 - [ ] Test fallimento email

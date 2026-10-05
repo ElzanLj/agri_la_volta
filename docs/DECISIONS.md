@@ -74,6 +74,26 @@ Piano approvato dall'utente il 2026-10-05, con le quattro scelte confermate (pun
 | 2026-10-05 | Nessun trigger né vincolo di esclusione nel DB: invariante garantita dal servizio e verificata da una query indipendente nei test | trigger `BEFORE INSERT` sul DB | i trigger non sono affidabili su hosting condiviso; limite documentato | `tests/Support/Invariants.php` |
 | 2026-10-05 | Il pricing è solo un'interfaccia (`PriceQuoter`, implementazione nulla): `quoted_total_cents` resta NULL | prezzi provvisori | niente importi inventati; Fase 2B | `app/Domain/PriceQuoter.php` |
 
+## Decisioni Fase 2B — pricing (2026-10-05)
+
+Piano e assunzioni approvati dall'utente il 2026-10-05 (punti 1-4 sotto confermati esplicitamente).
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-05 | La tariffa base è **per appartamento e per notte**; adulti, bambini, animali e supplementi sono voci **additive** separate | prezzo per persona; regole che si sostituiscono a vicenda | modello semplice; il prezzo per persona resta esprimibile con tariffa base 0 | `seasonal_rates`, `pricing_rules` |
+| 2026-10-05 | Il soggiorno minimo è quello del periodo che contiene la **data di arrivo**; i supplementi per soggiorno con finestra di validità si applicano se la data di arrivo è nella finestra | massimo tra i periodi toccati; periodo di uscita | convenzione tecnica coerente con la pratica di prenotazione; da confermare col titolare | `PriceCalculator` |
+| 2026-10-05 | Esclusi da questa fase: sconti percentuali, sconti per età dei bambini, supplementi opzionali, tassa di soggiorno, sconti per soggiorni lunghi | motore di regole generico | mancano i dati e la richiesta non raccoglie l'età né le scelte opzionali; registrati in `MISSING_DATA.md` | — |
+| 2026-10-05 | Un listino mancante o con lacune **non blocca** la richiesta: viene salvata con totale NULL e istantanea `unquoted` ("prezzo da confermare") | rifiutare la richiesta | non perdere richieste mentre il listino non è completo | `BookingService::createRequest` |
+| 2026-10-05 | Bloccanti per la richiesta pubblica: soggiorno sotto il minimo, `max_children` e `max_pets` superati. Le prenotazioni manuali dell'admin non applicano minimo e limiti (la capienza `max_guests` resta applicata) | applicarli anche all'admin | l'admin può registrare eccezioni concordate al telefono | `BookingService` |
+| 2026-10-05 | Vocabolario fisso di regole: `adult`/`child`/`pet`/`stay` × `per_night`/`per_stay`, con `free_units`, importo, finestra di validità opzionale, appartamento opzionale (NULL = tutti) | motore di espressioni generico | richiesto: estendibile ma non eccessivamente generico | `pricing_rules`, `ChargeRule` |
+| 2026-10-05 | Il calcolo è in `PriceCalculator` (puro, senza DB né orologio, interi in centesimi); `ConfiguredPriceQuoter` lo alimenta dal DB. `PriceQuoter` restituisce sempre un `PriceQuote` (anche incompleto) invece di `null` | restituire `null`/lanciare eccezioni | permette di spiegare perché manca il prezzo | `app/Domain`, `app/Service` |
+| 2026-10-05 | Il totale e l'istantanea del calcolo (`price_breakdown`, JSON versione 1) sono salvati con la richiesta e non cambiano se il listino viene modificato; alla conferma il totale passa a `bookings.total_cents` | ricalcolare alla conferma | il cliente riceve il prezzo che gli è stato mostrato | `booking_requests`, `bookings` |
+| 2026-10-05 | Le tariffe attive di uno stesso appartamento non possono sovrapporsi (validato sotto lock sulla riga appartamento); le bozze inattive possono | vincolo solo nel calcolo | evita prezzi ambigui; il calcolatore segnala comunque `ambiguous_rate` | `PricingConfigService` |
+| 2026-10-05 | Tutte le modifiche al listino finiscono nell'audit log con valori vecchi e nuovi | solo log applicativo | SPEC §15 ("prezzo modificato") | `PricingConfigService` |
+| 2026-10-05 | Limiti tecnici di sicurezza sugli importi (max 100.000 euro per voce, 20 unità gratuite, periodi fino a 3660 notti): non sono regole commerciali | nessun limite | prevenire errori di inserimento e overflow | `PricingConfigService`, `PriceCalculator` |
+| 2026-10-05 | Fixture di prezzo solo in `tests/Support/PricingFixtures.php`, etichette `[TEST]` e importi artificiali; un test verifica che le migrazioni non inseriscano tariffe, regole o limiti | fixture nelle migrazioni | separazione netta test/produzione | `tests/` |
+| 2026-10-05 | `TransactionRunner` estratto da `BookingService` e condiviso con `PricingConfigService`; comportamento invariato (verificato dalla suite di concorrenza) | duplicare il codice | un solo punto con isolamento READ COMMITTED e gestione timeout/deadlock | `app/Database/TransactionRunner.php` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

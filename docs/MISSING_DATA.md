@@ -4,12 +4,12 @@ Non compilare con valori inventati. Aggiorna questo file quando emergono informa
 
 | Voce | Stato | Valore / decisione fornita | Impatto | Fonte / nota |
 |---|---|---|---|---|
-| Prezzi definitivi | MANCANTE | — | Calcolo soggiorno | Da fornire dal titolare |
-| Periodi stagionali | MANCANTE | — | Pricing | Da fornire |
-| Regole adulti | MANCANTE | — | Pricing | Da fornire |
-| Regole bambini | MANCANTE | — | Pricing | Da fornire |
-| Supplementi animali | MANCANTE | — | Pricing | Da fornire |
-| Soggiorno minimo | DA DEFINIRE | — | Pricing/disponibilità | Solo se previsto |
+| Prezzi definitivi | MANCANTE | — | Calcolo soggiorno | Da fornire dal titolare. Struttura pronta (migrazione 0003): il listino va inserito dall'admin, nessun prezzo è nel codice o nelle migrazioni. Senza listino le richieste restano "prezzo da confermare" |
+| Periodi stagionali | MANCANTE | — | Pricing | Da fornire; vanno inseriti come periodi per appartamento. `PricingConfigService::coverageGaps` elenca le date ancora senza tariffa |
+| Regole adulti | MANCANTE | — | Pricing | Da fornire: quanti adulti sono inclusi nella tariffa base e quanto costa ogni adulto in più (per notte o per soggiorno) |
+| Regole bambini | MANCANTE | — | Pricing | Da fornire: quanti bambini gratis e quanto costano gli altri. Il sito legacy citava sconti per bambini 1-3 anni: non applicabili finché non si raccoglie l'età |
+| Supplementi animali | MANCANTE | — | Pricing | Da fornire: importo, per notte o per soggiorno, quanti animali gratis, e limite per appartamento (`max_pets`; 0 = non ammessi) |
+| Soggiorno minimo | DA DEFINIRE | — | Pricing/disponibilità | Solo se previsto. Convenzione tecnica confermata dall'utente il 2026-10-05: vale il minimo del periodo che contiene la data di arrivo; da confermare anche col titolare |
 | Appartamenti gestiti da Novasol | MANCANTE | — | Disponibilità | Da fornire |
 | Regole Novasol | MANCANTE | — | Disponibilità | Non implementare integrazione automatica ora |
 | Traduzioni definitive EN | DA VERIFICARE | — | Contenuti | Correzione manuale possibile |
@@ -41,3 +41,9 @@ Se una feature dipende da una di queste informazioni, implementa la struttura co
 Usa stati coerenti: `MANCANTE`, `DA DEFINIRE`, `DA VERIFICARE`, `FORNITO`.
 
 Quando un'informazione viene fornita, registra la fonte/nota e la data senza cancellare la storia utile. Non inserire segreti reali (es. password SMTP); registra soltanto che sono disponibili tramite il canale/configurazione appropriato.
+| Tassa di soggiorno | MANCANTE | — | Pricing/legale | Non implementata (regole comunali, esenzioni): richiede dati e verifica del titolare/Comune; la struttura attuale non la calcola |
+| Sconti percentuali e per età dei bambini | MANCANTE | — | Pricing | Esclusi dalla Fase 2B per scelta confermata: servono regole di arrotondamento e, per l'età, un campo età nella richiesta |
+| Supplementi opzionali (lettino, letto aggiunto, pulizia infrasettimanale) | MANCANTE | — | Pricing/form | Rinviati: il form non può ancora selezionarli; importi non confermati (legacy: lettino 10 euro/giorno, letto aggiuntivo 20 euro, pulizia infrasettimanale 10 euro — NON validi) |
+| Pulizia finale e altri supplementi obbligatori | MANCANTE | — | Pricing | Il legacy citava 30 euro di pulizia finale: non confermato. Va inserito come regola `stay` per soggiorno |
+| Limiti bambini/animali per appartamento (`max_children`, `max_pets`) | MANCANTE | — | Disponibilità/form | Colonne vuote = nessun limite. Da compilare per appartamento |
+| Sconti soggiorni lunghi / offerte speciali | MANCANTE | — | Pricing | Il legacy citava formule da concordare: non implementate |

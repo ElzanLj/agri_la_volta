@@ -75,7 +75,7 @@ Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
 
 ```bash
 docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
-docker compose exec web composer test         # prepara il DB di test, poi esegue tutte le suite (circa 75 s)
+docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (275 test, circa 75 s)
 ```
 
 Suite singole:
@@ -90,6 +90,10 @@ docker compose exec web vendor/bin/phpunit --testsuite unit --testdox
 - I test usano il database `agriturismo_test` (creato da `tests/prepare-db.php` con `DB_ROOT_PASSWORD` di `.env`). Si rifiutano di partire se il nome non finisce con `_test`: non toccano mai i dati di sviluppo.
 - La suite `concurrency` avvia 2-16 processi PHP (`tests/Support/worker.php`), ciascuno con la propria connessione, rilasciati nello stesso istante; ripete ogni scenario per 8 round.
 - Dopo ogni round la suite controlla con SQL che non esistano prenotazioni `confirmed` sovrapposte né prenotazioni sopra un blocco.
+
+### Listino prezzi
+
+Il listino non è nel codice né nelle migrazioni: si inserisce tramite `PricingConfigService` (interfaccia admin in Fase 3). Dopo `git pull` con nuove migrazioni eseguire `php bin/migrate.php`.
 
 ## Amministratore
 

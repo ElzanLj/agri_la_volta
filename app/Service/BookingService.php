@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Database\TransactionRunner;
 use App\Domain\BusyException;
 use App\Domain\ConflictException;
 use App\Domain\GuestCounts;
-use App\Domain\NullPriceQuoter;
 use App\Domain\PriceQuoter;
 use App\Domain\StateException;
 use App\Domain\StayDates;
@@ -15,13 +15,12 @@ use App\Domain\ValidationException;
 use App\Repository\ApartmentRepository;
 use App\Repository\AvailabilityRepository;
 use App\Repository\BookingRepository;
+use App\Repository\PricingRepository;
 use App\Support\AuditLog;
 use DateTimeImmutable;
 use DateTimeZone;
-use LogicException;
 use PDO;
 use PDOException;
-use Throwable;
 
 /**
  * Every write that can change the occupation of an apartment goes through this class.
@@ -39,9 +38,6 @@ final class BookingService
     /** `website` is reserved for approved public requests. */
     public const MANUAL_ORIGINS = ['phone', 'email', 'agency', 'novasol', 'other'];
 
-    private const LOCK_WAIT_SECONDS = 10;
-    private const MYSQL_LOCK_WAIT_TIMEOUT = 1205;
-    private const MYSQL_DEADLOCK = 1213;
     private const MYSQL_DUPLICATE_ENTRY = 1062;
     private const REFERENCE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
@@ -50,6 +46,7 @@ final class BookingService
     private BookingRepository $bookings;
     private AuditLog $audit;
     private PriceQuoter $quoter;
+    private TransactionRunner $tx;
     /** @var callable(): string */
     private $today;
 
@@ -60,7 +57,8 @@ final class BookingService
         $this->availability = new AvailabilityRepository($db);
         $this->bookings = new BookingRepository($db);
         $this->audit = new AuditLog($db);
-        $this->quoter = $quoter ?? new NullPriceQuoter();
+        $this->quoter = $quoter ?? new ConfiguredPriceQuoter(new PricingRepository($db));
+        $this->tx = new TransactionRunner($db);
         $this->today = $today ?? static fn (): string => (new DateTimeImmutable('now', new DateTimeZone(date_default_timezone_get())))->format('Y-m-d');
     }
 
@@ -136,12 +134,27 @@ final class BookingService
             throw new ValidationException(['guests' => 'over_capacity']);
         }
 
+        $maxChildren = self::intOrNull($apartment['max_children']);
+        if ($maxChildren !== null && $guests->children > $maxChildren) {
+            throw new ValidationException(['children' => 'too_many_children'], ['max_children' => $maxChildren]);
+        }
+        $maxPets = self::intOrNull($apartment['max_pets']);
+        if ($maxPets !== null && $guests->pets > $maxPets) {
+            throw new ValidationException(['pets' => $maxPets === 0 ? 'pets_not_allowed' : 'too_many_pets'], ['max_pets' => $maxPets]);
+        }
+
         $conflicts = $this->availability->conflicts($apartmentId, $stay);
         if ($conflicts !== []) {
             throw new ConflictException($conflicts);
         }
 
+        // The price is always computed here; nothing sent by the browser is trusted or even read.
         $quote = $this->quoter->quote($apartmentId, $stay, $guests);
+        foreach ($quote->blockingIssues() as $issue) {
+            if ($issue['code'] === 'below_min_nights') {
+                throw new ValidationException(['check_out' => 'below_minimum_stay'], ['min_nights' => $issue['min_nights']]);
+            }
+        }
 
         return $this->transactional(function () use ($apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote): array {
             $row = [
@@ -157,8 +170,9 @@ final class BookingService
                 'phone' => $phone,
                 'notes' => $notes === '' ? null : $notes,
                 'locale' => $locale,
-                'quoted_total_cents' => $quote?->totalCents,
-                'price_breakdown' => $quote === null ? null : json_encode($quote->breakdown, JSON_UNESCAPED_UNICODE),
+                'quoted_total_cents' => $quote->totalCents,
+                // Snapshot of the calculation (also when no total could be computed, to say why).
+                'price_breakdown' => json_encode($quote->toSnapshot() + ['quoted_at' => gmdate('Y-m-d\TH:i:s\Z')], JSON_UNESCAPED_UNICODE),
             ];
 
             for ($attempt = 0; ; $attempt++) {
@@ -449,28 +463,7 @@ final class BookingService
      */
     private function transactional(callable $fn): mixed
     {
-        if ($this->db->inTransaction()) {
-            throw new LogicException('BookingService operations cannot be nested in another transaction.');
-        }
-
-        // READ COMMITTED: every statement sees the latest committed data, also after the lock wait.
-        $this->db->exec('SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED');
-        $this->db->exec('SET SESSION innodb_lock_wait_timeout = ' . self::LOCK_WAIT_SECONDS);
-        $this->db->beginTransaction();
-
-        try {
-            $result = $fn();
-            $this->db->commit();
-            return $result;
-        } catch (Throwable $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            if ($e instanceof PDOException && in_array($e->errorInfo[1] ?? 0, [self::MYSQL_LOCK_WAIT_TIMEOUT, self::MYSQL_DEADLOCK], true)) {
-                throw new BusyException('The database is busy, retry shortly.', 0, $e);
-            }
-            throw $e;
-        }
+        return $this->tx->run($fn);
     }
 
     /** @throws ConflictException */
