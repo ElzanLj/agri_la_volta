@@ -56,6 +56,24 @@ Registra qui solo decisioni tecniche o di prodotto realmente prese. Non usare il
 | 2026-10-05 | Foto, hotlink e CSS legacy non migrati in `public/` in questa fase | migrare gli asset ora | le foto di provenienza dubbia vanno sostituite (decisione utente); i contenuti verranno riportati in Fase 5/6 con provenienza verificata | `legacy/src/assets` |
 | 2026-10-05 | Node/Vite resta solo come strumento di build del legacy, non richiesto in produzione | rimuovere subito | utile per consultare/compilare il riferimento fino alla sua eliminazione (Fase 5) | `legacy/` |
 
+## Decisioni Fase 2A — booking e disponibilità (2026-10-05)
+
+Piano approvato dall'utente il 2026-10-05, con le quattro scelte confermate (punti 1-4 sotto).
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-05 | Un blocco su date con una prenotazione confermata viene **rifiutato** con l'elenco dei conflitti; blocchi sovrapposti tra loro sono ammessi | creare comunque il blocco | evita dati incoerenti | `BookingService::createBlock` |
+| 2026-10-05 | Una richiesta pubblica su date già non disponibili viene **rifiutata all'invio** | accettarla `pending` | SPEC §7: disponibilità ricontrollata lato server; la verifica vincolante resta alla conferma | `BookingService::createRequest` |
+| 2026-10-05 | Tetti tecnici anti-abuso: 60 notti per richiesta/prenotazione, 366 per blocco, 2 anni di anticipo per le richieste pubbliche, max 20 persone e 10 animali. **Non sono regole commerciali** | nessun tetto | valori confermati dall'utente | `StayDates`, `GuestCounts` |
+| 2026-10-05 | Composer e PHPUnit solo in sviluppo (immagine Docker); `composer.lock` versionato, `vendor/` ignorato; la produzione non richiede Composer | PHPUnit scaricato a mano | P2 | `Dockerfile`, `composer.json` |
+| 2026-10-05 | Locking: ogni operazione che può cambiare l'occupazione apre una transazione `READ COMMITTED` e prende `SELECT ... FOR UPDATE` sulla riga dell'appartamento; il controllo di sovrapposizione si ripete sotto lock; timeout attesa 10 s (errore `BusyException`, ritentabile). Ordine fisso: appartamento, poi richiesta/prenotazione | lock a intervallo sul controllo di sovrapposizione; `GET_LOCK`; tabella notti con chiave unica | un solo lock per transazione = nessun deadlock; semplice e portabile (P6) | `BookingService` |
+| 2026-10-05 | `rejectRequest` non prende il lock appartamento (non cambia l'occupazione), solo quello sulla riga della richiesta | lock appartamento anche qui | meno contesa; verificato dal test conferma/rifiuto concorrenti | `BookingService::rejectRequest` |
+| 2026-10-05 | Origine `website` riservata alle richieste approvate; le prenotazioni manuali accettano solo `phone`, `email`, `agency`, `novasol`, `other` | `website` ammesso anche manualmente | SPEC §11: `website` = richiesta del sito | `BookingService::MANUAL_ORIGINS` |
+| 2026-10-05 | L'audit delle richieste pubbliche non contiene dati personali (solo appartamento, date, ospiti, stato) | loggare anche nome/email | minimizzazione dei dati (SPEC §32) | `BookingService` |
+| 2026-10-05 | Capienza controllata solo se `apartments.max_guests` è valorizzato (oggi NULL); gli animali non contano | capienza di default | dato mancante: nessuna capienza inventata | `GuestCounts::exceedsCapacity` |
+| 2026-10-05 | Nessun trigger né vincolo di esclusione nel DB: invariante garantita dal servizio e verificata da una query indipendente nei test | trigger `BEFORE INSERT` sul DB | i trigger non sono affidabili su hosting condiviso; limite documentato | `tests/Support/Invariants.php` |
+| 2026-10-05 | Il pricing è solo un'interfaccia (`PriceQuoter`, implementazione nulla): `quoted_total_cents` resta NULL | prezzi provvisori | niente importi inventati; Fase 2B | `app/Domain/PriceQuoter.php` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

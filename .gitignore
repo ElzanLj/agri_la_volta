@@ -34,3 +34,6 @@ dist-ssr
 /storage/sessions/*
 !/storage/**/.gitkeep
 /vendor/
+
+# PHPUnit
+/.phpunit.cache/

@@ -43,18 +43,18 @@ Regole:
 
 ## Booking e disponibilità
 
-- [ ] Intervalli `[check_in, check_out)`
-- [ ] Date validate lato server
-- [ ] Numero notti corretto
-- [ ] Disponibilità ricalcolata lato server
-- [ ] Nessuna sovrapposizione tra prenotazioni confirmed dello stesso appartamento
-- [ ] Controllo concorrenza/transazione implementato
-- [ ] Richiesta pubblica salvata come pending
-- [ ] Conferma manuale admin
-- [ ] Rifiuto admin
-- [ ] Prenotazioni manuali da canali esterni
-- [ ] Blocchi disponibilità
-- [ ] Cancellazione libera le date
+- [x] Intervalli `[check_in, check_out)`
+- [x] Date validate lato server (`StayDates`)
+- [x] Numero notti corretto
+- [x] Disponibilità ricalcolata lato server (all'invio e di nuovo sotto lock alla conferma; il form pubblico arriva in Fase 5)
+- [x] Nessuna sovrapposizione tra prenotazioni confirmed dello stesso appartamento
+- [x] Controllo concorrenza/transazione implementato (lock sulla riga appartamento, READ COMMITTED)
+- [x] Richiesta pubblica salvata come pending (servizio; endpoint/form in Fase 5)
+- [x] Conferma manuale admin (servizio; interfaccia in Fase 3)
+- [x] Rifiuto admin (servizio; interfaccia in Fase 3)
+- [x] Prenotazioni manuali da canali esterni (servizio; interfaccia in Fase 3)
+- [x] Blocchi disponibilità (servizio; interfaccia in Fase 3)
+- [x] Cancellazione libera le date
 
 ## Prezzi
 
@@ -154,20 +154,20 @@ Regole:
 
 ## Test e consegna
 
-- [ ] Test date non valide
-- [ ] Test checkout <= check-in
-- [ ] Test numero notti
-- [ ] Test soggiorni consecutivi
-- [ ] Test overlap parziale/completo
-- [ ] Test blocchi manuali
-- [ ] Test conferma concorrente
+- [x] Test date non valide
+- [x] Test checkout <= check-in
+- [x] Test numero notti
+- [x] Test soggiorni consecutivi
+- [x] Test overlap parziale/completo
+- [x] Test blocchi manuali
+- [x] Test conferma concorrente (processi reali + prova con lock disattivato)
 - [ ] Test prezzi stagionali
 - [ ] Test variazioni adulti/bambini/animali
 - [ ] Test autorizzazione admin
-- [ ] Test richieste pubbliche
+- [~] Test richieste pubbliche (a livello servizio; test HTTP del form in Fase 5)
 - [ ] Test fallimento email
-- [ ] Test validazione form
-- [ ] Test cancellazione
+- [~] Test validazione form (validazione server-side testata a livello servizio; form HTML in Fase 5)
+- [x] Test cancellazione
 - [ ] Test export CSV
 - [ ] Test manuale mobile/desktop/tastiera/IT/EN
 - [ ] README/installazione locale

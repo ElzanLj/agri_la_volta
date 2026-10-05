@@ -9,7 +9,7 @@ Verificato il 2026-10-05.
 - OS/runtime host: Windows 11 Pro, Git Bash / PowerShell
 - Docker: Docker Compose v5.4.0
 - PHP: 8.2.34 nel container `web` (`docker/php/Dockerfile`: `php:8.2-apache` + `pdo_mysql`, `mod_rewrite`, `mod_headers`). PHP non installato sull'host.
-- Composer: non usato in questa fase (autoloader interno, vedi `docs/DECISIONS.md`)
+- Composer: 2.10.3 nel container `web`, solo per PHPUnit (sviluppo); l'applicazione usa un autoloader interno e la produzione non richiede Composer
 - MySQL/MariaDB: MariaDB 10.11 nel container `db`
 - Node/npm: Node v24.18.0, npm 11.16.0 (solo per l'app legacy in `legacy/`)
 
@@ -68,6 +68,28 @@ mysqldump --single-transaction --routines --default-character-set=utf8mb4 -h HOS
 ```
 
 Ripristino: creare un database vuoto e importare il dump (`mysql ... DB_NAME < backup-AAAAMMGG.sql` o import phpMyAdmin). Procedura completa di backup in Fase 8.
+
+## Test automatici (PHPUnit, solo sviluppo)
+
+Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
+
+```bash
+docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
+docker compose exec web composer test         # prepara il DB di test, poi esegue tutte le suite (circa 75 s)
+```
+
+Suite singole:
+
+```bash
+docker compose exec web composer test -- --testsuite unit          # secondi, senza DB
+docker compose exec web composer test -- --testsuite integration   # circa 3 s
+docker compose exec web composer test -- --testsuite concurrency   # circa 70 s, processi PHP reali in parallelo
+docker compose exec web vendor/bin/phpunit --testsuite unit --testdox
+```
+
+- I test usano il database `agriturismo_test` (creato da `tests/prepare-db.php` con `DB_ROOT_PASSWORD` di `.env`). Si rifiutano di partire se il nome non finisce con `_test`: non toccano mai i dati di sviluppo.
+- La suite `concurrency` avvia 2-16 processi PHP (`tests/Support/worker.php`), ciascuno con la propria connessione, rilasciati nello stesso istante; ripete ogni scenario per 8 round.
+- Dopo ogni round la suite controlla con SQL che non esistano prenotazioni `confirmed` sovrapposte né prenotazioni sopra un blocco.
 
 ## Amministratore
 

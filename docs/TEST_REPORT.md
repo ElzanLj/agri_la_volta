@@ -63,6 +63,41 @@ Ambiente: Docker, PHP 8.2.34 + Apache (document root = root repository, fallback
 | Cookie `Secure` in HTTPS | — | NOT RUN | ambiente locale solo HTTP |
 | Legacy dopo spostamento | `cd legacy && npm run build` | PASS | stessi warning della baseline |
 
+## Fase 2A — booking e disponibilità (2026-10-05)
+
+Ambiente: Docker, PHP 8.2.34, MariaDB 10.11, PHPUnit 10.5.66, database dedicato `agriturismo_test` (guardia: il nome deve finire con `_test`). Comando: `docker compose exec web composer test`.
+
+| Suite | Test | Asserzioni | Risultato |
+|---|---|---|---|
+| `unit` (`StayDatesTest`, `GuestCountsTest`) | 85 | 105 | PASS |
+| `integration` (disponibilità, regole, richieste, blocchi/cancellazione/atomicità) | 84 | 250 | PASS |
+| `concurrency` (processi PHP reali con connessioni DB separate, 8 round per scenario) | 8 | circa 1400 | PASS |
+| **Totale** | **177** | **1748 e 1751 nelle due esecuzioni** | **PASS in 2 esecuzioni consecutive, circa 75 s ciascuna** |
+
+Scenari di concorrenza (ogni round: DB azzerato, N processi rilasciati nello stesso istante, poi controllo SQL indipendente delle sovrapposizioni):
+
+1. 8 richieste per le stesse date confermate insieme: esattamente 1 conferma, 7 conflitti puliti, 7 richieste restano `pending`.
+2. Stessa richiesta confermata da 8 processi: 1 sola prenotazione.
+3. Conferma e rifiuto della stessa richiesta insieme: una sola decisione vince; stato e prenotazioni coerenti.
+4. 3 conferme + 3 prenotazioni manuali + 2 blocchi sulle stesse date: o 1 prenotazione e 0 blocchi, o 0 prenotazioni e 2 blocchi.
+5. 4 soggiorni adiacenti (check-out = check-in) in parallelo: tutti riescono.
+6. 6 appartamenti diversi in parallelo: tutti riescono.
+7. Cancellazione contro conferma sulle stesse date: la cancellazione riesce sempre; stato finale coerente.
+8. 16 soggiorni casuali (seme fisso) in parallelo: nessuna sovrapposizione; successi dichiarati = prenotazioni salvate.
+
+In tutti i round: nessun errore tecnico (nessuna eccezione, lock timeout o deadlock).
+
+**Prova di sensibilità (mutation check, eseguita una volta a mano):** ho disattivato temporaneamente il lock sulla riga appartamento in `BookingService::withApartmentLock` (sostituendo `lockForUpdate` con una lettura semplice). Risultato: **3 test su 8 falliti** al primo round: 7 conferme su 8 per le stesse date, 6 prenotazioni confermate nello scenario misto, 19 coppie sovrapposte nello scenario casuale. Il codice originale è stato ripristinato (file identico alla copia salvata) e la suite è tornata verde. Questo dimostra che i test rilevano davvero le gare.
+
+Difetti trovati durante la fase: nessuno nel codice di prodotto. Due errori miei nei test, corretti: un metodo helper in conflitto con `TestCase::status()` di PHPUnit, e uno scenario di concorrenza che creava una richiesta su date già occupate (la richiesta veniva correttamente rifiutata).
+
+Limiti noti:
+
+- Autorizzazione server-side delle azioni admin: **NON APPLICABILE ora**. Le azioni esistono solo come servizi e non sono esposte via HTTP; saranno testate in Fase 3 con l'interfaccia admin. Resta verificata la protezione di `/admin` (Fase 1).
+- Provato solo su MariaDB 10.11; MySQL 8 non provato (comportamento atteso uguale per `SELECT ... FOR UPDATE` e `READ COMMITTED`).
+- Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
+- Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
+
 ## Fase 1b — migrazione controllata (2026-10-05)
 
 | Controllo | Prima | Dopo | Note |
@@ -82,23 +117,23 @@ Ambiente: Docker, PHP 8.2.34 + Apache (document root = root repository, fallback
 
 | Test | Comando / procedura | Risultato | Evidenza / note |
 |---|---|---|---|
-| Date non valide | | NOT RUN | |
-| Checkout precedente/uguale al check-in | | NOT RUN | |
-| Numero notti | | NOT RUN | |
-| Soggiorni consecutivi | | NOT RUN | |
-| Overlap parziale | | NOT RUN | |
-| Overlap completo | | NOT RUN | |
-| Blocchi manuali | | NOT RUN | |
-| Conferma concorrente | | NOT RUN | |
+| Date non valide | `composer test` | PASS | `StayDatesTest` (17 formati x 2 campi), `RequestFlowTest`, `BookingRulesTest` |
+| Checkout precedente/uguale al check-in | `composer test` | PASS | `StayDatesTest`, `BookingRulesTest`, `RequestFlowTest` |
+| Numero notti | `composer test` | PASS | 9 casi: fine mese, febbraio bisestile/non, cambio ora legale (ott/mar), capodanno, 60 notti |
+| Soggiorni consecutivi | `composer test` | PASS | check-out e check-in nello stesso giorno, notti singole adiacenti, 4 soggiorni adiacenti prenotati in parallelo |
+| Overlap parziale | `composer test` | PASS | unit (16 casi, simmetria) + integrazione con DB |
+| Overlap completo | `composer test` | PASS | identico, contenuto, contenente, una notte |
+| Blocchi manuali | `composer test` | PASS | blocco occupa le notti, giorno finale libero, rimozione libera, blocco su prenotazione rifiutato |
+| Conferma concorrente | `composer test` (suite `concurrency`) | PASS | 8 processi x 8 round: 1 sola conferma; con lock disattivato i test FALLISCONO come atteso (vedi sotto) |
 | Prezzi stagionali | | NOT RUN | |
 | Variazione adulti | | NOT RUN | |
 | Variazione bambini | | NOT RUN | |
 | Animali | | NOT RUN | |
 | Autorizzazione admin | | NOT RUN | |
-| Richiesta pubblica | | NOT RUN | |
+| Richiesta pubblica | `composer test` | PASS (solo livello servizio) | sempre `pending`, mai confermata; form/endpoint HTTP non ancora esistenti |
 | Fallimento email | | NOT RUN | |
-| Validazione form | | NOT RUN | |
-| Cancellazione | | NOT RUN | |
+| Validazione form | `composer test` | PASS (solo livello servizio) | validazione server-side di date, ospiti, contatti, privacy; form HTML in Fase 5 |
+| Cancellazione | `composer test` | PASS | date riaperte e riprenotabili, doppia cancellazione rifiutata, richiesta collegata `cancelled`, audit |
 | Export CSV | | NOT RUN | |
 
 ## Verifica manuale

@@ -7,34 +7,33 @@
 - **Data aggiornamento:** 2026-10-05
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `3a6762f` (Fase 1: fondamenta PHP/DB); le modifiche della Fase 1b non sono ancora committate
-- **Fase corrente:** Fase 1 — fondamenta: **COMPLETATA** (prompt 02 e 03)
-- **Prompt corrente:** `prompts/03_FOUNDATION_MIGRATION.md` (completato)
-- **Stato complessivo:** baseline PHP/MariaDB avviabile; codice legacy ripulito da pagamenti, Firebase, login e server email
+- **Commit di riferimento:** `d8f3865` (Fase 1b); la Fase 2A è nel commit successivo
+- **Fase corrente:** Fase 2A — booking e disponibilità: **COMPLETATA** (prompt 04)
+- **Prompt corrente:** `prompts/04_BOOKING_AVAILABILITY.md` (completato)
+- **Stato complessivo:** core di richieste/prenotazioni/blocchi/cancellazioni implementato come servizi PHP, 177 test PASS
 
 ## Obiettivo corrente
 
-Review/commit della Fase 1b, poi Fase 2A: `prompts/04_BOOKING_AVAILABILITY.md`.
+Fase 2B (pricing): `prompts/05_PRICING.md`. Poi Fase 3 (admin) che esporrà i servizi via HTTP.
 
 ## Ultimo lavoro completato
 
-- Rimossi da `legacy/` pagamenti, `AuthPopup`, `BookingSystem`, Firebase, `EmailServer.js`, codice morto e le dipendenze `firebase`, `nodemailer`, `dotenv`, `all`, `react-datepicker`, `react-icons`.
-- `App.jsx`, `NavBar.jsx`, `ContactUs.jsx` del legacy adattati (niente login, niente Prenota, niente modulo contatti).
-- Baseline legacy: build PASS (JS 184 kB), lint 43 errori (era 90), audit 2 vulnerabilità moderate (erano 14).
-- Baseline PHP riverificata: migrazioni, pagine, DB, lint PHP.
-- `README_home.md` (duplicato) eliminato su richiesta dell'utente.
+- `app/Domain` (`StayDates`, `GuestCounts`, eccezioni, `PriceQuoter` + implementazione nulla), `app/Repository` (SQL), `app/Service` (`AvailabilityService`, `BookingService`).
+- Locking per appartamento (`SELECT ... FOR UPDATE`, READ COMMITTED) come da P6; descritto in `docs/DECISIONS.md` e nel docblock di `BookingService`.
+- Composer + PHPUnit nell'immagine Docker; database di test `agriturismo_test`.
+- 177 test (85 unit, 84 integrazione, 8 concorrenza con processi reali): PASS in due esecuzioni consecutive. Prova con lock disattivato: i test falliscono (7 conferme su 8, 19 sovrapposizioni), poi codice ripristinato.
 
 ## Working tree / modifiche locali da preservare
 
-- Modifiche non committate della Fase 1b (solo `legacy/` e `docs/`).
-- File locale non tracciato `legacy/src/EmailStatus/.env` con la credenziale Gmail già revocata: non letto, non cancellato (può eliminarlo il titolare).
+- Nessuna modifica locale non committata a fine fase (il file `.env` della credenziale revocata è stato eliminato dall'utente).
+- `vendor/` e `.phpunit.cache/` locali (ignorati da Git).
 - `.env` locale con password DB casuali di sviluppo (ignorato).
 - Copia del `docker-compose.yml` originale dell'utente nello scratchpad della sessione (conteneva solo una password di sviluppo).
 - Password admin locale impostata dall'utente; volumi Docker vecchi puliti dall'utente.
 
 ## Test/comandi più recenti
 
-Vedi `docs/TEST_REPORT.md` (sezione Fase 1) e `docs/COMMANDS.md`. Tutte le verifiche PASS tranne cookie `Secure` in HTTPS (NOT RUN). Due difetti trovati e corretti durante la verifica (redirect directory, `stream_isatty`).
+`docker compose exec web composer test` → 177 test, 1748-1751 asserzioni, PASS (2 esecuzioni). Dettagli e limiti in `docs/TEST_REPORT.md` (sezione Fase 2A). Autorizzazione admin delle azioni: non applicabile finché non esiste l'interfaccia (Fase 3).
 
 ## Blocchi aperti
 
@@ -43,11 +42,11 @@ Vedi `docs/TEST_REPORT.md` (sezione Fase 1) e `docs/COMMANDS.md`. Tutte le verif
 
 ## Decisioni da non reinterpretare
 
-Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1 registrate.
+Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b e 2A registrate (tetti tecnici, blocchi rifiutati su prenotazioni, richieste su date occupate rifiutate, locking).
 
 ## Prossimo passo esatto
 
-`prompts/04_BOOKING_AVAILABILITY.md` (dopo commit della Fase 1b).
+`prompts/05_PRICING.md`.
 
 ## Note per il prossimo agente
 
@@ -56,3 +55,5 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1 registrate.
 - I prezzi nel codice legacy non sono dati validi.
 - Migrazioni: un file nuovo per ogni modifica di schema, mai modificare `0001`/`0002` già applicate.
 - Ogni nuovo form deve usare `csrf_field()` + `Csrf::isValid()`; output sempre con `e()`.
+- Ogni scrittura che cambia l'occupazione di un appartamento deve passare da `BookingService`: non scrivere mai direttamente in `bookings` o `availability_blocks`. L'invariante di non-sovrapposizione dipende da questo.
+- Eseguire `composer test` (almeno le suite `unit` e `integration`) prima di ogni modifica a `app/Service`, `app/Repository` o `app/Domain`; la suite `concurrency` quando si tocca il locking.
