@@ -75,7 +75,7 @@ Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
 
 ```bash
 docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
-docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (684 test, circa 5 minuti)
+docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (730 test, circa 6 minuti)
 ```
 
 Suite singole:
@@ -141,6 +141,13 @@ Configurazione (`.env` o variabili dell'hosting; tutte facoltative, una voce vuo
 Contenuti: i testi fissi sono in `content/it.php` e `content/en.php` (stesse chiavi: un test lo verifica); descrizioni, capienza, orari e regole degli appartamenti si inseriscono dall'admin e le pagine omettono ciò che è vuoto. Le foto sono segnaposto finché non ne viene verificata la provenienza.
 
 I moduli pubblici non usano sessioni né cookie: sono protetti da un token firmato, controllo `Origin`, honeypot, controllo temporale e rate limit (6 invii all'ora per IP, salvato solo come hash).
+
+### SEO, accessibilità e immagini
+
+- `/robots.txt` e `/sitemap.xml` sono generati dal codice (URL e appartamenti attivi); non vanno modificati a mano.
+- I colori del sito sono variabili `:root` in `public/assets/css/site.css`; `ContrastTest` verifica il contrasto WCAG: se si cambia la palette, eseguire `composer test -- --testsuite unit`.
+- Immagini: nessuna foto è pubblicata finché non ne è verificata la provenienza (`docs/IMAGES.md`). Per generare le varianti responsive di una foto verificata: `php bin/optimize-images.php <originale> <nome> [larghezze]` (richiede PHP con GD e WebP; non disponibile nel container di sviluppo).
+- Cache e compressione degli asset sono in `public/.htaccess`; gli URL degli asset hanno `?v=<data di modifica>`.
 
 ## Area amministrativa
 

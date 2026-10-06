@@ -65,6 +65,7 @@ final class SiteController extends SitePage
             'title' => (string) (($row['meta_title'] ?? '') !== '' ? $row['meta_title'] : $row['name']),
             'description' => (string) ($row['meta_description'] ?? ''),
             'apartment' => $row,
+            'crumbLabel' => (string) $row['name'],
         ], ['slug' => (string) $row['slug']]);
     }
 

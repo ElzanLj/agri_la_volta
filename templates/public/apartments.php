@@ -8,7 +8,7 @@ use App\Http\View;
 <?php else: ?>
 <div class="card-grid">
 <?php foreach ($apartments as $apartment): ?>
-    <?= View::capture('public/_apartment_card', ['apartment' => $apartment]) ?>
+    <?= View::capture('public/_apartment_card', ['apartment' => $apartment, 'level' => 2]) ?>
 <?php endforeach; ?>
 </div>
 <?php endif; ?>

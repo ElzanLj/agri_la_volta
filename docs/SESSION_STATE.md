@@ -7,28 +7,26 @@
 - **Data aggiornamento:** 2026-10-06
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `7300e17` (Fase 4 + promemoria); la Fase 5 è nel commit successivo
-- **Fase corrente:** Fase 5 — frontend pubblico e flusso di richiesta: **COMPLETATA** (prompt 08)
-- **Prompt corrente:** `prompts/08_PUBLIC_FRONTEND.md` (completato)
-- **Stato complessivo:** pagine pubbliche IT/EN, pagina di ogni appartamento (dati dal DB), flusso di richiesta a 4 passi fino a "Richiesta ricevuta", antispam senza cookie; 684 test PASS. **Mancano contenuti e dati reali** (testi, foto, recapiti, listino, credenziali SMTP): le pagine li omettono o mostrano segnaposto marcati
+- **Commit di riferimento:** `d0451eb` (Fase 5); la Fase 6 è nel commit successivo
+- **Fase corrente:** Fase 6 — IT/EN, SEO, accessibilità, prestazioni e immagini: **COMPLETATA per la parte automatizzabile** (prompt 09); la verifica manuale resta NOT RUN
+- **Prompt corrente:** `prompts/09_I18N_SEO_A11Y_PERF.md` (completato)
+- **Stato complessivo:** sito pubblico IT/EN con SEO tecnica, struttura accessibile verificata da test e contrasto WCAG misurato; 730 test PASS. **Mancano contenuti e dati reali** (testi, foto, recapiti, listino, credenziali SMTP) e le prove manuali con tastiera, screen reader e dispositivi
 
 ## Obiettivo corrente
 
-Fase 6 (IT/EN, SEO, accessibilità, prestazioni, immagini): `prompts/09_I18N_SEO_A11Y_PERF.md`. Parte da ciò che esiste già: canonical, hreflang, `lang`, skip link, landmark, 404 localizzata; mancano Open Graph, favicon, robots.txt, sitemap, verifica contrasto/tastiera/menu mobile, immagini reali ottimizzate (oggi segnaposto).
+Fase 7 (sicurezza, privacy tecnica, antispam): `prompts/10_SECURITY_PRIVACY_SPAM.md`. Molto è già fatto in Fasi 3-5 (vedi `docs/TODO.md`, promemoria): la fase deve verificare e completare.
 
 ## Ultimo lavoro completato
 
-- `app/Site/` (`Routes` tabella URL IT/EN, `Locale`, `Text` + `t()`/`lurl()`, `FormToken` token firmato senza sessione, `Contacts`, `Format`); `app/Security/OriginCheck.php` (condiviso con la guardia CSRF admin); `app/Http/Controllers/Site/` (`SitePage`, `SiteController`, `RequestFlowController`); `templates/layout.php` e `templates/public/`; testi in `content/it.php` e `content/en.php`; CSS pubblico in fondo a `public/assets/css/site.css`.
-- `BookingService`: la validazione di `createRequest` è stata estratta in `prepareRequest`, riusata da `previewRequest` (anteprima senza scrivere): il prezzo mostrato e quello salvato vengono dallo stesso codice. `ApartmentRepository::listPublic`/`findPublicBySlug`, `Services::priceQuoter`.
-- Flusso: date e ospiti → appartamenti disponibili con prezzo (con motivo se non adatti) → dati → riepilogo + consenso → invio (303 verso la pagina "ricevuta"). Nulla si scrive prima dell'invio; stato sempre `pending`.
-- Antispam: token firmato (scadenza 2 h, controllo "troppo veloce"), `Origin`, honeypot, rate limit 6/ora per IP. Nessun cookie per i visitatori.
-- 71 test nuovi (21 unit, 19 pagine, 22 flusso, 9 antispam); 7 prove di sensibilità tutte rilevate; 1 bug trovato e corretto (formato del riferimento nella pagina "ricevuta"); timeout di Composer alzato a 1200 s perché la suite supera i 300 s.
+- SEO: `robots.txt` e `sitemap.xml` generati (`app/Site/Seo.php`, `SeoController`), Open Graph/Twitter card, favicon SVG, breadcrumb visibile + `BreadcrumbList`, `LodgingBusiness` solo con recapiti configurati; asset con `?v=` (data di modifica), cache lunga e compressione in `public/.htaccess`.
+- Accessibilità: ogni pagina ha un `h1` e nessun salto di livello (schede appartamento a `h2` in elenco), landmark etichettati, label su ogni campo, avvisi sui campi obbligatori, `caption` nascosta sulla tabella prezzi, bersagli da 44 px. Palette in variabili `:root`, contrasto verificato da `ContrastTest` (nessun colore cambiato: già conforme).
+- Immagini: `app/Site/ImageSet.php` + `_photo.php` (picture, srcset, width/height, lazy, hero), `bin/optimize-images.php` (non eseguito), `docs/IMAGES.md` con censimento e procedura. Foto reali: nessuna (segnaposto).
+- Test: 46 nuovi (25 contrasto, 4 immagini, 17 SEO/accessibilità); `tests/Support/router.php` serve i file statici nel server di test; 7 prove di sensibilità tutte rilevate.
 
 ## Azioni e funzioni: verificate e incomplete
 
-- **Verificate (HTTP reale):** tutte le pagine IT/EN, 404 localizzata, nessun cookie e nessun link a `/admin`, flusso completo IT ed EN, prezzo e disponibilità solo dal server, limiti di appartamento, validazione e dati conservati, consenso privacy, token/Origin/honeypot/rate limit, escaping.
-- **Incomplete/non verificabili ora:** nessuna foto reale (segnaposto); testi di "L'agriturismo" e "Dintorni" (avviso al loro posto); recapiti pubblici e WhatsApp (assenti finché non configurati); privacy e cookie sono bozze; EN provvisorio; nessun test manuale in browser, da tastiera, su mobile; contrasto non misurato; SEO/performance rinviate alla Fase 6.
-
+- **Verificate (automaticamente):** robots, sitemap, metadati, dati strutturati, breadcrumb, intestazioni, landmark, label, id unici, nomi dei link, contrasto, bersagli e focus nel CSS, assenza di JavaScript e risorse esterne, peso delle pagine.
+- **Incomplete/non verificabili ora:** prova manuale con tastiera/screen reader/mobile/zoom (NOT RUN); Lighthouse/axe; foto reali e ottimizzazione immagini; gestione foto nel DB/admin (rinviata); testi di L'agriturismo e Dintorni; recapiti e WhatsApp; testi legali.
 ## Working tree / modifiche locali da preservare
 
 - Nessuna modifica locale non committata a fine fase.
@@ -38,7 +36,7 @@ Fase 6 (IT/EN, SEO, accessibilità, prestazioni, immagini): `prompts/09_I18N_SEO
 
 ## Test/comandi più recenti
 
-`docker compose exec web composer test` → **684 test, 6912 asserzioni, PASS** (circa 5 minuti: 299 unit, 223 integrazione, 151 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 5). Nessuna nuova migrazione in Fase 5.
+`docker compose exec web composer test` → **730 test, 8038 asserzioni, PASS** (circa 5 minuti 40 s: 328 unit, 223 integrazione, 168 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 6). Nessuna nuova migrazione.
 
 ## Blocchi aperti
 
@@ -48,11 +46,11 @@ Fase 6 (IT/EN, SEO, accessibilità, prestazioni, immagini): `prompts/09_I18N_SEO
 
 ## Decisioni da non reinterpretare
 
-Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4 e 5 registrate (locking, tetti tecnici, tariffa per appartamento/notte, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare", outbox email, token firmato senza sessione, passi separati, segnaposto per le foto, dati solo dal DB).
+Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4, 5 e 6 registrate (locking, tetti tecnici, tariffa per appartamento/notte, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare", outbox email, token firmato senza sessione, passi separati, segnaposto per le foto, dati solo dal DB).
 
 ## Prossimo passo esatto
 
-`prompts/09_I18N_SEO_A11Y_PERF.md` (vedi il promemoria in `docs/TODO.md`).
+`prompts/10_SECURITY_PRIVACY_SPAM.md` (vedi il promemoria in `docs/TODO.md`).
 
 ## Note per il prossimo agente
 

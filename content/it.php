@@ -141,6 +141,8 @@ return [
     'form.email' => 'Email',
     'form.phone' => 'Telefono',
     'form.notes' => 'Note (facoltative)',
+    'form.required_all' => 'Tutti i campi sono obbligatori.',
+    'form.required_except_notes' => 'Tutti i campi sono obbligatori, tranne le note.',
     'form.honeypot' => 'Lascia vuoto questo campo',
     'form.privacy_before' => 'Ho letto l’',
     'form.privacy_link' => 'informativa sulla privacy',

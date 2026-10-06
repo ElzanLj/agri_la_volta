@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\App;
 use App\Http\Controllers\Site\RequestFlowController;
+use App\Http\Controllers\Site\SeoController;
 use App\Http\Controllers\Site\SiteController;
 use App\Http\Request;
 use App\Http\Router;
@@ -13,6 +14,10 @@ use App\Site\Routes;
 return static function (Router $router, App $app): void {
     $site = new SiteController($app);
     $flow = new RequestFlowController($app);
+
+    $seo = new SeoController($app);
+    $router->get('/robots.txt', [$seo, 'robots']);
+    $router->get('/sitemap.xml', [$seo, 'sitemap']);
 
     // Public pages: every page exists once per language (Routes::PATHS holds the URLs).
     $pages = [

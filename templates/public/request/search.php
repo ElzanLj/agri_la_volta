@@ -9,6 +9,7 @@ use App\Http\View;
 <h1><?= e(t('request.title')) ?></h1>
 <?= View::capture('public/request/_steps', ['step' => 1]) ?>
 <p><?= e(t('request.intro')) ?></p>
+<p class="hint"><?= e(t('form.required_all')) ?></p>
 <?= View::capture('public/request/_errors', ['errors' => $errors]) ?>
 
 <form method="get" action="<?= e(lurl('request.apartments')) ?>" class="form-wide" novalidate>

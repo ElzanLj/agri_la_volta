@@ -26,6 +26,7 @@ $stay = StayDates::fromStrings($values['check_in'], $values['check_out']);
 </p>
 <?= View::capture('public/request/_errors', ['errors' => $errors]) ?>
 
+<p class="hint"><?= e(t('form.required_except_notes')) ?></p>
 <form method="post" action="<?= e(lurl('request.summary')) ?>" class="form-wide" novalidate>
     <input type="hidden" name="_form" value="<?= e($token) ?>">
 <?php foreach ($hidden as $name => $value): ?>

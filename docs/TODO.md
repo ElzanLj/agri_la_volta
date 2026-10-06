@@ -10,22 +10,20 @@ Regole:
 
 ## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-06)
 
-**Prossima sessione: eseguire `prompts/09_I18N_SEO_A11Y_PERF.md`** (Fase 6: IT/EN, SEO, accessibilità, prestazioni, immagini). Fasi 0-5 completate e committate; working tree pulito a fine sessione.
+**Prossima sessione: eseguire `prompts/10_SECURITY_PRIVACY_SPAM.md`** (Fase 7: sicurezza, privacy tecnica, antispam). Fasi 0-6 completate e committate; working tree pulito a fine sessione.
 
 Per ripartire:
-1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **tutti i test PASS**, numero in `docs/TEST_REPORT.md`, circa 5 minuti; se `vendor/` manca: `docker compose exec web composer install`).
-2. Leggere `docs/SESSION_STATE.md`, `docs/MISSING_DATA.md` e `docs/DECISIONS.md` (sezione Fase 5), poi `prompts/09_I18N_SEO_A11Y_PERF.md`.
+1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **tutti i test PASS**, numero in `docs/TEST_REPORT.md`, circa 5-6 minuti; se `vendor/` manca: `docker compose exec web composer install`).
+2. Leggere `docs/SESSION_STATE.md`, `docs/MISSING_DATA.md` e `docs/DECISIONS.md` (sezioni Fase 5 e 6), poi `prompts/10_SECURITY_PRIVACY_SPAM.md`.
 3. Come nelle fasi precedenti: **prima un piano conciso** da far approvare, poi il codice.
 
-Da tenere presente nella Fase 6:
-- le pagine pubbliche esistono già (`app/Http/Controllers/Site/`, `templates/public/`, testi in `content/it.php` e `content/en.php`, URL in `app/Site/Routes.php`); canonical, hreflang, `lang`, skip link, landmark e breadcrumb (solo pagina appartamento) sono già impostati: la fase 6 deve verificarli e completarli, non rifarli;
-- mancano: Open Graph, favicon, `robots.txt`, sitemap, menu mobile con `aria-expanded` se necessario, contrasto verificato, test manuale con tastiera e screen reader, descrizioni uniche per ogni appartamento (dal DB);
-- le foto sono **segnaposto marcati** (`templates/public/_photo.php`): nessuna foto legacy ha provenienza verificata. Quando il titolare le fornisce servono una tabella/gestione foto (non esiste ancora), varianti WebP/responsive, `width`/`height`, lazy loading, hero ottimizzata;
-- non inventare testi per "L'agriturismo" e "Dintorni" (mostrano un avviso); privacy e cookie sono bozze da far verificare al titolare;
-- il test `PublicSiteUnitTest` controlla che le chiavi di `content/it.php` e `content/en.php` coincidano e che ogni chiave usata nei template esista: aggiornarlo se si aggiungono testi;
-- stile: la regola `h1, h2, h3` in `public/assets/css/site.css` vale anche per l'admin; il CSS pubblico è in fondo al file;
-- le pagine del flusso (richiesta) sono `noindex` e `no-store` per scelta.
-
+Da tenere presente nella Fase 7:
+- gran parte è già fatta e testata: query parametrizzate, escaping, CSRF admin e token firmato pubblico, `OriginCheck`, sessioni admin, rate limit (login e invio richiesta), honeypot, controllo temporale, CSP rigida, nessun cookie ai visitatori. La fase 7 deve **verificare e completare** (log senza dati personali, minimizzazione, conservazione dei dati, intestazioni HSTS/Permissions-Policy, configurazione di produzione, dipendenze), non rifare;
+- limiti noti da affrontare o accettare: token del modulo non monouso (replay limitato dal rate limit), rate limit per IP (NAT/proxy: verificare `REMOTE_ADDR` con l'hosting), `APP_SECRET` di produzione da impostare;
+- nessun test manuale in browser è stato eseguito finora (tastiera, screen reader, mobile): restano **NOT RUN** in `docs/TEST_REPORT.md`;
+- le foto sono segnaposto (`docs/IMAGES.md`); la gestione foto nel DB è rinviata; `bin/optimize-images.php` non è mai stato eseguito (manca GD/WebP nel container);
+- il test `PublicSiteUnitTest` controlla le chiavi dei testi IT/EN; `ContrastTest` il contrasto delle variabili `:root`; `PublicSeoTest` struttura, SEO e accessibilità di ogni pagina: aggiornarli se si cambia il layout;
+- stile: la regola `h1, h2, h3` in `public/assets/css/site.css` vale anche per l'admin; il CSS pubblico è in fondo al file e deve usare le variabili di colore.
 Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali (consegna email non verificata), testi definitivi delle email e dei contenuti, numero WhatsApp e recapiti pubblici, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting (PHP-FPM, cron, `vendor/` da caricare), `APP_SECRET` di produzione.
 
 ## Audit
@@ -135,28 +133,28 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 
 ## UX / Accessibilità / SEO / Prestazioni
 
-- [ ] Responsive mobile/desktop
-- [ ] Navigazione tastiera
-- [ ] Focus visibile
-- [ ] Label e messaggi errore accessibili
-- [x] Skip link (presente su ogni pagina; verifica manuale con tastiera in Fase 6)
-- [ ] Menu mobile accessibile
-- [ ] Alt text
-- [ ] Contrasto adeguato
-- [ ] prefers-reduced-motion
-- [ ] Title e description unici
+- [~] Responsive mobile/desktop (layout fluido con griglie e `min()`; **non provato su dispositivi reali**)
+- [~] Navigazione tastiera (nessun elemento personalizzato, tutto nativo; controlli di struttura automatici; **prova manuale da fare**)
+- [x] Focus visibile (`:focus-visible` con contorno 4,08:1; verificato da test sul CSS)
+- [x] Label e messaggi errore accessibili (ogni controllo ha la sua label, errori collegati con `aria-describedby`, riepilogo con `role="alert"`; verificato da test su tutte le pagine)
+- [x] Skip link (presente su ogni pagina)
+- [x] Menu mobile accessibile (elenco sempre visibile che va a capo, nessun JavaScript: vedi DECISIONS Fase 6)
+- [x] Alt text (segnaposto `role="img"` con etichetta; `ImageSet` richiede `alt`; foto reali ancora assenti)
+- [x] Contrasto adeguato (rapporti WCAG calcolati da un test sulle variabili del CSS: min 4,5:1 per il testo, 3:1 per gli elementi non testuali)
+- [x] prefers-reduced-motion
+- [x] Title e description unici (per lingua; verificato da test)
 - [x] canonical (pagine indicizzabili; verificato da test)
 - [x] hreflang quando appropriato (it, en, x-default; verificato da test)
-- [ ] Open Graph
-- [ ] robots.txt
-- [ ] sitemap
-- [ ] breadcrumb
+- [x] Open Graph (senza `og:image` finché non c'è una foto verificata)
+- [x] robots.txt
+- [x] sitemap (generata, con hreflang)
+- [x] breadcrumb (visibile + dati strutturati)
 - [x] 404/errori (anche in inglese sotto /en)
-- [ ] Schema.org solo con dati reali
-- [ ] Immagini responsive/ottimizzate/lazy fuori above-the-fold
-- [ ] Hero ottimizzata
-- [ ] JS/font/dipendenze non necessari rimossi
-
+- [x] Schema.org solo con dati reali (BreadcrumbList; LodgingBusiness solo con recapiti configurati)
+- [~] Immagini responsive/ottimizzate/lazy fuori above-the-fold (markup e script pronti e testati; **nessuna foto verificata**, script non eseguito)
+- [~] Hero ottimizzata (supportata da `ImageSet` con `eager`; manca la foto)
+- [x] JS/font/dipendenze non necessari rimossi (nessun JavaScript, nessun font o risorsa esterna; HTML < 20 KB, CSS < 30 KB)
+- [ ] Verifica manuale con tastiera, screen reader e dispositivi mobili (NOT RUN)
 ## Sicurezza
 
 - [x] Query parametrizzate (nessuna concatenazione di input; verificato con tentativi di SQL injection nei filtri)

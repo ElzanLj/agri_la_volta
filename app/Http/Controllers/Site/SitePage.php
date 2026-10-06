@@ -9,6 +9,7 @@ use App\Http\Response;
 use App\Http\View;
 use App\Site\Locale;
 use App\Site\Routes;
+use App\Site\Text;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -35,6 +36,7 @@ abstract class SitePage
         }
 
         $response = View::render('public/' . $template, $data + [
+            'crumbs' => empty($data['noindex']) ? $this->breadcrumbs($locale, $routeKey, $routeParams, $data) : [],
             'lang' => $locale,
             'routeKey' => $routeKey,
             'canonicalPath' => Routes::path($routeKey, $locale, $routeParams),
@@ -43,6 +45,26 @@ abstract class SitePage
 
         // Pages with forms or personal data must never be stored by shared caches.
         return !empty($data['private']) ? $response->withHeader('Cache-Control', 'no-store') : $response;
+    }
+
+    /**
+     * Home > [Apartments >] current page, as paths without the installation prefix.
+     *
+     * @param array<string, string> $routeParams
+     * @param array<string, mixed> $data
+     * @return list<array{string, ?string}>
+     */
+    private function breadcrumbs(string $locale, string $routeKey, array $routeParams, array $data): array
+    {
+        if ($routeKey === 'home') {
+            return [];
+        }
+        $crumbs = [[Text::get('nav.home', $locale), Routes::path('home', $locale)]];
+        if ($routeKey === 'apartment') {
+            $crumbs[] = [Text::get('apartments.title', $locale), Routes::path('apartments', $locale)];
+        }
+        $crumbs[] = [(string) ($data['crumbLabel'] ?? $data['title'] ?? ''), null];
+        return $crumbs;
     }
 
     protected function notFound(string $locale): Response

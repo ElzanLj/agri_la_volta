@@ -129,7 +129,8 @@ final class PublicPagesTest extends PublicSiteTestCase
         foreach ($this->infoPages() as [$key, $locale]) {
             $body = $client->get(self::path($key, $locale))->body;
 
-            self::assertStringNotContainsString('<script', $body, "$key/$locale");
+            // Only data blocks (structured data) are allowed: no executable script.
+            self::assertDoesNotMatchRegularExpression('#<script(?![^>]*type="application/ld\+json")#', $body, "$key/$locale");
             self::assertStringNotContainsString('<img', $body, "$key/$locale: no photograph until its origin is verified");
             self::assertDoesNotMatchRegularExpression('#(?:src|href)="https?://(?!wa\.me|127\.0\.0\.1)#', $body, "$key/$locale loads something from another site");
         }

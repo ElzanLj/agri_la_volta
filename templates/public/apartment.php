@@ -12,12 +12,6 @@ $checkIn = $time($apartment['check_in_from']);
 $checkInUntil = $time($apartment['check_in_until']);
 $checkOut = $time($apartment['check_out_until']);
 ?>
-<nav class="breadcrumb" aria-label="<?= e(t('nav.breadcrumb')) ?>">
-    <a href="<?= e(lurl('home')) ?>"><?= e(t('nav.home')) ?></a> ›
-    <a href="<?= e(lurl('apartments')) ?>"><?= e(t('apartments.title')) ?></a> ›
-    <span aria-current="page"><?= e($name) ?></span>
-</nav>
-
 <h1><?= e($name) ?></h1>
 <?= View::capture('public/_photo', ['label' => $name, 'class' => 'photo-wide']) ?>
 <?= View::capture('public/_facts', ['apartment' => $apartment]) ?>

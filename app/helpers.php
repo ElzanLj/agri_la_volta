@@ -19,7 +19,11 @@ function url(string $path = '/'): string
 
 function asset(string $path): string
 {
-    return url('/assets/' . ltrim($path, '/'));
+    $path = ltrim($path, '/');
+    $file = BASE_PATH . '/public/assets/' . $path;
+    // The file's modification time in the URL lets browsers cache assets for a long time safely.
+    $version = is_file($file) ? '?v=' . filemtime($file) : '';
+    return url('/assets/' . $path) . $version;
 }
 
 function csrf_field(): string

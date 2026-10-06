@@ -156,6 +156,21 @@ Piano approvato dall'utente il 2026-10-06, con le tre scelte confermate (passi s
 | 2026-10-06 | Passo 2: gli appartamenti non adatti (animali non ammessi, troppi bambini, soggiorno minimo) sono mostrati con il motivo e senza pulsante; anche l'URL del passo 3 li rifiuta | mostrarli e fallire all'invio | l'errore arriva prima dell'invio, non dopo | `RequestFlowController::problemText` |
 | 2026-10-06 | Pagine del flusso: `noindex` e `Cache-Control: no-store`. Pagina "ricevuta": mostra il riferimento solo se ha il formato valido (`LV-XXXXXXXX`), senza leggere il database | ricerca per riferimento | nessun dato personale esposto | `received()` |
 
+## Decisioni Fase 6 — SEO, accessibilità, prestazioni e immagini (2026-10-06)
+
+Piano approvato dall'utente il 2026-10-06, con le tre scelte confermate (favicon SVG semplice, gestione foto rinviata, correzione automatica del contrasto con priorità alla conformità).
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-06 | `robots.txt` e `sitemap.xml` generati dal codice (tabella `Routes` + appartamenti attivi), non scritti a mano; la sitemap ha hreflang e `x-default`; i passi del flusso di richiesta ne restano fuori (e `Disallow` nel robots, la pagina del modulo resta consultabile con `noindex`) | file statici | non possono andare fuori sincrono con le pagine reali | `app/Site/Seo.php`, `SeoController` |
+| 2026-10-06 | Menu di navigazione **sempre visibile** (elenco che va a capo) invece di `<details>`: senza JavaScript non si può lasciare il menu aperto su desktop e chiuso su mobile con CSS affidabile nei browser; l'elenco a capo è accessibile ovunque, ha bersagli da 44 px e non nasconde contenuto | `<details>` con CSS (`::details-content`, non supportato dai browser più vecchi) | robustezza e semplicità; nessun `aria-expanded` necessario | `templates/layout.php`, `site.css` |
+| 2026-10-06 | Open Graph/Twitter card senza `og:image` finché non esiste una foto verificata; favicon SVG con la sola iniziale (nessun logo legacy) | usare un logo o una foto legacy | provenienza non verificata | `layout.php`, `public/assets/favicon.svg` |
+| 2026-10-06 | Dati strutturati solo se reali: `BreadcrumbList` (deriva dalla struttura del sito, speculare al breadcrumb visibile); `LodgingBusiness` sulla home **solo** con telefono/email/indirizzo configurati e solo i campi presenti; JSON codificato contro l'iniezione di `</script>` | `Organization` fisso, valutazioni a stelle | SPEC §27: Schema.org solo con dati reali | `layout.php` |
+| 2026-10-06 | Contrasto: tutti i colori pubblici sono variabili `:root` e un test calcola il rapporto WCAG di ogni coppia usata (testo 4,5:1, elementi non testuali 3:1); il CSS pubblico non può usare colori letterali per il testo. La palette esistente **già rispettava** i minimi (il più basso: contorno del focus 4,08:1), quindi nessun colore è stato cambiato | modificare la palette | la conformità resta garantita nel tempo da un test | `ContrastTest`, `site.css` |
+| 2026-10-06 | Cache lunga (1 anno, `immutable`) per CSS/immagini con URL versionato dalla data di modifica del file (`asset()` aggiunge `?v=`); compressione dei testi; nessun JavaScript né font esterni | nomi file con hash | si aggiorna da solo a ogni modifica, nessun passo di build | `helpers.php`, `public/.htaccess` |
+| 2026-10-06 | Immagini: pronti il markup responsive (`ImageSet`) e lo script di ottimizzazione, ma **nessuna gestione foto nel DB/admin** finché non c'è un set verificato; `bin/optimize-images.php` non eseguito (manca GD/WebP nel container); AVIF non generato | tabella foto subito | non esistono foto verificate da gestire | `docs/IMAGES.md`, `ImageSet.php` |
+| 2026-10-06 | Il server PHP dei test usa un router (`tests/Support/router.php`) che serve i file statici come fa Apache con `public/.htaccess`, così si possono testare favicon e CSS | solo il front controller | prima i file statici davano 404 nel test server | `TestServer` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

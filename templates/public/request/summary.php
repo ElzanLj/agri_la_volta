@@ -39,6 +39,7 @@ $fields = ['check_in', 'check_out', 'adults', 'children', 'pets', 'apartment', '
 <?php if ($quote['lines'] !== []): ?>
 <div class="table-wrap">
     <table>
+        <caption class="visually-hidden"><?= e(t('summary.price')) ?></caption>
         <tbody>
 <?php foreach ($quote['lines'] as $line): ?>
             <tr><th scope="row"><?= e($line['label']) ?><br><span class="muted"><?= e($line['detail']) ?></span></th><td><?= e($line['amount']) ?></td></tr>

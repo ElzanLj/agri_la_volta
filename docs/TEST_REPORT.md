@@ -98,6 +98,39 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Fase 6 — SEO, accessibilità, prestazioni e immagini (2026-10-06)
+
+**Esito: 730 test, 8038 asserzioni, tutti PASS** (`composer test`, circa 5 minuti 40 s; 684 test precedenti + 46 nuovi: 328 unit, 223 integrazione, 168 http, 11 concorrenza). Lint PHP senza errori.
+
+| Suite | Test nuovi | Cosa verificano |
+|---|---|---|
+| `unit` — `ContrastTest` | 25 | rapporto di contrasto WCAG di ogni coppia di colori usata (testo 4,5:1; contorni dei campi e focus 3:1), calcolato dalle variabili `:root` del CSS reale; la funzione è provata su valori noti (nero/bianco 21:1, #777 su bianco 4,48:1); il CSS pubblico non può usare colori di testo letterali |
+| `unit` — `ImageSetTest` | 4 | `<picture>` con sorgente WebP e JPEG di riserva, `srcset` ordinato, `width`/`height`, `alt` con escaping, `loading="lazy"`, hero con `fetchpriority="high"` senza lazy, nessun URL esterno |
+| `http` — `PublicSeoTest` | 17 | `robots.txt` (blocca admin e passi del flusso, indica la sitemap); sitemap XML ben formata, 26 URL senza doppioni con `it`/`en`/`x-default`, senza flusso/admin/appartamenti inattivi; Open Graph e Twitter card nella lingua giusta (senza `og:image`); favicon e CSS serviti con URL versionato; breadcrumb visibile e dati strutturati coincidenti, assenti su home e flusso; `LodgingBusiness` solo con recapiti configurati e solo i campi presenti, a prova di `</script>`; un solo `h1` e nessun salto di livello di intestazione su 24 pagine; landmark unici, `nav` etichettati, skip link; ogni controllo ha la sua `label` e ogni `aria-describedby` punta a un elemento esistente; nessun `id` duplicato; ogni link ha un nome e i link esterni hanno `noopener`; bersagli da 44 px, `:focus-visible`, `prefers-reduced-motion`, nessun `@import`; HTML < 20 KB e CSS < 30 KB |
+
+Verifiche aggiuntive: `PublicPagesTest` ora consente solo blocchi `application/ld+json` come `<script>`. Con Apache (container) verificati a mano: CSS con `Cache-Control: public, max-age=31536000, immutable` e `Content-Encoding: gzip`; HTML e sitemap compressi.
+
+### Contrasti misurati (palette invariata, nessuna correzione necessaria)
+
+Testo su sfondo 13,53:1 · testo attenuato su sfondo 6,38:1 · testo attenuato sui segnaposto 5,48:1 · link su riquadri avviso 7,64:1 · testo bianco sul verde dei pulsanti 6,01:1 · errore su sfondo errore 7,86:1 · contorno del focus 4,08:1.
+
+### Prove di sensibilità (file ripristinati e verificati identici)
+
+Tutte e 7 **rilevate**: S1 testo attenuato reso troppo chiaro (6 test falliti); S2 la sitemap elenca un passo del flusso; S3 JSON-LD senza codifica anti-iniezione; S4 titolo delle schede appartamento che salta un livello di intestazione; S5 `label` di un campo rimossa; S6 `robots.txt` che blocca tutto; S7 bersagli del menu ridotti.
+
+### Difetti trovati e corretti durante la fase
+
+- Il server PHP dei test non serviva i file statici (404 su CSS e favicon): aggiunto `tests/Support/router.php`, che si comporta come `public/.htaccess`.
+- Le schede degli appartamenti usavano sempre `h3`: sulla pagina Appartamenti saltavano un livello dopo l'`h1` (ora `h2` lì). Trovato dal nuovo test.
+- Un test senza asserzioni (segnalato "risky" da PHPUnit) è stato reso vincolante.
+
+### Limiti noti (NOT RUN)
+
+- **Nessuna prova manuale**: tastiera, screen reader (NVDA/VoiceOver), zoom al 200%, dispositivi mobili reali, browser diversi. I controlli automatici non sostituiscono la verifica WCAG: coprono struttura, nomi accessibili, contrasto e bersagli, non l'ordine di lettura né l'usabilità.
+- Nessuno strumento esterno (Lighthouse, axe, validatori HTML/Schema.org) è stato eseguito: non disponibili qui.
+- `bin/optimize-images.php` non eseguito (nel container manca GD con WebP): è solo controllato con `php -l`. Nessuna fotografia reale: hero e immagini sono segnaposto, quindi LCP, peso delle immagini e `srcset` reali non misurati. AVIF non generato.
+- Nessun test di prestazioni di rete (TTFB, HTTP/2): dipende dall'hosting.
+
 ## Fase 5 — frontend pubblico e flusso di richiesta (2026-10-06)
 
 **Esito: 684 test, 6912 asserzioni, tutti PASS** (`docker compose exec web composer test`, circa 5 minuti; 613 test precedenti + 71 nuovi). Lint PHP su `app`, `bin`, `public`, `templates`, `content`, `tests`: nessun errore.

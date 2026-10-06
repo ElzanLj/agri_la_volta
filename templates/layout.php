@@ -10,6 +10,7 @@
  * @var string|null $routeKey
  * @var string|null $canonicalPath
  * @var array<string, string>|null $alternates language => path (without installation prefix)
+ * @var list<array{string, ?string}>|null $crumbs breadcrumb: [label, url or null for the current page]
  */
 
 use App\Site\Contacts;
@@ -26,6 +27,29 @@ $switchPath = $alternates[$other] ?? Routes::path('home', $other);
 $nav = ['home', 'farm', 'apartments', 'around', 'contact'];
 $whatsapp = $contacts->whatsappLink(\App\Support\WhatsApp::businessMessage($lang));
 $phoneHref = $contacts->phoneHref();
+$crumbs = $crumbs ?? [];
+$canonicalUrl = !empty($canonicalPath) ? $baseUrl . $canonicalPath : null;
+$jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+$structured = [];
+if ($crumbs !== []) {
+    $items = [];
+    foreach ($crumbs as $i => [$label, $href]) {
+        $items[] = ['@type' => 'ListItem', 'position' => $i + 1, 'name' => $label] + ($href !== null ? ['item' => $baseUrl . $href] : []);
+    }
+    $structured[] = ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => $items];
+}
+if (($routeKey ?? null) === 'home' && !$contacts->isEmpty() && ($contacts->phone !== '' || $contacts->email !== '' || $contacts->address !== '')) {
+    // Only details the owner has actually configured; nothing is invented.
+    $structured[] = array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'LodgingBusiness',
+        'name' => $siteName,
+        'url' => $canonicalUrl,
+        'telephone' => $contacts->phone ?: null,
+        'email' => $contacts->email ?: null,
+        'address' => $contacts->address ?: null,
+    ], static fn ($v): bool => $v !== null);
+}
 ?>
 <!doctype html>
 <html lang="<?= e($lang) ?>">
@@ -47,7 +71,23 @@ $phoneHref = $contacts->phoneHref();
     <link rel="alternate" hreflang="x-default" href="<?= e($baseUrl . $alternates['it']) ?>">
 <?php endif; ?>
 <?php endif; ?>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="<?= e($siteName) ?>">
+    <meta property="og:title" content="<?= e($pageTitle) ?>">
+<?php if (!empty($description)): ?>
+    <meta property="og:description" content="<?= e($description) ?>">
+<?php endif; ?>
+<?php if ($canonicalUrl !== null && empty($noindex)): ?>
+    <meta property="og:url" content="<?= e($canonicalUrl) ?>">
+<?php endif; ?>
+    <meta property="og:locale" content="<?= $lang === 'en' ? 'en_GB' : 'it_IT' ?>">
+    <meta property="og:locale:alternate" content="<?= $lang === 'en' ? 'it_IT' : 'en_GB' ?>">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" href="<?= e(asset('favicon.svg')) ?>" type="image/svg+xml">
     <link rel="stylesheet" href="<?= e(asset('css/site.css')) ?>">
+<?php foreach ($structured as $data): ?>
+    <script type="application/ld+json"><?= json_encode($data, $jsonFlags) ?></script>
+<?php endforeach; ?>
 </head>
 <body>
     <a class="skip-link" href="#main"><?= e(t('a11y.skip')) ?></a>
@@ -66,6 +106,19 @@ $phoneHref = $contacts->phoneHref();
         </div>
     </header>
     <main id="main" class="container" tabindex="-1">
+<?php if ($crumbs !== []): ?>
+        <nav class="breadcrumb" aria-label="<?= e(t('nav.breadcrumb')) ?>">
+            <ol>
+<?php foreach ($crumbs as [$label, $href]): ?>
+<?php if ($href !== null): ?>
+                <li><a href="<?= e(url($href)) ?>"><?= e($label) ?></a></li>
+<?php else: ?>
+                <li><span aria-current="page"><?= e($label) ?></span></li>
+<?php endif; ?>
+<?php endforeach; ?>
+            </ol>
+        </nav>
+<?php endif; ?>
 <?= $content ?>
     </main>
     <footer class="site-footer">
