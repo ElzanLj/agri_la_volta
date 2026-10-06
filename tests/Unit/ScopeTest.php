@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Scope guarantees of SPEC §3 and §41, checked on the code itself: no payment system, no card
  * data, no guest accounts, and only the admin area can decide about requests and stays.
- * (The Firebase-era `legacy/` folder is reference material, not part of the site, and is excluded.)
+ * (The Firebase-era `legacy/` folder was removed from the repository in the final review.)
  */
 final class ScopeTest extends TestCase
 {

@@ -29,7 +29,7 @@ final class ApartmentRepository
     public function listPublic(string $locale): array
     {
         $stmt = $this->db->prepare(
-            'SELECT a.*, t.description, t.rules, t.meta_title, t.meta_description
+            'SELECT a.*, t.description, t.rules, t.amenities, t.meta_title, t.meta_description
              FROM apartments a
              LEFT JOIN apartment_translations t ON t.apartment_id = a.id AND t.locale = ?
              WHERE a.is_active = 1
@@ -43,7 +43,7 @@ final class ApartmentRepository
     public function findPublicBySlug(string $slug, string $locale): ?array
     {
         $stmt = $this->db->prepare(
-            'SELECT a.*, t.description, t.rules, t.meta_title, t.meta_description
+            'SELECT a.*, t.description, t.rules, t.amenities, t.meta_title, t.meta_description
              FROM apartments a
              LEFT JOIN apartment_translations t ON t.apartment_id = a.id AND t.locale = ?
              WHERE a.is_active = 1 AND a.slug = ?'

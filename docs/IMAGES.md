@@ -2,7 +2,9 @@
 
 Stato al 2026-10-06 (Fase 6). **Nessuna fotografia è pubblicata dal nuovo sito**: le pagine mostrano segnaposto marcati ("Fotografia in arrivo") perché nessuna immagine del legacy ha provenienza verificata (SPEC §23). Il censimento dettagliato dei file è in `docs/AUDIT.md` (sezione Immagini); qui il riepilogo operativo.
 
-## Cosa esiste in `legacy/src/assets` (~33 MB, 64 file)
+## Cosa esisteva in `legacy/src/assets` (~33 MB, 64 file)
+
+> La cartella `legacy/` è stata **rimossa dal repository** nella review finale (2026-10-06). I file restano nella cronologia Git: per consultarli, `git show ae3129e:legacy/src/assets/...` o `git checkout ae3129e -- legacy` in una copia di lavoro. I percorsi sotto sono quelli storici.
 
 | Classe | File | Stato | Azione |
 |---|---|---|---|
@@ -16,7 +18,7 @@ Stato al 2026-10-06 (Fase 6). **Nessuna fotografia è pubblicata dal nuovo sito*
 | Marchi di terzi, non pertinenti, icone | `icon/tripadvisorLogo.*`, `minion.jpeg`, `spritz3.png`, `dragon.png`, `icon/*Logo.png` | non utilizzabili | non portare nel nuovo sito |
 | Hero attuale | hotlink a un sito terzo, non raffigura La Volta | da sostituire | serve una foto propria |
 
-Il nuovo sito non copia nessuno di questi file e non fa hotlink (verificato da test: nessun `<img>` e nessuna risorsa esterna nelle pagine). Gli originali restano in `legacy/` finché la cartella non viene eliminata (decisione P4).
+Il nuovo sito non copia nessuno di questi file e non fa hotlink (verificato da test: nessun `<img>` e nessuna risorsa esterna nelle pagine). Gli originali non sono più nella cartella di lavoro ma nella cronologia Git (`ae3129e`) finché la cartella non viene eliminata (decisione P4).
 
 ## Cosa è già pronto per quando arrivano le foto verificate
 

@@ -43,6 +43,7 @@ return [
     'apartments.discover' => 'Scopri l’appartamento {name}',
     'apartment.description' => 'Descrizione',
     'apartment.times' => 'Orari',
+    'apartment.amenities' => 'Servizi',
     'apartment.rules' => 'Regole della casa',
     'apartment.cta_title' => 'Ti interessa questo appartamento?',
     'apartment.no_online' => 'Per questo appartamento non è possibile inviare la richiesta online: contattaci direttamente.',
@@ -65,6 +66,7 @@ return [
     'contact.phone' => 'Telefono',
     'contact.email' => 'Email',
     'contact.address' => 'Indirizzo',
+    'contact.map' => 'Apri la posizione su Google Maps',
     'contact.whatsapp_cta' => 'Scrivici su WhatsApp',
     'contact.whatsapp_hint' => '(il messaggio è precompilato e puoi modificarlo prima di inviarlo)',
 
@@ -107,6 +109,7 @@ return [
     'flow.apartments.none' => 'Per queste date e questi ospiti non ci sono appartamenti disponibili. Prova con altre date o contattaci.',
     'flow.stay_line' => 'Dal {in} al {out} ({nights}) · {guests}.',
     'flow.price_total' => 'Totale',
+    'flow.whatsapp' => 'Preferisci scriverci? Chiedi su WhatsApp',
     'flow.price_note' => 'Il prezzo è calcolato dal sistema ed è indicativo finché la richiesta non viene confermata dal gestore.',
     'flow.details.title' => 'I tuoi dati',
     'flow.summary.title' => 'Riepilogo e invio',

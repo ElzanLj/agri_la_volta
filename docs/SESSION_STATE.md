@@ -7,24 +7,24 @@
 - **Data aggiornamento:** 2026-10-06
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `6c30551` (prompt 11); la documentazione è nel commit successivo
-- **Fase corrente:** documentazione tecnica e di consegna (prompt 12): **COMPLETATA**
-- **Prompt corrente:** `prompts/12_DOCUMENTATION.md` (completato)
-- **Stato complessivo:** 763 test PASS; 23 criteri di accettazione su 27 PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL. Documentazione completa e comandi verificati in Docker (import SQL, admin da CLI e da SQL, backup/ripristino, installazione `--no-dev`). **Tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
+- **Commit di riferimento:** `ae3129e` (documentazione); la review finale è nel commit successivo
+- **Fase corrente:** review finale pre-consegna (prompt 13): **COMPLETATA** — `docs/FINAL_REVIEW.md`
+- **Prompt corrente:** `prompts/13_FINAL_REVIEW.md` (completato)
+- **Stato complessivo:** 778 test PASS; 23 criteri di accettazione PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL, 0 BLOCKED. Rilette tutte le sezioni della SPEC: 6 lacune trovate, 5 corrette (servizi degli appartamenti, WhatsApp con date nel flusso, link Maps, dati strutturati `Apartment`, rimozione di `legacy/`), 1 scelta documentata. **Non pubblicabile finché mancano dati e contenuti del titolare; tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
 
 ## Obiettivo corrente
 
-Verifica finale dei requisiti: `prompts/13_FINAL_REVIEW.md` (produce `docs/FINAL_REVIEW.md`), poi preparazione al rilascio senza deploy: `prompts/14_RELEASE_PREP_NO_DEPLOY.md`.
+Preparazione alla pubblicazione **senza deploy**: `prompts/14_RELEASE_PREP_NO_DEPLOY.md` (compila `docs/RELEASE_GUIDE.md`). In alternativa, su decisione dell'utente, l'estensione `prompts/15_ADMIN_CONTENT_BLOCKS.md` (bozza non committata dall'agente, da approvare).
 
 ## Ultimo lavoro completato
 
-- `README.md` riscritto per il progetto (il vecchio testo sul pacchetto di prompt è in `docs/PROMPT_PACK.md`).
-- Nuovi: `docs/ARCHITECTURE.md` (architettura, struttura, schema delle 12 tabelle, flussi), `docs/INSTALL_SHARED_HOSTING.md`, `docs/OPERATIONS.md` (backup, ripristino, CSV, password admin, privacy, aggiornamenti, problemi), `docs/CHANGES.md`; compilata `docs/DELIVERY_CHECKLIST.md`; criterio 26 della matrice → PASS.
-- Verifiche eseguite prima di documentare (vedi `docs/TEST_REPORT.md`, sezione "Documentazione e verifica dei comandi"): nessuna modifica al codice dell'applicazione.
+- Rilettura integrale di `docs/SPEC.md` e confronto con il codice; `docs/FINAL_REVIEW.md` (sintesi, 27 criteri, conformità sezione per sezione, lacune, limitazioni, dati mancanti, operazioni prima della pubblicazione).
+- G1 servizi degli appartamenti: migrazione `0005`, `app/Site/Amenities.php`, campo nel form admin, elenco pubblico, dati strutturati. G2 WhatsApp con appartamento/date/ospiti nel flusso. G3 link Maps. G4 JSON-LD `Apartment` con soli campi inseriti. G5 `git rm -r legacy`. G6 recapiti nel piè di pagina (scelta).
+- 15 test nuovi, 7 prove di sensibilità rilevate; un test esistente aggiornato (conseguenza attesa di G4); suite completa 778 PASS.
 
 ## Azioni e funzioni: verificate e incomplete
 
-- **Verificate:** vedi `docs/ACCEPTANCE_MATRIX.md` e `docs/TEST_REPORT.md`.
+- **Verificate:** vedi `docs/ACCEPTANCE_MATRIX.md`, `docs/FINAL_REVIEW.md`, `docs/TEST_REPORT.md`.
 - **Incomplete/non verificabili ora:** prove manuali (tastiera, screen reader, mobile, desktop, zoom), installazione su hosting reale, consegna email reale, HTTPS reale, strumenti esterni (Lighthouse, axe, ZAP), foto reali, contenuti e dati del titolare, `docs/RELEASE_GUIDE.md` (prompt 14).
 ## Working tree / modifiche locali da preservare
 
@@ -35,7 +35,7 @@ Verifica finale dei requisiti: `prompts/13_FINAL_REVIEW.md` (produce `docs/FINAL
 
 ## Test/comandi più recenti
 
-`docker compose exec web composer test` → **763 test, 9809-9810 asserzioni, PASS** (circa 7 minuti: 337 unit, 237 integrazione, 178 http, 11 concorrenza; eseguita in ordine predefinito e casuale). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 8). Nessuna nuova migrazione.
+`docker compose exec web composer test` → **778 test, 9914 asserzioni, PASS** (circa 7 minuti: 342 unit, 242 integrazione, 183 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Review finale). Nuova migrazione: `0005`. Nessuna nuova migrazione.
 
 ## Blocchi aperti
 
@@ -45,11 +45,11 @@ Verifica finale dei requisiti: `prompts/13_FINAL_REVIEW.md` (produce `docs/FINAL
 
 ## Decisioni da non reinterpretare
 
-Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4, 5, 6 e 7 registrate (locking, tetti tecnici, tariffa per appartamento/notte, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare", outbox email, token firmato senza sessione, passi separati, segnaposto per le foto, dati solo dal DB).
+Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4, 5, 6, 7 e review finale registrate (locking, tetti tecnici, tariffa per appartamento/notte, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare", outbox email, token firmato senza sessione, passi separati, segnaposto per le foto, dati solo dal DB).
 
 ## Prossimo passo esatto
 
-`prompts/13_FINAL_REVIEW.md` (vedi il promemoria in `docs/TODO.md`).
+`prompts/14_RELEASE_PREP_NO_DEPLOY.md` (vedi il promemoria in `docs/TODO.md`).
 
 ## Note per il prossimo agente
 

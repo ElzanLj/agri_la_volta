@@ -27,7 +27,7 @@ Guida per mettere online il sito su un normale hosting Linux con Apache, PHP e M
 
    Se non hai Composer in locale puoi usare Docker: `docker compose exec web composer install --no-dev --optimize-autoloader` (poi ripristina gli strumenti di sviluppo con `composer install` quando serve).
 3. **Carica solo questi elementi**: `public/`, `app/`, `templates/`, `content/`, `migrations/`, `bin/`, `storage/` (le cartelle vuote `logs`, `sessions`, `mail`), `vendor/` e il file `.htaccess` della radice.
-4. **Non caricare**: `.git/`, `tests/`, `docs/`, `docker/`, `docker-compose.yml`, `legacy/`, `prompts/`, `node_modules/`, `.phpunit.cache/`, il tuo `.env` locale.
+4. **Non caricare**: `.git/`, `tests/`, `docs/`, `docker/`, `docker-compose.yml`, `prompts/`, `node_modules/`, `.phpunit.cache/`, il tuo `.env` locale.
 
 ## 3. Document root
 
@@ -40,7 +40,7 @@ Guida per mettere online il sito su un normale hosting Linux con Apache, PHP e M
 1. Dal pannello crea un database **vuoto** con collation `utf8mb4_unicode_ci` e un utente con tutti i privilegi su quel database. Annota host, nome, utente e password (non vanno scritti in nessun file del repository).
 2. Crea le tabelle in **uno** dei due modi:
    - **Con SSH** ✔: `php bin/migrate.php` (poi `php bin/migrate.php --status` mostra `[x]` per ogni migrazione).
-   - **Solo con phpMyAdmin** ✔: scheda *Importa*, set di caratteri `utf8mb4`, importa **in ordine** `migrations/0001_initial_schema.sql`, `0002_seed_apartments.sql`, `0003_pricing.sql`, `0004_email_outbox.sql`. Ogni file si registra da solo nella tabella `schema_migrations`, quindi `bin/migrate.php` li riconoscerà come già applicati se in futuro lo userai (verificato: `--status` → tutti `[x]`, "Nothing to migrate").
+   - **Solo con phpMyAdmin** ✔: scheda *Importa*, set di caratteri `utf8mb4`, importa **in ordine** `migrations/0001_initial_schema.sql`, `0002_seed_apartments.sql`, `0003_pricing.sql`, `0004_email_outbox.sql`, `0005_apartment_amenities.sql`. Ogni file si registra da solo nella tabella `schema_migrations`, quindi `bin/migrate.php` li riconoscerà come già applicati se in futuro lo userai (verificato: `--status` → tutti `[x]`, "Nothing to migrate").
 3. Controlla: le tabelle sono 12 (`admin`, `apartments`, `apartment_translations`, `audit_log`, `availability_blocks`, `booking_requests`, `bookings`, `email_outbox`, `pricing_rules`, `rate_limit_hits`, `schema_migrations`, `seasonal_rates`) e `apartments` contiene i sei appartamenti (Margherita, Girasole, Rosa, Mimosa, Ciclamino, Viola). Le migrazioni non inseriscono nessun prezzo.
 
 Importa le migrazioni sempre **prima** di mettere online una versione nuova del codice che ne contiene di nuove.
@@ -117,7 +117,7 @@ Attiva il certificato dal pannello, imposta `APP_URL=https://…` e controlla ch
 
 ## 9. Primi contenuti
 
-Dall'admin: **Appartamenti** (capienza, camere, orari, descrizione e regole in IT ed EN, limiti per bambini e animali), **Listino** (tariffe stagionali e regole per adulti, bambini, animali, supplementi, soggiorno minimo). Finché non c'è un listino, le richieste sono accettate come "prezzo da confermare". I testi di *L'agriturismo* e *Dintorni* e le foto vanno forniti dal titolare (`docs/MISSING_DATA.md`, `docs/IMAGES.md`): oggi le pagine mostrano un avviso e segnaposto.
+Dall'admin: **Appartamenti** (capienza, camere, orari, descrizione, regole e **servizi** — una voce per riga — in IT ed EN, limiti per bambini e animali), **Listino** (tariffe stagionali e regole per adulti, bambini, animali, supplementi, soggiorno minimo). Finché non c'è un listino, le richieste sono accettate come "prezzo da confermare". I testi di *L'agriturismo* e *Dintorni* e le foto vanno forniti dal titolare (`docs/MISSING_DATA.md`, `docs/IMAGES.md`): oggi le pagine mostrano un avviso e segnaposto.
 
 ## 10. Prova di fumo dopo l'installazione
 
@@ -145,6 +145,5 @@ Poi: accedi all'admin; invia una richiesta di prova e controlla la notifica; con
 | Account SMTP e record SPF/DKIM | titolare/provider di posta | credenziali e DNS: non vanno toccati senza autorizzazione |
 | Caricamento dei file e `vendor/` | chi pubblica | deploy: non eseguito dall'agente |
 | Redirect http → https, cron, PHP-FPM | provider | impostazioni del pannello |
-| Ruotare o cancellare la cartella `legacy/` e la credenziale Gmail già revocata | titolare | la credenziale è già stata revocata; la cronologia Git non è stata riscritta |
 
 Per backup, ripristino, aggiornamenti e problemi frequenti vedi `docs/OPERATIONS.md`.

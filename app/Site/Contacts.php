@@ -50,6 +50,13 @@ final class Contacts
         return preg_match('/^\+?[0-9]{6,15}\z/', $clean) ? 'tel:' . $clean : null;
     }
 
+    /** Link to the address on Google Maps (a plain link, no embedded map, no API); null without an address. */
+    public function mapsLink(): ?string
+    {
+        $oneLine = trim((string) preg_replace('/\s*[\r\n]+\s*/', ', ', $this->address));
+        return $oneLine === '' ? null : 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($oneLine);
+    }
+
     /** wa.me link with a pre-filled, editable message; null when no WhatsApp number is configured. */
     public function whatsappLink(string $message): ?string
     {

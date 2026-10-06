@@ -43,6 +43,7 @@ return [
     'apartments.discover' => 'Discover the {name} apartment',
     'apartment.description' => 'Description',
     'apartment.times' => 'Times',
+    'apartment.amenities' => 'Amenities',
     'apartment.rules' => 'House rules',
     'apartment.cta_title' => 'Interested in this apartment?',
     'apartment.no_online' => 'Requests for this apartment cannot be sent online: please contact us directly.',
@@ -65,6 +66,7 @@ return [
     'contact.phone' => 'Phone',
     'contact.email' => 'Email',
     'contact.address' => 'Address',
+    'contact.map' => 'Open the location on Google Maps',
     'contact.whatsapp_cta' => 'Write to us on WhatsApp',
     'contact.whatsapp_hint' => '(the message is pre-filled and you can edit it before sending)',
 
@@ -107,6 +109,7 @@ return [
     'flow.apartments.none' => 'There are no apartments available for these dates and guests. Try other dates or contact us.',
     'flow.stay_line' => 'From {in} to {out} ({nights}) · {guests}.',
     'flow.price_total' => 'Total',
+    'flow.whatsapp' => 'Prefer to write to us? Ask on WhatsApp',
     'flow.price_note' => 'The price is calculated by the system and is indicative until the request is confirmed by the manager.',
     'flow.details.title' => 'Your details',
     'flow.summary.title' => 'Summary and send',

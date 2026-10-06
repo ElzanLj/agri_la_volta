@@ -36,7 +36,7 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [x] Architettura finale → `docs/ARCHITECTURE.md`
 - [x] Struttura progetto → `README.md`, `docs/ARCHITECTURE.md`
 - [x] Schema database → `docs/ARCHITECTURE.md` (12 tabelle), `migrations/`
-- [x] Migrazioni SQL → `migrations/0001`–`0004`, verificate in importazione da zero
+- [x] Migrazioni SQL → `migrations/0001`–`0005`, importate da zero in un database vuoto: 12 tabelle, `bin/migrate.php --status` tutte applicate
 - [x] Configurazioni richieste → `README.md`, `docs/INSTALL_SHARED_HOSTING.md` §5
 - [x] `.env.example` → commentato, senza segreti
 - [x] Sviluppo locale → `README.md`, `docs/COMMANDS.md`
@@ -47,7 +47,7 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [x] Backup → `docs/OPERATIONS.md` §2
 - [x] Ripristino → `docs/OPERATIONS.md` §3 (andata e ritorno verificata con checksum identici)
 - [x] Export CSV → `docs/OPERATIONS.md` §4, `AdminExportTest`
-- [x] Test eseguiti e risultati → `docs/TEST_REPORT.md` (763 test PASS)
+- [x] Test eseguiti e risultati → `docs/TEST_REPORT.md` (778 test PASS)
 - [x] Limitazioni residue → `README.md`, `docs/TEST_REPORT.md` (rischi residui), `docs/SECURITY_REVIEW.md`
 - [x] Informazioni mancanti → `docs/MISSING_DATA.md`
 
@@ -70,7 +70,7 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [ ] Foto con provenienza verificata, o segnaposto accettati (`docs/IMAGES.md`)
 - [ ] Privacy e cookie policy verificate da titolare/consulente
 - [ ] Periodo di conservazione dei dati deciso (`DATA_RETENTION_MONTHS`)
-- [ ] Cartella `legacy/` rimossa dal repository (decisione P4: dopo la Fase 5) e `legacy/src/EmailStatus/.env` cancellato
+- [x] Cartella `legacy/` rimossa dal repository (review finale; il file `.env` locale del legacy risulta già cancellato dal titolare)
 - [ ] Prova di fumo del §10 di `docs/INSTALL_SHARED_HOSTING.md` superata
 - [ ] Guida di rilascio compilata (`docs/RELEASE_GUIDE.md`, prompt 14)
 
@@ -81,6 +81,6 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [x] `TEST_REPORT.md` aggiornato
 - [x] `SECURITY_REVIEW.md` aggiornato
 - [x] `MISSING_DATA.md` aggiornato
-- [ ] `FINAL_REVIEW.md` prodotto (prompt 13)
+- [x] `FINAL_REVIEW.md` prodotto (prompt 13)
 - [x] Nessun segreto nel diff finale (scansione a ogni commit)
 - [x] Nessun deploy effettuato senza autorizzazione (nessun deploy eseguito)

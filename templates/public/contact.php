@@ -24,6 +24,9 @@ $phoneHref = $contacts->phoneHref();
     <dd><?= nl2br(e($contacts->address)) ?></dd>
 <?php endif; ?>
 </dl>
+<?php if ($contacts->mapsLink() !== null): ?>
+<p><a href="<?= e($contacts->mapsLink()) ?>" target="_blank" rel="noopener noreferrer"><?= e(t('contact.map')) ?></a></p>
+<?php endif; ?>
 <?php if ($whatsapp !== null): ?>
 <p><a class="button button-secondary" href="<?= e($whatsapp) ?>" target="_blank" rel="noopener noreferrer"><?= e(t('contact.whatsapp_cta')) ?></a> <?= e(t('contact.whatsapp_hint')) ?></p>
 <?php endif; ?>

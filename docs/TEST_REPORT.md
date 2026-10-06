@@ -98,6 +98,40 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Review finale (prompt 13, 2026-10-06)
+
+Rilettura integrale della SPEC e confronto con il codice (`docs/FINAL_REVIEW.md`). Rilevate 6 lacune non coperte dai 27 criteri; 5 corrette (servizi degli appartamenti con migrazione `0005`, WhatsApp con le date nel flusso, link a Google Maps, dati strutturati `Apartment`, rimozione di `legacy/`), 1 scelta documentata (recapiti nel piè di pagina).
+
+### PASS
+
+| Esecuzione | Esito |
+|---|---|
+| Suite completa dopo le correzioni (`composer test`) | **778 test, 9914 asserzioni, PASS** (6 min 46 s): 342 unit, 242 integrazione, 183 http, 11 concorrenza |
+| Migrazione `0005` | applicata al database di sviluppo e a quello di test da `bin/migrate.php` / `tests/prepare-db.php` |
+| Lint PHP su `app`, `templates`, `content`, `tests`, `migrations` | nessun errore |
+
+Un primo giro della suite completa ha dato **1 fallimento su 778**: `PublicSeoTest::testBreadcrumbStructuredData…` si aspettava un solo blocco di dati strutturati nella pagina dell'appartamento, che ora ne ha due (breadcrumb e `Apartment`). Conseguenza attesa della correzione G4: il test è stato aggiornato (ora verifica anche che i blocchi siano esattamente quei due) e la suite rieseguita per intero (risultato sopra).
+
+### Test nuovi (15)
+
+| Suite | Test | Cosa verificano |
+|---|---|---|
+| `unit` — `AmenitiesAndMapsTest` | 5 | righe di servizi ripulite, normalizzazione, limiti (30 voci, 100 caratteri, conteggio per caratteri); nessun link Maps senza indirizzo; link Maps su una riga con codifica corretta |
+| `integration` — `AmenitiesTest` | 5 | servizi salvati per lingua e normalizzati; audit del cambiamento e nessuna scrittura se uguale; svuotamento; valori non validi rifiutati senza modificare nulla (nemmeno il nome); nessun servizio inserito dalle migrazioni |
+| `http` — `PublicAdditionsTest` | 5 | l'admin modifica i servizi e la pagina pubblica li elenca in ciascuna lingua con escaping; nessuna sezione senza servizi; errore nel form admin con i dati conservati; `Apartment` in JSON-LD con soli campi inseriti (nessun prezzo, nessuna valutazione, `</script>` innocuo); link Maps e WhatsApp con appartamento, date e ospiti presenti solo se configurati (server dedicato), anche in inglese |
+
+### Prove di sensibilità (file ripristinati e verificati identici)
+
+Tutte e 7 **rilevate**: A1 servizi senza escaping; A2 prezzo nei dati strutturati; A3 link Maps senza indirizzo; A4 servizi mai validati; A5 servizi non salvati; A6 la query pubblica scarta i servizi; A7 WhatsApp del flusso senza ospiti.
+
+### Bug risolti
+
+Nessun bug critico. Le sei lacune rispetto alla SPEC sono in `docs/FINAL_REVIEW.md`.
+
+### NOT RUN
+
+Invariato rispetto alle sezioni precedenti: prove manuali (tastiera, screen reader, mobile, desktop, zoom), hosting e HTTPS reali, consegna email reale, Lighthouse/axe/penetration test, `bin/optimize-images.php` e foto reali, MySQL e PHP 8.1.
+
 ## Documentazione e verifica dei comandi (prompt 12, 2026-10-06)
 
 Obiettivo: rendere il sito installabile e manutenibile da un'altra persona. Nessuna modifica al codice dell'applicazione. Documenti: `README.md`, `docs/ARCHITECTURE.md`, `docs/INSTALL_SHARED_HOSTING.md`, `docs/OPERATIONS.md`, `docs/CHANGES.md`, `docs/DELIVERY_CHECKLIST.md`; il testo del vecchio README è in `docs/PROMPT_PACK.md`.

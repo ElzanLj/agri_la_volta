@@ -55,13 +55,12 @@ app/               codice PHP: Http (controller, router, middleware), Domain, Se
                    Security, Mail, Site (pagine pubbliche), Support
 templates/         viste PHP (public/, admin/)
 content/           testi fissi del sito: it.php ed en.php (stesse chiavi)
-migrations/        schema e dati iniziali del database (SQL, solo in avanti)
+migrations/        schema e dati iniziali del database (SQL 0001–0005, solo in avanti)
 bin/               strumenti da riga di comando: migrate, create-admin, send-queued-mail, privacy, optimize-images
 storage/           log, sessioni, email di prova (scrivibile; non raggiungibile dal web)
 tests/             suite PHPUnit (unit, integration, http, concurrency)
 docs/              documentazione, specifica, decisioni, esiti dei test
 docker/ docker-compose.yml   solo sviluppo locale
-legacy/            vecchia applicazione React/Firebase, solo riferimento, da eliminare
 ```
 
 Dettagli e schema del database: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
@@ -87,9 +86,10 @@ Dettagli e schema del database: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Stato e limiti
 
-- **Test:** 763 test automatici PASS (ordine predefinito e casuale); 23 criteri di accettazione su 27 PASS, 4 PARTIAL, nessun FAIL.
+- **Test:** 778 test automatici PASS; 23 criteri di accettazione su 27 PASS, 4 PARTIAL, nessun FAIL.
 - **Non eseguito (NOT RUN):** prove manuali con tastiera, screen reader, mobile e desktop; consegna email reale (mancano le credenziali SMTP); installazione su un hosting reale; HTTPS reale. Lista di controllo: [`docs/MANUAL_CHECKLIST.md`](docs/MANUAL_CHECKLIST.md).
 - **Mancano dati del titolare** (nessun dato è stato inventato): listino prezzi, testi di "L'agriturismo" e "Dintorni", descrizioni degli appartamenti, foto con provenienza verificata, recapiti, numero WhatsApp, testi legali, credenziali SMTP, periodo di conservazione dei dati. Elenco completo in [`docs/MISSING_DATA.md`](docs/MISSING_DATA.md). Finché mancano, il sito mostra segnaposto marcati o omette l'informazione.
+- **Vecchia applicazione React/Firebase:** rimossa dal repository (recuperabile dalla cronologia Git, commit `ae3129e`).
 - **Fuori ambito:** pagamenti online, account ospiti, integrazioni automatiche con Booking/Airbnb/Novasol.
 - Rischi di sicurezza accettati e residui: [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md).
 

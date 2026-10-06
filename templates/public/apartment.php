@@ -16,6 +16,18 @@ $checkOut = $time($apartment['check_out_until']);
 <?= View::capture('public/_photo', ['label' => $name, 'class' => 'photo-wide']) ?>
 <?= View::capture('public/_facts', ['apartment' => $apartment]) ?>
 
+<?php $amenities = \App\Site\Amenities::lines($apartment['amenities'] ?? null); ?>
+<?php if ($amenities !== []): ?>
+<section aria-labelledby="apt-amenities">
+    <h2 id="apt-amenities"><?= e(t('apartment.amenities')) ?></h2>
+    <ul class="amenities">
+<?php foreach ($amenities as $amenity): ?>
+        <li><?= e($amenity) ?></li>
+<?php endforeach; ?>
+    </ul>
+</section>
+<?php endif; ?>
+
 <?php if (($apartment['description'] ?? '') !== ''): ?>
 <section aria-labelledby="apt-description">
     <h2 id="apt-description"><?= e(t('apartment.description')) ?></h2>

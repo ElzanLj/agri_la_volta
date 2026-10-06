@@ -47,6 +47,7 @@ final class ErrorMessages
         'invalid_number' => 'Numero non valido.',
         'invalid_time' => 'Orario non valido (HH:MM).',
         'text_too_long' => 'Testo troppo lungo.',
+        'invalid_amenities' => 'Servizi non validi: al massimo 30 voci, una per riga, ciascuna di massimo 100 caratteri.',
         // states
         'request_not_found' => 'Richiesta non trovata.',
         'request_not_pending' => 'La richiesta è già stata gestita.',

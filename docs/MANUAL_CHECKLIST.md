@@ -10,7 +10,7 @@ Dati di prova: nelle prove usa dati inventati (es. "Prova Test", `prova@example.
 
 | # | Passo | Esito | Note |
 |---|---|---|---|
-| 1.1 | Accedi all'admin (`/admin`) e inserisci, in Appartamenti, capienza e una descrizione per almeno un appartamento (IT e EN) | | |
+| 1.1 | Accedi all'admin (`/admin`) e inserisci, in Appartamenti, capienza, descrizione e alcuni servizi (una voce per riga) per almeno un appartamento (IT e EN) | | |
 | 1.2 | In Listino inserisci una tariffa di prova che copra le date che userai | | |
 
 ## 2. Tastiera (solo tastiera, senza mouse) — SPEC §26

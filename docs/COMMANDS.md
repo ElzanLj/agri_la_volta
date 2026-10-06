@@ -13,7 +13,6 @@ Verificato il 2026-10-05.
 - PHP: 8.2.34 nel container `web` (`docker/php/Dockerfile`: `php:8.2-apache` + `pdo_mysql`, `mod_rewrite`, `mod_headers`). PHP non installato sull'host.
 - Composer: 2.10.3 nel container `web`, solo per PHPUnit (sviluppo); l'applicazione usa un autoloader interno e la produzione non richiede Composer
 - MySQL/MariaDB: MariaDB 10.11 nel container `db`
-- Node/npm: Node v24.18.0, npm 11.16.0 (solo per l'app legacy in `legacy/`)
 
 ## Requisiti minimi produzione
 
@@ -192,17 +191,6 @@ docker compose exec web sh -c 'for f in $(find app bin public templates -name "*
 ```
 
 Test HTTP manuali con `curl` (vedi `docs/TEST_REPORT.md`). Nessuna suite automatica ancora: PHPUnit arriva in Fase 2A.
-
-## App legacy (React/Vite, in `legacy/`, da dismettere)
-
-```bash
-cd legacy
-npm ci --no-audit --no-fund
-npm run build     # PASS con warning
-npm run lint      # FAIL: 43 errori preesistenti
-```
-
-Il legacy non usa più Firebase, login, pagamenti né server email (rimossi in Fase 1b); `npm run lint` dà 43 errori preesistenti. Resta il file locale non tracciato `legacy/src/EmailStatus/.env` (credenziale già revocata): può essere cancellato dal titolare.
 
 ## Note hosting condiviso
 

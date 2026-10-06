@@ -30,11 +30,11 @@ app/Service/              BookingService (unico punto che scrive occupazione), A
 app/Repository/           accesso al database (PDO, query parametrizzate)
 app/Security/             AdminAuth, Session, Csrf, OriginCheck, RateLimiter, AppSecret
 app/Mail/                 coda email, trasporti (SMTP, log, non configurato), costruzione dei messaggi, bozza di cancellazione
-app/Site/                 Routes, Locale, Text, Format, Contacts, FormToken, Seo, ImageSet
+app/Site/                 Routes, Locale, Text, Format, Contacts, Amenities, FormToken, Seo, ImageSet
 app/Support/              Logger, AuditLog, Csv, WhatsApp, DeferredWork
 templates/                layout.php, error.php, public/, admin/
 content/it.php, en.php    testi fissi del sito pubblico (chiavi identiche, verificato da un test)
-migrations/               0001 schema, 0002 appartamenti, 0003 prezzi, 0004 coda email
+migrations/               0001 schema, 0002 appartamenti, 0003 prezzi, 0004 coda email, 0005 servizi degli appartamenti
 bin/                      migrate, create-admin, send-queued-mail, privacy, optimize-images
 storage/                  logs/, sessions/, mail/ (non versionati)
 tests/                    Unit, Integration, Http, Concurrency, Support
@@ -64,7 +64,7 @@ Dodici tabelle InnoDB, `utf8mb4_unicode_ci`. Ricavato da `migrations/` (e copert
 | `schema_migrations` | migrazioni applicate | `version` (PK), `applied_at` |
 | `admin` | l'unico amministratore | `username` (unico), `password_hash` (`password_hash` di PHP), `last_login_at` |
 | `apartments` | i sei appartamenti | `slug` (unico), `name`, `is_active`, `accepts_online_requests`, `management_mode` (`direct`/`agency`), `managing_agency`, `max_guests`, `max_children`, `max_pets`, `bedrooms`, `beds`, orari di arrivo/partenza, `indicative_price_cents` (solo "da…", mai usato per calcolare un totale), `sort_order`. Campi sconosciuti = NULL |
-| `apartment_translations` | testi IT/EN per appartamento | PK (`apartment_id`, `locale`), `description`, `rules`, `meta_title`, `meta_description` |
+| `apartment_translations` | testi IT/EN per appartamento | PK (`apartment_id`, `locale`), `description`, `rules`, `amenities` (servizi, una voce per riga), `meta_title`, `meta_description` |
 | `booking_requests` | richieste pubbliche | `reference` (unico, `LV-XXXXXXXX`), appartamento, date, `adults/children/pets`, `first_name`, `last_name`, `email`, `phone`, `notes`, `locale`, `quoted_total_cents` (NULL = "prezzo da confermare"), `price_breakdown` (istantanea JSON del calcolo), `status` (`pending`/`confirmed`/`rejected`/`cancelled`), `privacy_accepted_at`, `decided_at`. CHECK su date, adulti ≥ 1, stato, lingua |
 | `bookings` | soggiorni confermati da qualunque canale | `booking_request_id` (unico, NULL per le manuali), `origin` (`website`/`phone`/`email`/`agency`/`novasol`/`other`), `status` (`confirmed`/`cancelled`), date, ospiti, `guest_name`, `email`, `phone`, `total_cents`, `notes`, `cancelled_at`, `cancellation_reason`. **Solo `confirmed` occupa le date** |
 | `availability_blocks` | date chiuse dall'admin | appartamento, `start_date`, `end_date` (CHECK `end > start`), `reason` |

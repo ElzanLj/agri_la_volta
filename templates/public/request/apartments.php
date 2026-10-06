@@ -25,10 +25,20 @@ $query = array_intersect_key($values, array_flip(['check_in', 'check_out', 'adul
     <a href="<?= e(lurl('request', [], $query)) ?>"><?= e(t('form.change_search')) ?></a>
 </p>
 
+<?php
+$contacts = \App\Site\Contacts::current();
+$whatsappFor = static fn (?string $apartmentName): ?string => $contacts->whatsappLink(\App\Support\WhatsApp::businessMessage(
+    $lang, $apartmentName, $stay->checkIn, $stay->checkOut, $guests->adults, $guests->children,
+));
+?>
 <?php if ($options === []): ?>
 <p class="notice"><?= e(t('flow.apartments.none')) ?></p>
 <p><a class="button" href="<?= e(lurl('request', [], $query)) ?>"><?= e(t('form.change_search')) ?></a>
-   <a class="button button-secondary" href="<?= e(lurl('contact')) ?>"><?= e(t('contact.title')) ?></a></p>
+   <a class="button button-secondary" href="<?= e(lurl('contact')) ?>"><?= e(t('contact.title')) ?></a>
+<?php if ($whatsappFor(null) !== null): ?>
+   <a class="button button-secondary" href="<?= e($whatsappFor(null)) ?>" target="_blank" rel="noopener noreferrer"><?= e(t('flow.whatsapp')) ?></a>
+<?php endif; ?>
+</p>
 <?php else: ?>
 <ul class="option-list">
 <?php foreach ($options as $option): ?>
@@ -51,7 +61,11 @@ $query = array_intersect_key($values, array_flip(['check_in', 'check_out', 'adul
             <button type="submit" class="button"><?= e(t('form.choose', ['name' => $option['name']])) ?></button>
         </form>
 <?php endif; ?>
-        <p><a href="<?= e(lurl('apartment', ['slug' => $option['slug']])) ?>"><?= e(t('apartments.discover', ['name' => $option['name']])) ?></a></p>
+        <p><a href="<?= e(lurl('apartment', ['slug' => $option['slug']])) ?>"><?= e(t('apartments.discover', ['name' => $option['name']])) ?></a>
+<?php if ($whatsappFor($option['name']) !== null): ?>
+           · <a href="<?= e($whatsappFor($option['name'])) ?>" target="_blank" rel="noopener noreferrer"><?= e(t('flow.whatsapp')) ?></a>
+<?php endif; ?>
+        </p>
     </li>
 <?php endforeach; ?>
 </ul>

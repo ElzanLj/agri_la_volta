@@ -184,6 +184,17 @@ Piano approvato dall'utente il 2026-10-06, con le tre scelte confermate (anonimi
 | 2026-10-06 | Un solo segreto applicativo (`AppSecret`) per token dei moduli e hash degli IP del rate limit (HMAC); in mancanza di `APP_SECRET` è derivato dalle credenziali DB | segreti separati | meno configurazione; l'IP non è più invertibile da chi legge il DB | `app/Security/AppSecret.php` |
 | 2026-10-06 | Rischi accettati e documentati: blocco del login solo per IP, token del modulo non monouso, rate limit per IP | blocco per utente, token monouso nel DB | impatto limitato rispetto alla complessità; da rivedere con l'hosting | `docs/SECURITY_REVIEW.md` |
 
+## Decisioni review finale (prompt 13, 2026-10-06)
+
+Piano approvato dall'utente il 2026-10-06 (G1-G6).
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-06 | **Servizi degli appartamenti** come campo di testo per lingua, una voce per riga (max 30 voci da 100 caratteri), in `apartment_translations.amenities` | tabella di servizi con icone | semplice da gestire per il titolare; nessuna tabella senza utilità attuale | migrazione `0005`, `Amenities`, form admin, pagina pubblica |
+| 2026-10-06 | WhatsApp con appartamento, date e ospiti anche nel flusso di richiesta; link a Google Maps dall'indirizzo configurato (nessuna mappa incorporata); `Apartment` in JSON-LD con soli campi esistenti, senza prezzi né valutazioni | mappa incorporata; dati strutturati con prezzo | SPEC §19, §25, §27: soluzioni semplici e nessun dato inventato | `request/apartments.php`, `Contacts::mapsLink`, `SiteController` |
+| 2026-10-06 | `git rm -r legacy` dei soli file tracciati (97): codice morto e asset inutilizzati; recuperabili dalla cronologia (`ae3129e`); i file non tracciati sul disco non sono toccati | tenerla fino alle foto | decisione P4 (dopo la Fase 5) e SPEC §33 | `docs/IMAGES.md`, `README.md` |
+| 2026-10-06 | Recapiti (telefono, email, WhatsApp) solo nel piè di pagina; l'intestazione non cambia | riga di contatti nell'intestazione | il layout sarà ridisegnato con il nuovo design del titolare | nessuna modifica |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

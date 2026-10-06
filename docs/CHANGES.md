@@ -21,7 +21,8 @@ SPA React/Vite con Firebase (dati e login), un finto flusso di pagamento che sal
 | 6 — SEO e accessibilità | robots, sitemap, Open Graph, breadcrumb, dati strutturati, contrasto verificato da test, immagini responsive predisposte | `c90d6d6` |
 | 7 — Sicurezza e privacy | revisione, intestazioni, hash IP con chiave, limite del corpo, esportazione e anonimizzazione dei dati | `95229a8` |
 | 8 — Test e regressioni (prompt 11) | percorso completo end-to-end, test di ambito (niente pagamenti/account), matrice di accettazione, lista di prove manuali | `6c30551` |
-| 8 — Documentazione (prompt 12) | README, architettura, installazione, operazioni, riepilogo, checklist di consegna | commit successivo |
+| 8 — Documentazione (prompt 12) | README, architettura, installazione, operazioni, riepilogo, checklist di consegna | `ae3129e` |
+| 9 — Review finale (prompt 13) | rilettura integrale della SPEC; servizi degli appartamenti (migrazione 0005), WhatsApp con le date nel flusso, link a Google Maps, dati strutturati degli appartamenti, rimozione di `legacy/`; `docs/FINAL_REVIEW.md` | commit successivo |
 
 ## Cosa è cambiato per chi usa il sito
 
@@ -33,8 +34,8 @@ SPA React/Vite con Firebase (dati e login), un finto flusso di pagamento che sal
 
 ## Rimosso o sostituito
 
-Firebase (dati, login), il flusso di pagamento e ogni campo carta, il server Node per le email, le dipendenze React/Vite dal sito servito (restano solo in `legacy/`, da eliminare), gli hotlink di immagini, i prezzi e le formule del legacy (non erano dati validi).
+Firebase (dati, login), il flusso di pagamento e ogni campo carta, il server Node per le email, le dipendenze React/Vite dal sito servito (la cartella `legacy/` è stata rimossa nella review finale: resta nella cronologia Git), gli hotlink di immagini, i prezzi e le formule del legacy (non erano dati validi).
 
 ## Numeri (2026-10-06)
 
-763 test automatici PASS (337 unit, 237 integrazione, 178 HTTP, 11 concorrenza), eseguiti in ordine predefinito e casuale; 23 criteri di accettazione su 27 PASS, 4 PARTIAL, 0 FAIL. Dettagli e limiti (prove manuali NOT RUN, consegna email non provata, nessun hosting reale) in `docs/TEST_REPORT.md` e `docs/ACCEPTANCE_MATRIX.md`.
+778 test automatici PASS (342 unit, 242 integrazione, 183 HTTP, 11 concorrenza); 23 criteri di accettazione su 27 PASS, 4 PARTIAL, 0 FAIL. Dettagli e limiti (prove manuali NOT RUN, consegna email non provata, nessun hosting reale) in `docs/TEST_REPORT.md` e `docs/ACCEPTANCE_MATRIX.md`.

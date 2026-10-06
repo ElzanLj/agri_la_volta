@@ -73,6 +73,7 @@ $area = static function (string $field, string $label, int $max) use ($values, $
     <h2>Testi in <?= e(strtolower($name)) ?></h2>
     <?= $area("description_{$locale}", "Descrizione ({$name})", 5000) ?>
     <?= $area("rules_{$locale}", "Regole ({$name})", 5000) ?>
+    <?= $area("amenities_{$locale}", "Servizi ({$name}) — una voce per riga", 2000) ?>
     <?= $input("meta_title_{$locale}", "Titolo per i motori di ricerca ({$name})", 'text', 'maxlength="255"') ?>
     <?= $input("meta_description_{$locale}", "Descrizione per i motori di ricerca ({$name})", 'text', 'maxlength="300"') ?>
 <?php endforeach; ?>

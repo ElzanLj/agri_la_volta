@@ -11,16 +11,17 @@ use App\Domain\StateException;
 use App\Domain\ValidationException;
 use App\Repository\AdminQueryRepository;
 use App\Repository\ApartmentRepository;
+use App\Site\Amenities;
 use App\Support\AuditLog;
 use PDO;
 
 /**
  * Admin edits to the apartment details (SPEC §4). The slug is immutable so public URLs never change.
- * Photos and amenities are not handled here (later phase).
+ * Photos are not handled here (later phase); amenities are a plain-text field, one per line.
  */
 final class ApartmentAdminService
 {
-    private const TEXT_FIELDS = ['description' => 5000, 'rules' => 5000, 'meta_title' => 255, 'meta_description' => 300];
+    private const TEXT_FIELDS = ['description' => 5000, 'rules' => 5000, 'amenities' => 2000, 'meta_title' => 255, 'meta_description' => 300];
     private const NUMBER_LIMITS = ['max_guests' => [1, 50], 'max_children' => [0, 20], 'max_pets' => [0, 20], 'bedrooms' => [0, 30], 'beds' => [0, 60]];
     private const TIME_FIELDS = ['check_in_from', 'check_in_until', 'check_out_until'];
 
@@ -40,7 +41,7 @@ final class ApartmentAdminService
     /**
      * @param array<string, mixed> $input name, is_active, accepts_online_requests, management_mode, managing_agency,
      *        max_guests, max_children, max_pets, bedrooms, beds, check_in_from, check_in_until, check_out_until,
-     *        indicative_price (euros), sort_order, and {description,rules,meta_title,meta_description}_{it,en}
+     *        indicative_price (euros), sort_order, and {description,rules,amenities,meta_title,meta_description}_{it,en}
      * @throws ValidationException|StateException|BusyException
      */
     public function update(int $id, array $input): void
@@ -93,11 +94,11 @@ final class ApartmentAdminService
                     }
                 }
                 $this->db->prepare(
-                    'INSERT INTO apartment_translations (apartment_id, locale, description, rules, meta_title, meta_description)
-                     VALUES (?, ?, ?, ?, ?, ?)
-                     ON DUPLICATE KEY UPDATE description = VALUES(description), rules = VALUES(rules),
+                    'INSERT INTO apartment_translations (apartment_id, locale, description, rules, amenities, meta_title, meta_description)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE description = VALUES(description), rules = VALUES(rules), amenities = VALUES(amenities),
                          meta_title = VALUES(meta_title), meta_description = VALUES(meta_description)'
-                )->execute([$id, $locale, $texts['description'], $texts['rules'], $texts['meta_title'], $texts['meta_description']]);
+                )->execute([$id, $locale, $texts['description'], $texts['rules'], $texts['amenities'], $texts['meta_title'], $texts['meta_description']]);
             }
 
             if ($new !== []) {
@@ -187,6 +188,14 @@ final class ApartmentAdminService
                 $text = $str("{$field}_{$locale}");
                 if (mb_strlen($text) > $max) {
                     $errors["{$field}_{$locale}"] = 'text_too_long';
+                }
+                if ($field === 'amenities') {
+                    // One amenity per line: short lines, a sensible number of them.
+                    if (!Amenities::isValid($text)) {
+                        $errors["{$field}_{$locale}"] = 'invalid_amenities';
+                    }
+                    $translations[$locale][$field] = Amenities::normalise($text);
+                    continue;
                 }
                 $translations[$locale][$field] = $text === '' ? null : $text;
             }

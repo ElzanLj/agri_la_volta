@@ -152,7 +152,9 @@ final class PublicSeoTest extends PublicSiteTestCase
 
     public function testBreadcrumbStructuredDataMirrorsTheVisibleBreadcrumb(): void
     {
-        $blocks = $this->jsonLd($this->client()->get(self::path('apartment', 'it', ['slug' => 'rosa']))->body);
+        $all = $this->jsonLd($this->client()->get(self::path('apartment', 'it', ['slug' => 'rosa']))->body);
+        self::assertSame(['BreadcrumbList', 'Apartment'], array_column($all, '@type'), 'an apartment page carries its breadcrumb and its Apartment data');
+        $blocks = array_values(array_filter($all, static fn (array $b): bool => $b['@type'] === 'BreadcrumbList'));
 
         self::assertCount(1, $blocks);
         self::assertSame('BreadcrumbList', $blocks[0]['@type']);

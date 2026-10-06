@@ -21,7 +21,7 @@ final class ApartmentController extends BasePage
         'name', 'management_mode', 'managing_agency', 'max_guests', 'max_children', 'max_pets', 'bedrooms', 'beds',
         'check_in_from', 'check_in_until', 'check_out_until', 'indicative_price', 'sort_order',
     ];
-    private const TEXTS = ['description', 'rules', 'meta_title', 'meta_description'];
+    private const TEXTS = ['description', 'rules', 'amenities', 'meta_title', 'meta_description'];
 
     public function index(Request $request): Response
     {

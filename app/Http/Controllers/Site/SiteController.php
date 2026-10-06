@@ -66,7 +66,41 @@ final class SiteController extends SitePage
             'description' => (string) ($row['meta_description'] ?? ''),
             'apartment' => $row,
             'crumbLabel' => (string) $row['name'],
+            'structuredData' => [$this->apartmentStructuredData($row, $locale)],
         ], ['slug' => (string) $row['slug']]);
+    }
+
+    /**
+     * schema.org Apartment with ONLY what the admin has entered: nothing is invented, and there are
+     * no prices, ratings or addresses here.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function apartmentStructuredData(array $row, string $locale): array
+    {
+        $base = rtrim($this->app->config->string('APP_URL'), '/');
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Apartment',
+            'name' => (string) $row['name'],
+            'url' => $base . \App\Site\Routes::path('apartment', $locale, ['slug' => (string) $row['slug']]),
+            'inLanguage' => $locale,
+        ];
+        if ((string) ($row['description'] ?? '') !== '') {
+            $data['description'] = (string) $row['description'];
+        }
+        if ($row['max_guests'] !== null) {
+            $data['occupancy'] = ['@type' => 'QuantitativeValue', 'maxValue' => (int) $row['max_guests']];
+        }
+        if ($row['bedrooms'] !== null) {
+            $data['numberOfBedrooms'] = (int) $row['bedrooms'];
+        }
+        $amenities = \App\Site\Amenities::lines($row['amenities'] ?? null);
+        if ($amenities !== []) {
+            $data['amenityFeature'] = array_map(static fn (string $name): array => ['@type' => 'LocationFeatureSpecification', 'name' => $name, 'value' => true], $amenities);
+        }
+        return $data;
     }
 
     private function staticPage(string $template, string $key, string $locale): Response

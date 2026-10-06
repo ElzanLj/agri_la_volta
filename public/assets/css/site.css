@@ -666,3 +666,9 @@ picture.photo img {
 .hint {
     color: var(--color-muted);
 }
+
+.amenities {
+    columns: 2 14rem;
+    padding-left: 1.25rem;
+    margin: 0 0 1rem;
+}

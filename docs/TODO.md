@@ -10,22 +10,25 @@ Regole:
 
 ## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-06)
 
-**Prossima sessione: eseguire `prompts/13_FINAL_REVIEW.md`** (verifica finale dei requisiti), poi `prompts/14_RELEASE_PREP_NO_DEPLOY.md` (preparazione alla pubblicazione, **senza deploy**). Prompt 0-12 completati e committati; working tree pulito a fine sessione.
+**Sviluppo e review finale completati** (prompt 0-13). **Prossimo passo: `prompts/14_RELEASE_PREP_NO_DEPLOY.md`** (preparazione alla pubblicazione, **senza deploy**; compila `docs/RELEASE_GUIDE.md`), oppure, se l'utente lo decide, l'estensione `prompts/15_ADMIN_CONTENT_BLOCKS.md` (bozza dell'utente da approvare: contenuti e pagine a blocchi modificabili dall'admin; prima di scrivere codice l'agente deve riproporre le scelte **[DA CONFERMARE]**).
 
 Per ripartire:
-1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **763 test PASS**, circa 7 minuti; se `vendor/` manca: `docker compose exec web composer install`).
-2. Leggere `docs/SESSION_STATE.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/TEST_REPORT.md`, `docs/MISSING_DATA.md`, `docs/DELIVERY_CHECKLIST.md`, poi `prompts/13_FINAL_REVIEW.md` (compila `docs/FINAL_REVIEW.md`).
+1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **778 test PASS**, circa 7 minuti; se `vendor/` manca: `docker compose exec web composer install`).
+2. Leggere `docs/SESSION_STATE.md`, `docs/FINAL_REVIEW.md`, `docs/DELIVERY_CHECKLIST.md`, `docs/MISSING_DATA.md`, poi il prompt scelto.
 3. Come nelle fasi precedenti: **prima un piano conciso** da far approvare.
 
 Da tenere presente:
-- documentazione completa: `README.md`, `docs/ARCHITECTURE.md`, `docs/INSTALL_SHARED_HOSTING.md`, `docs/OPERATIONS.md`, `docs/CHANGES.md`, `docs/DELIVERY_CHECKLIST.md`; `docs/RELEASE_GUIDE.md` è ancora un modello vuoto (è il prompt 14: senza deploy, senza segreti, passaggi esterni solo come istruzioni);
-- la verifica finale deve riesaminare i 27 criteri con evidenza fresca (23 PASS, 4 PARTIAL: 18 tastiera, 19 responsive, 20 immagini, 24 hosting reale) e **non** trasformare in PASS ciò che richiede prove manuali o hosting reale;
+- stato: 23 criteri PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL; vedi `docs/FINAL_REVIEW.md` per la conformità sezione per sezione della SPEC;
+- **migrazioni**: l'ultima è `0005_apartment_amenities.sql`; la prossima deve avere il numero successivo e non modificare le precedenti;
+- **file dell'utente non committati**: `prompts/15_ADMIN_CONTENT_BLOCKS.md` e una riga in `prompts/README.md` sono bozze dell'utente (non committate dall'agente): ispezionarle con `git status`/`git diff` e non sovrascriverle;
+- `legacy/` è stata rimossa dal repository (recuperabile da `ae3129e`); restano sul disco dell'utente solo file non tracciati (es. `node_modules`);
 - **restano NOT RUN**: prove manuali (`docs/MANUAL_CHECKLIST.md`, a cura del titolare), installazione su hosting reale, consegna email reale, HTTPS reale, Lighthouse/axe/penetration test;
-- da fare **prima di pubblicare** (a carico del titolare, elenco in `docs/DELIVERY_CHECKLIST.md`): hosting e dominio, HTTPS, credenziali SMTP, contenuti (listino, testi, foto, recapiti, WhatsApp), testi legali, periodo di conservazione dei dati, `APP_SECRET`, rimozione di `legacy/` e del suo `.env` locale;
-- la cronologia Git contiene la credenziale Gmail del legacy (già revocata) e non è stata riscritta (decisione P7): riscriverla richiederebbe autorizzazione esplicita;
+- da fare **prima di pubblicare** (a carico del titolare, `docs/DELIVERY_CHECKLIST.md`): hosting e dominio, HTTPS, credenziali SMTP, contenuti (listino, testi, servizi, foto, recapiti, WhatsApp), testi legali, periodo di conservazione dei dati, `APP_SECRET`;
+- il nuovo design del titolare (Figma) cambierà il layout: i test `PublicSeoTest`, `PublicPagesTest` e `ContrastTest` controllano struttura, accessibilità e contrasto e vanno aggiornati con il nuovo layout;
+- la cronologia Git contiene la credenziale Gmail del legacy (già revocata) e non è stata riscritta (decisione P7): riscriverla richiede autorizzazione esplicita;
 - strumenti: `bin/migrate.php`, `bin/create-admin.php`, `bin/send-queued-mail.php`, `bin/privacy.php`, `bin/optimize-images.php` (mai eseguito: manca GD/WebP nel container).
 
-Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali, testi definitivi (email, pagine, legali), numero WhatsApp e recapiti pubblici, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting, `APP_SECRET` di produzione, periodo di conservazione dei dati.
+Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali, testi definitivi (email, pagine, legali), numero WhatsApp e recapiti pubblici, listino prezzi reale, servizi e descrizioni degli appartamenti, foto con provenienza verificata, scelta dell'hosting, `APP_SECRET` di produzione, periodo di conservazione dei dati.
 
 ## Audit
 

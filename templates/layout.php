@@ -10,6 +10,7 @@
  * @var string|null $routeKey
  * @var string|null $canonicalPath
  * @var array<string, string>|null $alternates language => path (without installation prefix)
+ * @var list<array<string, mixed>>|null $structuredData extra schema.org blocks built from real data
  * @var list<array{string, ?string}>|null $crumbs breadcrumb: [label, url or null for the current page]
  */
 
@@ -50,6 +51,7 @@ if (($routeKey ?? null) === 'home' && !$contacts->isEmpty() && ($contacts->phone
         'address' => $contacts->address ?: null,
     ], static fn ($v): bool => $v !== null);
 }
+$structured = array_merge($structured, $structuredData ?? []);
 ?>
 <!doctype html>
 <html lang="<?= e($lang) ?>">
