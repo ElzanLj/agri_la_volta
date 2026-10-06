@@ -1,82 +1,98 @@
-# Agriturismo La Volta — AI Prompt Pack V2.1
+# Agriturismo La Volta — sito con richieste di disponibilità
 
-Pacchetto **AI-agnostic** per lavorare sul repository con **Codex, Claude Code o Cursor** senza cambiare metodo, specifiche o documentazione.
+Sito web in **PHP + MySQL/MariaDB** per un agriturismo con sei appartamenti, pensato per un normale **hosting Linux condiviso**. I visitatori consultano gli appartamenti (italiano e inglese) e inviano una **richiesta di disponibilità**; il gestore la conferma o la rifiuta dall'area amministrativa. **Non ci sono pagamenti online né account per gli ospiti.**
 
-**Prima di iniziare:** leggi `START_HERE.md`. Per il manuale operativo completo usa `GUIDA_UTILIZZO_AI.md`.
+> Stato: sviluppo completato per la parte automatizzabile, **non ancora pubblicato**. Mancano dati e contenuti del titolare e le prove manuali: vedi [Stato e limiti](#stato-e-limiti).
 
-La fonte di verità funzionale è `docs/SPEC.md`. I file specifici del singolo agente sono volutamente sottili: servono solo a far caricare le stesse regole condivise.
+## Cosa fa
 
-## Struttura
+- **Sito pubblico** IT/EN: home, agriturismo, appartamenti (una pagina indicizzabile per ciascuno), dintorni, contatti, privacy, cookie.
+- **Richiesta di disponibilità** a passi, senza JavaScript: date e ospiti → appartamenti disponibili con prezzo → dati → riepilogo e consenso privacy → "Richiesta ricevuta". Il prezzo è sempre calcolato dal server. Una richiesta non è una prenotazione.
+- **Area amministrativa** (`/admin`, un solo account): richieste, conferma/rifiuto, prenotazioni (anche da altri canali), blocchi di date, calendario, appartamenti, listino prezzi, email, storico delle modifiche, export CSV.
+- **Disponibilità senza sovrapposizioni**: due prenotazioni confermate dello stesso appartamento non possono sovrapporsi (verificato con processi concorrenti reali).
+- **Prezzi configurabili** dall'admin: tariffe stagionali, adulti, bambini, animali, supplementi, soggiorno minimo.
+- **Email** (SMTP generico, da variabili d'ambiente) con coda: un errore di invio non perde mai una richiesta; la cancellazione prepara una bozza modificabile e non invia nulla da sola. Link **WhatsApp** con messaggio precompilato.
+- **Sicurezza e privacy**: CSRF, sessioni sicure, antispam senza servizi esterni, nessun cookie ai visitatori, strumenti per esportare e anonimizzare i dati personali.
 
-```text
-START_HERE.md                   # avvio rapido: cosa fare la prima volta e ogni sessione
-GUIDA_UTILIZZO_AI.md            # manuale operativo completo per Codex / Claude Code / Cursor
-AGENTS.md                       # istruzioni principali; nativo/utile per Codex e leggibile da tutti
-CLAUDE.md                       # bootstrap per Claude Code -> rimanda alle regole condivise
-.cursor/rules/project.mdc       # bootstrap per Cursor -> rimanda alle regole condivise
+## Avvio in locale (Docker)
 
-docs/
-  SPEC.md                       # specifica completa del committente: fonte di verità
-  PROJECT_CONTEXT.md            # contesto sintetico e vincoli critici
-  WORKFLOW.md                   # metodo operativo indipendente dall'AI
-  PLAN.md                       # sequenza operativa per fasi, senza scadenze rigide
-  TODO.md                       # checklist operativa
-  SESSION_STATE.md              # stato corrente per riprendere o cambiare agente
-  DECISIONS.md                  # decision log
-  MISSING_DATA.md               # dati mancanti da NON inventare
-  ACCEPTANCE_MATRIX.md          # matrice dei criteri di accettazione
-  TEST_REPORT.md                # risultati reali dei test
-  SECURITY_REVIEW.md            # template review sicurezza
-  HANDOFF.md                    # template passaggio fra agenti/persone
-  DELIVERY_CHECKLIST.md         # checklist pre-consegna
-  COMMANDS.md                   # comandi verificati nel repository
-  AI_TOOL_NOTES.md              # istruzioni pratiche per Codex / Claude Code / Cursor
+Requisiti: Docker con Compose.
 
-prompts/
-  README.md                     # indice e sequenza consigliata
-  00_BOOTSTRAP.md               # caricamento contesto senza modifiche
-  01_AUDIT_REPOSITORY.md        # audit iniziale
-  02_ARCHITECTURE_DATABASE.md   # architettura e DB
-  03_FOUNDATION_MIGRATION.md    # fondamenta e migrazione controllata
-  04_BOOKING_AVAILABILITY.md    # richieste/prenotazioni/disponibilità
-  05_PRICING.md                 # motore tariffario
-  06_ADMIN.md                   # area amministrativa
-  07_EMAIL_WHATSAPP.md          # SMTP e WhatsApp
-  08_PUBLIC_FRONTEND.md         # pagine pubbliche e flusso richiesta
-  09_I18N_SEO_A11Y_PERF.md     # IT/EN, SEO, accessibilità, performance, immagini
-  10_SECURITY_PRIVACY_SPAM.md   # sicurezza, privacy tecnica, antispam
-  11_TEST_REGRESSION.md         # test e bugfix
-  12_DOCUMENTATION.md           # documentazione di consegna
-  13_FINAL_REVIEW.md            # verifica requisiti
-  14_RELEASE_PREP_NO_DEPLOY.md  # preparazione pubblicazione, senza deploy
-  90_SESSION_START.md           # apertura di una sessione di lavoro
-  91_SESSION_END.md             # checkpoint di fine sessione
-  92_CODE_REVIEW.md             # review di modifiche già fatte
-  93_BUGFIX.md                  # correzione bug focalizzata
-  94_CONTEXT_RECOVERY.md        # recupero contesto dopo una pausa/chat nuova
-  95_AGENT_HANDOFF.md           # passaggio Codex <-> Claude <-> Cursor
+```bash
+cp .env.example .env
+# modifica .env: APP_ENV=development, APP_DEBUG=true, DB_HOST=db, e scegli DB_PASSWORD e DB_ROOT_PASSWORD (valori locali)
+docker compose up -d --build
+docker compose exec web composer install
+docker compose exec web php bin/migrate.php
+docker compose exec web php bin/create-admin.php admin     # chiede la password (almeno 12 caratteri)
 ```
 
-## Installazione nel repository
+Sito: <http://localhost:8080> · Admin: <http://localhost:8080/admin>
 
-Copia **il contenuto** di questa cartella nella root del repository `agri_la_volta`, senza cancellare file applicativi esistenti.
+Test: `docker compose exec web composer test` (circa 7 minuti). Altri comandi in [`docs/COMMANDS.md`](docs/COMMANDS.md).
 
-Prima di modificare il progetto:
+## Installazione su hosting condiviso
 
-1. verifica `git status`;
-2. aggiungi questo prompt pack;
-3. crea un checkpoint Git se il workflow lo consente;
-4. avvia l'agente dalla root del repository;
-5. usa `prompts/00_BOOTSTRAP.md` e poi `prompts/01_AUDIT_REPOSITORY.md`.
+Vedi [`docs/INSTALL_SHARED_HOSTING.md`](docs/INSTALL_SHARED_HOSTING.md): requisiti (PHP 8.1+, `pdo_mysql`, Apache con `mod_rewrite`), caricamento dei file, import del database (anche solo da phpMyAdmin), creazione dell'amministratore (anche senza SSH), SMTP, HTTPS, prova di fumo.
 
-## Regola essenziale
+## Configurazione
 
-Non lanciare tutti i prompt in sequenza automaticamente. Ogni prompt è una **fase con stop condition**. La fase successiva parte solo quando lo stato corrente è coerente e i test pertinenti sono stati realmente eseguiti oppure i blocchi sono documentati.
+Tutto in variabili d'ambiente o nel file `.env` (mai nel repository). L'esempio commentato è [`.env.example`](.env.example).
 
-## Se cambi AI
+| Gruppo | Variabili |
+|---|---|
+| Applicazione | `APP_ENV`, `APP_DEBUG`, `APP_URL`, `APP_TIMEZONE`, `APP_SECRET` |
+| Database | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (`DB_ROOT_PASSWORD` solo per Docker e test) |
+| Email | `MAIL_TRANSPORT`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_ENCRYPTION`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_TIMEOUT`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, `MAIL_ADMIN_ADDRESS` |
+| Contatti pubblici | `PUBLIC_PHONE`, `PUBLIC_EMAIL`, `PUBLIC_ADDRESS`, `WHATSAPP_NUMBER`, `WHATSAPP_DEFAULT_COUNTRY_CODE` (mostrati solo se compilati) |
+| Sicurezza e privacy | `HSTS_MAX_AGE` (solo con `APP_URL` https), `PUBLIC_FORM_MIN_SECONDS`, `DATA_RETENTION_MONTHS` |
 
-Non ricominciare da zero. Usa `prompts/95_AGENT_HANDOFF.md`. Il nuovo agente deve leggere almeno `AGENTS.md`, `docs/SESSION_STATE.md`, `docs/DECISIONS.md`, `docs/TODO.md`, `docs/TEST_REPORT.md`, `docs/MISSING_DATA.md` e il diff Git corrente.
+## Struttura del progetto
 
-## Nessun deploy automatico
+```text
+public/            unica cartella raggiungibile dal web (index.php, assets/)
+app/               codice PHP: Http (controller, router, middleware), Domain, Service, Repository,
+                   Security, Mail, Site (pagine pubbliche), Support
+templates/         viste PHP (public/, admin/)
+content/           testi fissi del sito: it.php ed en.php (stesse chiavi)
+migrations/        schema e dati iniziali del database (SQL, solo in avanti)
+bin/               strumenti da riga di comando: migrate, create-admin, send-queued-mail, privacy, optimize-images
+storage/           log, sessioni, email di prova (scrivibile; non raggiungibile dal web)
+tests/             suite PHPUnit (unit, integration, http, concurrency)
+docs/              documentazione, specifica, decisioni, esiti dei test
+docker/ docker-compose.yml   solo sviluppo locale
+legacy/            vecchia applicazione React/Firebase, solo riferimento, da eliminare
+```
 
-Questo pacchetto non autorizza pubblicazione, DNS, email provider, acquisti, servizi cloud o modifiche a dati reali. Tali attività restano bloccate fino ad autorizzazione esplicita.
+Dettagli e schema del database: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Documentazione
+
+| Documento | Contenuto |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | architettura finale, struttura, schema del database, flussi principali |
+| [`docs/INSTALL_SHARED_HOSTING.md`](docs/INSTALL_SHARED_HOSTING.md) | installazione su hosting condiviso, database, admin, SMTP |
+| [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | backup, ripristino, CSV, password admin, privacy, aggiornamenti, problemi frequenti |
+| [`docs/COMMANDS.md`](docs/COMMANDS.md) | comandi verificati e configurazione dettagliata |
+| [`docs/CHANGES.md`](docs/CHANGES.md) | riepilogo delle modifiche per fase |
+| [`docs/DELIVERY_CHECKLIST.md`](docs/DELIVERY_CHECKLIST.md) | checklist di consegna e pubblicazione |
+| [`docs/ACCEPTANCE_MATRIX.md`](docs/ACCEPTANCE_MATRIX.md) | criteri di accettazione con evidenza |
+| [`docs/TEST_REPORT.md`](docs/TEST_REPORT.md) | test eseguiti e risultati (PASS / FAIL / NOT RUN) |
+| [`docs/MANUAL_CHECKLIST.md`](docs/MANUAL_CHECKLIST.md) | prove manuali da eseguire (tastiera, mobile, email reali) |
+| [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md) | revisione di sicurezza e rischi residui |
+| [`docs/MISSING_DATA.md`](docs/MISSING_DATA.md) | dati e decisioni che mancano |
+| [`docs/IMAGES.md`](docs/IMAGES.md) | censimento delle immagini e provenienza |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md), [`docs/SPEC.md`](docs/SPEC.md) | decisioni prese e specifica del committente |
+| [`docs/PROMPT_PACK.md`](docs/PROMPT_PACK.md) | pacchetto di prompt AI usato per lo sviluppo (non serve per installare il sito) |
+
+## Stato e limiti
+
+- **Test:** 763 test automatici PASS (ordine predefinito e casuale); 23 criteri di accettazione su 27 PASS, 4 PARTIAL, nessun FAIL.
+- **Non eseguito (NOT RUN):** prove manuali con tastiera, screen reader, mobile e desktop; consegna email reale (mancano le credenziali SMTP); installazione su un hosting reale; HTTPS reale. Lista di controllo: [`docs/MANUAL_CHECKLIST.md`](docs/MANUAL_CHECKLIST.md).
+- **Mancano dati del titolare** (nessun dato è stato inventato): listino prezzi, testi di "L'agriturismo" e "Dintorni", descrizioni degli appartamenti, foto con provenienza verificata, recapiti, numero WhatsApp, testi legali, credenziali SMTP, periodo di conservazione dei dati. Elenco completo in [`docs/MISSING_DATA.md`](docs/MISSING_DATA.md). Finché mancano, il sito mostra segnaposto marcati o omette l'informazione.
+- **Fuori ambito:** pagamenti online, account ospiti, integrazioni automatiche con Booking/Airbnb/Novasol.
+- Rischi di sicurezza accettati e residui: [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md).
+
+## Licenza e sviluppo
+
+Codice proprietario del committente. Il lavoro di sviluppo è stato fatto per fasi con assistenza AI; le regole e il metodo sono in [`AGENTS.md`](AGENTS.md) e [`docs/WORKFLOW.md`](docs/WORKFLOW.md).

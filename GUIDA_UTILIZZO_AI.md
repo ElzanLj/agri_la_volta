@@ -122,7 +122,7 @@ Devi sapere se esistevano già modifiche locali prima dell'arrivo dell'AI.
 Se il repository è in uno stato coerente e puoi creare commit:
 
 ```bash
-git add AGENTS.md CLAUDE.md .cursor docs prompts START_HERE.md GUIDA_UTILIZZO_AI.md README.md
+git add AGENTS.md CLAUDE.md .cursor docs prompts START_HERE.md GUIDA_UTILIZZO_AI.md
 git commit -m "docs: add AI development workflow"
 ```
 

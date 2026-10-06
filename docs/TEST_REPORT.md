@@ -98,6 +98,35 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Documentazione e verifica dei comandi (prompt 12, 2026-10-06)
+
+Obiettivo: rendere il sito installabile e manutenibile da un'altra persona. Nessuna modifica al codice dell'applicazione. Documenti: `README.md`, `docs/ARCHITECTURE.md`, `docs/INSTALL_SHARED_HOSTING.md`, `docs/OPERATIONS.md`, `docs/CHANGES.md`, `docs/DELIVERY_CHECKLIST.md`; il testo del vecchio README è in `docs/PROMPT_PACK.md`.
+
+### PASS (comandi eseguiti realmente prima di documentarli, in Docker: PHP 8.2, Apache 2.4, MariaDB 10.11)
+
+| Verifica | Esito / evidenza |
+|---|---|
+| Import dei 4 file `migrations/*.sql` in ordine in un database vuoto (come farebbe phpMyAdmin) | 12 tabelle create, 6 appartamenti, nessun prezzo; `bin/migrate.php --status` → tutte `[x]`, poi "Nothing to migrate" |
+| Creazione admin da CLI (`bin/create-admin.php`) | "Amministratore creato"; una password di 5 caratteri è rifiutata (exit 1) |
+| Admin creato **con SQL** da un hash generato in locale | login HTTP reale: password sbagliata → 422, giusta → 303 verso `/admin`, pannello → 200 |
+| Backup (`mysqldump --single-transaction --routines --default-character-set=utf8mb4`) e ripristino in un database nuovo | dati con accenti ed euro (`Zoë Müller`, `àèìòù €`) intatti; checksum **identici** per `admin`, `apartments`, `booking_requests`, `bookings`, `audit_log`, `email_outbox`, `schema_migrations`; il dump contiene l'hash della password (avvertenza nella guida) |
+| Installazione di produzione: `composer install --no-dev --optimize-autoloader` in una cartella pulita | solo `phpmailer/phpmailer` (684 KB), PHPMailer si carica, PHPUnit assente |
+| Variabili d'ambiente | le chiavi lette dal codice, quelle di `.env.example` e quelle del README coincidono |
+| Link e file citati nei documenti nuovi | 88 riferimenti controllati con uno script: 0 problemi |
+| Limite del corpo e intestazioni su Apache (Fase 7), URL non raggiungibili (`.env`, `storage`, `vendor`, `app`, `migrations`, `bin`) | già verificati: 413 / 404 |
+
+I database di verifica sono stati cancellati e nessun file temporaneo è rimasto nel repository.
+
+### NOT RUN (con motivo)
+
+| Cosa | Motivo |
+|---|---|
+| Installazione su un hosting condiviso reale seguendo la guida | nessun hosting scelto |
+| PHP 8.1 e MySQL (invece di PHP 8.2 e MariaDB) | non disponibili nell'ambiente |
+| Redirect http → https, cron, PHP-FPM, permessi e limiti del provider | dipendono dall'hosting |
+| Consegna email reale, SPF/DKIM | mancano credenziali e accesso al DNS (non toccato) |
+| Import phpMyAdmin tramite l'interfaccia grafica | provato con lo stesso client SQL da riga di comando, non con phpMyAdmin |
+
 ## Fase 8 — test completo e regressioni (2026-10-06)
 
 Obiettivo: portare il progetto a uno stato verificato, senza nuove funzioni. Matrice dei criteri: `docs/ACCEPTANCE_MATRIX.md`. Prove manuali: `docs/MANUAL_CHECKLIST.md`.
@@ -152,7 +181,7 @@ Nessuno.
 1. **Accessibilità e uso reale non verificati da una persona**: i controlli automatici coprono struttura, nomi, contrasto e bersagli ma non l'ordine di lettura né l'usabilità; il criterio 18 e il 19 restano PARTIAL.
 2. **Contenuti e dati mancanti** (listino, testi, foto, recapiti, WhatsApp, descrizioni degli appartamenti, testi legali): il sito li omette o mostra segnaposto; senza di essi non è pubblicabile.
 3. **Consegna email non provata** con un provider reale; la richiesta resta comunque salvata e in coda.
-4. **README non riscritto** (prompt 12): il criterio 26 resta PARTIAL.
+4. **README**: riscritto con il prompt 12 (criterio 26 PASS con la riserva che nessuno ha ancora installato il sito seguendo la guida).
 5. Rischi accettati di sicurezza (`docs/SECURITY_REVIEW.md`): blocco del login per IP, token del modulo non monouso, rate limit per IP.
 6. Test eseguiti su un solo database (MariaDB) e un solo ambiente PHP; la concorrenza è provata con processi reali ma su una sola macchina.
 

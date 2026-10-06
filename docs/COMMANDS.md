@@ -1,5 +1,7 @@
 # Comandi verificati del progetto
 
+Per l'installazione su hosting, il database, l'amministratore, i backup e la manutenzione vedi `docs/INSTALL_SHARED_HOSTING.md` e `docs/OPERATIONS.md`; per l'architettura `docs/ARCHITECTURE.md`.
+
 > Inserire solo comandi realmente presenti o verificati nel repository.
 
 ## Ambiente rilevato

@@ -7,25 +7,25 @@
 - **Data aggiornamento:** 2026-10-06
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `95229a8` (Fase 7); la Fase 8 è nel commit successivo
-- **Fase corrente:** Fase 8 — test completo, regressioni e bugfix: **COMPLETATA per la parte automatizzabile** (prompt 11)
-- **Prompt corrente:** `prompts/11_TEST_REGRESSION.md` (completato)
-- **Stato complessivo:** 763 test PASS in due esecuzioni complete (ordine predefinito e casuale) più 3 ripetizioni della concorrenza; nessun test instabile, nessun bug nuovo nel codice di produzione, nessun FAIL. Criteri di accettazione: 22 PASS, 5 PARTIAL (18, 19, 20, 24, 26), 0 FAIL (`docs/ACCEPTANCE_MATRIX.md`). **Tutte le prove manuali sono NOT RUN** (`docs/MANUAL_CHECKLIST.md`)
+- **Commit di riferimento:** `6c30551` (prompt 11); la documentazione è nel commit successivo
+- **Fase corrente:** documentazione tecnica e di consegna (prompt 12): **COMPLETATA**
+- **Prompt corrente:** `prompts/12_DOCUMENTATION.md` (completato)
+- **Stato complessivo:** 763 test PASS; 23 criteri di accettazione su 27 PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL. Documentazione completa e comandi verificati in Docker (import SQL, admin da CLI e da SQL, backup/ripristino, installazione `--no-dev`). **Tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
 
 ## Obiettivo corrente
 
-Fase 9 (documentazione): `prompts/12_DOCUMENTATION.md`, a partire dal `README.md` da riscrivere (scelta dell'utente: non toccato prima).
+Verifica finale dei requisiti: `prompts/13_FINAL_REVIEW.md` (produce `docs/FINAL_REVIEW.md`), poi preparazione al rilascio senza deploy: `prompts/14_RELEASE_PREP_NO_DEPLOY.md`.
 
 ## Ultimo lavoro completato
 
-- `tests/Http/EndToEndTest.php` (3 test): percorso completo visitatore → conferma admin → date non più offerte → CSV/storico/calendario → cancellazione → date di nuovo offerte; due visitatori sulle stesse date; un visitatore non può decidere.
-- `tests/Unit/ScopeTest.php` (9 test): nessun pagamento né dato carta, nessun account ospite, solo i controller admin decidono, il flusso pubblico crea solo richieste `pending`. 7 prove di sensibilità tutte rilevate.
-- `docs/ACCEPTANCE_MATRIX.md` compilata con evidenza per ognuno dei 27 criteri; `docs/MANUAL_CHECKLIST.md` creata (tutte le voci NOT RUN, a cura del titolare); `docs/TEST_REPORT.md` con le sezioni PASS / FAIL / NOT RUN / rischi residui.
+- `README.md` riscritto per il progetto (il vecchio testo sul pacchetto di prompt è in `docs/PROMPT_PACK.md`).
+- Nuovi: `docs/ARCHITECTURE.md` (architettura, struttura, schema delle 12 tabelle, flussi), `docs/INSTALL_SHARED_HOSTING.md`, `docs/OPERATIONS.md` (backup, ripristino, CSV, password admin, privacy, aggiornamenti, problemi), `docs/CHANGES.md`; compilata `docs/DELIVERY_CHECKLIST.md`; criterio 26 della matrice → PASS.
+- Verifiche eseguite prima di documentare (vedi `docs/TEST_REPORT.md`, sezione "Documentazione e verifica dei comandi"): nessuna modifica al codice dell'applicazione.
 
 ## Azioni e funzioni: verificate e incomplete
 
-- **Verificate:** vedi `docs/ACCEPTANCE_MATRIX.md` (evidenza per riga) e `docs/TEST_REPORT.md`.
-- **Incomplete/non verificabili ora:** prove manuali (tastiera, screen reader, mobile, desktop, zoom), consegna email reale, HTTPS/hosting reali, strumenti esterni (Lighthouse, axe, ZAP), foto reali e ottimizzazione immagini, README, contenuti e dati del titolare.
+- **Verificate:** vedi `docs/ACCEPTANCE_MATRIX.md` e `docs/TEST_REPORT.md`.
+- **Incomplete/non verificabili ora:** prove manuali (tastiera, screen reader, mobile, desktop, zoom), installazione su hosting reale, consegna email reale, HTTPS reale, strumenti esterni (Lighthouse, axe, ZAP), foto reali, contenuti e dati del titolare, `docs/RELEASE_GUIDE.md` (prompt 14).
 ## Working tree / modifiche locali da preservare
 
 - Nessuna modifica locale non committata a fine fase.
@@ -49,7 +49,7 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4,
 
 ## Prossimo passo esatto
 
-`prompts/12_DOCUMENTATION.md` (vedi il promemoria in `docs/TODO.md`).
+`prompts/13_FINAL_REVIEW.md` (vedi il promemoria in `docs/TODO.md`).
 
 ## Note per il prossimo agente
 
