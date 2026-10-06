@@ -98,6 +98,64 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Fase 8 — test completo e regressioni (2026-10-06)
+
+Obiettivo: portare il progetto a uno stato verificato, senza nuove funzioni. Matrice dei criteri: `docs/ACCEPTANCE_MATRIX.md`. Prove manuali: `docs/MANUAL_CHECKLIST.md`.
+
+### PASS (eseguito realmente)
+
+| Esecuzione | Comando | Esito |
+|---|---|---|
+| Suite completa, ordine predefinito | `composer test` | **763 test, 9809 asserzioni, PASS** (6 min 51 s) |
+| Suite completa, **ordine casuale** (seed 20261006) | `composer test -- --order-by=random --random-order-seed=20261006` | **763 test, 9810 asserzioni, PASS** (7 min 05 s): nessuna dipendenza tra test |
+| Concorrenza, ripetuta 3 volte in più | `phpunit --testsuite concurrency` | 11 test PASS ogni volta (1691, 1682, 1690 asserzioni: il numero varia perché alcuni scenari contano i round riusciti) |
+| Lint PHP | `php -l` su `app`, `bin`, `public`, `templates`, `content`, `tests` | nessun errore |
+
+Ripartizione: 337 unit, 237 integrazione, 178 http, 11 concorrenza. Nessun test instabile emerso in due esecuzioni complete con ordini diversi e quattro esecuzioni della sola suite di concorrenza. (Le righe "E-mail could not be queued" e "Deferred job failed" nell'output sono messaggi attesi di test che provocano apposta un guasto: non sono fallimenti.)
+
+Copertura minima del prompt 11, tutta con evidenza: date non valide (`StayDatesTest`, `PublicRequestFlowTest`); checkout ≤ check-in; notti; soggiorni consecutivi; overlap parziale e completo (`AvailabilityTest`, `EndToEndTest`); blocchi (`BlocksCancellationTest`); concorrenza (`ConcurrencyTest`); pricing, adulti, bambini, animali (`PriceCalculatorTest`, `PricingIntegrationTest`); autorizzazione admin (`AdminAccessTest`, `AdminCsrfTest`, `AdminSessionTest`); richieste pubbliche e form (`PublicRequestFlowTest`, `PublicAntispamTest`); fallimento email (`MailResilienceTest`, `SmtpTransportTest`); cancellazione; CSV (`AdminExportTest`); pagine principali in IT ed EN (`PublicPagesTest`).
+
+### Test nuovi (12)
+
+| Suite | Test | Cosa verificano |
+|---|---|---|
+| `http` — `EndToEndTest` | 3 | **percorso completo**: il visitatore vede l'appartamento e il prezzo, invia la richiesta (pending, notifica al gestore in coda); una richiesta in attesa non toglie le date a nessuno; l'admin la conferma (prenotazione, prezzo, email al cliente in coda); le date spariscono dall'offerta pubblica, anche per sovrapposizioni parziali, mentre il giorno di partenza resta libero; la prenotazione compare in elenco, calendario, due CSV e storico; la cancellazione libera le date, non invia email da sola e offre una bozza modificabile; le stesse date si possono richiedere di nuovo. **Due visitatori** chiedono le stesse date: entrambe le richieste sono accettate come in attesa, solo una si conferma, la seconda resta aperta con il motivo e si può rifiutare. **Un visitatore** con token pubblico valido non può confermare, rifiutare, cancellare né modificare blocchi o listino (401, database invariato) |
+| `unit` — `ScopeTest` | 9 | nessun fornitore di pagamento né campo carta/IBAN/CVV in tutto il sito; dipendenze solo PHPMailer e PHPUnit; i moduli pubblici chiedono solo i dati ammessi e nessuna password; l'elenco esatto delle tabelle (nessuna tabella clienti/utenti); le sole rotte di accesso sono quelle dell'admin; solo i controller admin chiamano conferma/rifiuto/cancellazione/blocchi; il flusso pubblico crea solo richieste `pending`; nessun testo del flusso parla di "prenotazione confermata" |
+
+### Prove di sensibilità (file ripristinati e verificati identici)
+
+Tutte e 7 **rilevate**: C1 parola "PayPal" in un template; C2 campo `card_number` in un modulo pubblico; C3 tabella `customers`; C4 rotta `/registrati`; C5 un controller pubblico che chiama `confirmRequest`; C6 titolo "Prenotazione confermata" nella pagina di ricezione; C7 stato `confirmed` nel flusso pubblico.
+
+### Bug risolti
+
+- **Nessun bug nuovo nel codice di produzione**: né le due esecuzioni complete né i percorsi completi hanno rivelato doppie prenotazioni, prezzi errati, richieste perse, accessi non autorizzati o esposizione di dati.
+- Errori dei test appena scritti, corretti prima del commit: un'asserzione sul testo dello storico ("Cancellazione" invece di "Prenotazione confirmed → cancelled"); due asserzioni troppo deboli individuate in revisione e rese vincolanti (una condizione sempre vera sul secondo invio, un controllo di testo che non poteva fallire).
+- Dalle fasi precedenti restano corretti: riferimento `LV-…` nella pagina "ricevuta" (Fase 5), timeout di Composer (Fase 5), server di test che non serviva i file statici (Fase 6).
+
+### FAIL
+
+Nessuno.
+
+### NOT RUN (con motivo)
+
+| Cosa | Motivo |
+|---|---|
+| Prove manuali di **tastiera, screen reader, mobile, desktop, zoom, IT/EN nel browser** (SPEC §36) | richiedono browser, dispositivi e persone: l'agente non li ha. Lista di controllo pronta in `docs/MANUAL_CHECKLIST.md`, da eseguire a cura del titolare |
+| Consegna email reale (TLS, autenticazione, SPF/DKIM, spam) | mancano le credenziali SMTP |
+| HTTPS reale, cookie `Secure` e HSTS in produzione; PHP-FPM; permessi dell'hosting; installazione su hosting condiviso | nessun hosting scelto |
+| Lighthouse, axe, validatori HTML/Schema.org, ZAP/Burp (penetration test) | strumenti non disponibili nell'ambiente |
+| `bin/optimize-images.php` e foto reali | manca GD/WebP nel container; nessuna foto con provenienza verificata |
+| MySQL (invece di MariaDB), versioni diverse di PHP | solo MariaDB 10.11 e PHP 8.2 disponibili |
+
+### Rischi residui
+
+1. **Accessibilità e uso reale non verificati da una persona**: i controlli automatici coprono struttura, nomi, contrasto e bersagli ma non l'ordine di lettura né l'usabilità; il criterio 18 e il 19 restano PARTIAL.
+2. **Contenuti e dati mancanti** (listino, testi, foto, recapiti, WhatsApp, descrizioni degli appartamenti, testi legali): il sito li omette o mostra segnaposto; senza di essi non è pubblicabile.
+3. **Consegna email non provata** con un provider reale; la richiesta resta comunque salvata e in coda.
+4. **README non riscritto** (prompt 12): il criterio 26 resta PARTIAL.
+5. Rischi accettati di sicurezza (`docs/SECURITY_REVIEW.md`): blocco del login per IP, token del modulo non monouso, rate limit per IP.
+6. Test eseguiti su un solo database (MariaDB) e un solo ambiente PHP; la concorrenza è provata con processi reali ma su una sola macchina.
+
 ## Fase 7 — sicurezza e privacy tecnica (2026-10-06)
 
 **Esito: 751 test, 9535 asserzioni, tutti PASS** (`composer test`, circa 7 minuti 20 s; 730 test precedenti + 21 nuovi: 328 unit, 237 integrazione, 175 http, 11 concorrenza). Lint PHP senza errori. Revisione completa e finding in `docs/SECURITY_REVIEW.md`.

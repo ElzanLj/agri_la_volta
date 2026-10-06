@@ -7,27 +7,25 @@
 - **Data aggiornamento:** 2026-10-06
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `c90d6d6` (Fase 6); la Fase 7 è nel commit successivo
-- **Fase corrente:** Fase 7 — sicurezza, privacy tecnica e antispam: **COMPLETATA** (prompt 10); revisione in `docs/SECURITY_REVIEW.md`
-- **Prompt corrente:** `prompts/10_SECURITY_PRIVACY_SPAM.md` (completato)
-- **Stato complessivo:** nessun finding di gravità alta; 4 finding corretti (hash IP con chiave, strumenti di esportazione/anonimizzazione, intestazioni di sicurezza, limite del corpo), 2 rischi accettati e documentati; 751 test PASS. **Non verificati:** prove manuali (tastiera, screen reader, mobile), HTTPS/hosting reali, consegna email reale, penetration test indipendente
+- **Commit di riferimento:** `95229a8` (Fase 7); la Fase 8 è nel commit successivo
+- **Fase corrente:** Fase 8 — test completo, regressioni e bugfix: **COMPLETATA per la parte automatizzabile** (prompt 11)
+- **Prompt corrente:** `prompts/11_TEST_REGRESSION.md` (completato)
+- **Stato complessivo:** 763 test PASS in due esecuzioni complete (ordine predefinito e casuale) più 3 ripetizioni della concorrenza; nessun test instabile, nessun bug nuovo nel codice di produzione, nessun FAIL. Criteri di accettazione: 22 PASS, 5 PARTIAL (18, 19, 20, 24, 26), 0 FAIL (`docs/ACCEPTANCE_MATRIX.md`). **Tutte le prove manuali sono NOT RUN** (`docs/MANUAL_CHECKLIST.md`)
 
 ## Obiettivo corrente
 
-Fase 8 (test completo, regressioni e bugfix): `prompts/11_TEST_REGRESSION.md`. Confrontare la suite con `docs/SPEC.md` §36/§41, compilare `docs/ACCEPTANCE_MATRIX.md`, elencare ciò che resta NOT RUN.
+Fase 9 (documentazione): `prompts/12_DOCUMENTATION.md`, a partire dal `README.md` da riscrivere (scelta dell'utente: non toccato prima).
 
 ## Ultimo lavoro completato
 
-- F1: `RateLimiter` salva HMAC (non SHA-256 semplice) dell'IP, con `app/Security/AppSecret.php` (condiviso con `FormToken`).
-- F2: `app/Service/PersonalDataService.php` e `bin/privacy.php` (export JSON, anonimizzazione di una persona, conservazione per età; simulazione di default; richieste in attesa e soggiorni non finiti saltati). Conservazione automatica spenta (`DATA_RETENTION_MONTHS` vuoto).
-- F3: `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `X-Permitted-Cross-Domain-Policies`, HSTS solo con `APP_URL` https (`HSTS_MAX_AGE`), `X-Powered-By` rimosso.
-- F4: `LimitRequestBody 1048576` in `public/.htaccess` (verificato su Apache).
-- 21 test nuovi (10 dati personali, 4 sicurezza di integrazione, 7 sicurezza HTTP); 8 prove di sensibilità tutte rilevate.
+- `tests/Http/EndToEndTest.php` (3 test): percorso completo visitatore → conferma admin → date non più offerte → CSV/storico/calendario → cancellazione → date di nuovo offerte; due visitatori sulle stesse date; un visitatore non può decidere.
+- `tests/Unit/ScopeTest.php` (9 test): nessun pagamento né dato carta, nessun account ospite, solo i controller admin decidono, il flusso pubblico crea solo richieste `pending`. 7 prove di sensibilità tutte rilevate.
+- `docs/ACCEPTANCE_MATRIX.md` compilata con evidenza per ognuno dei 27 criteri; `docs/MANUAL_CHECKLIST.md` creata (tutte le voci NOT RUN, a cura del titolare); `docs/TEST_REPORT.md` con le sezioni PASS / FAIL / NOT RUN / rischi residui.
 
 ## Azioni e funzioni: verificate e incomplete
 
-- **Verificate:** intestazioni su ogni tipo di risposta, HSTS condizionale, nessuna fuga di informazioni nei 500 (anche con debug in produzione), input ostile su ogni parametro pubblico, limite del corpo, assenza di dati personali/segreti/IP nei log, intestazioni email, anonimizzazione ed esportazione.
-- **Incomplete/non verificabili ora:** HTTPS reale e HSTS in produzione, PHP-FPM, hosting; consegna email reale; backup non toccati dall'anonimizzazione; periodo di conservazione da decidere; penetration test indipendente; prove manuali di accessibilità.
+- **Verificate:** vedi `docs/ACCEPTANCE_MATRIX.md` (evidenza per riga) e `docs/TEST_REPORT.md`.
+- **Incomplete/non verificabili ora:** prove manuali (tastiera, screen reader, mobile, desktop, zoom), consegna email reale, HTTPS/hosting reali, strumenti esterni (Lighthouse, axe, ZAP), foto reali e ottimizzazione immagini, README, contenuti e dati del titolare.
 ## Working tree / modifiche locali da preservare
 
 - Nessuna modifica locale non committata a fine fase.
@@ -37,7 +35,7 @@ Fase 8 (test completo, regressioni e bugfix): `prompts/11_TEST_REGRESSION.md`. C
 
 ## Test/comandi più recenti
 
-`docker compose exec web composer test` → **751 test, 9535 asserzioni, PASS** (circa 7 minuti 20 s: 328 unit, 237 integrazione, 175 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 7). Nessuna nuova migrazione.
+`docker compose exec web composer test` → **763 test, 9809-9810 asserzioni, PASS** (circa 7 minuti: 337 unit, 237 integrazione, 178 http, 11 concorrenza; eseguita in ordine predefinito e casuale). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 8). Nessuna nuova migrazione.
 
 ## Blocchi aperti
 
@@ -51,7 +49,7 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4,
 
 ## Prossimo passo esatto
 
-`prompts/11_TEST_REGRESSION.md` (vedi il promemoria in `docs/TODO.md`).
+`prompts/12_DOCUMENTATION.md` (vedi il promemoria in `docs/TODO.md`).
 
 ## Note per il prossimo agente
 

@@ -4,32 +4,34 @@ Stati ammessi: `NOT REVIEWED`, `PASS`, `PARTIAL`, `FAIL`, `BLOCKED`.
 
 Non segnare `PASS` senza evidenza concreta (file/test/comando/verifica manuale).
 
+Aggiornata il 2026-10-06 (Fase 8, prompt 11) sulla suite completa descritta in `docs/TEST_REPORT.md` (sezione Fase 8). "PASS" qui significa: verificato da test automatici eseguiti realmente o da comandi registrati; **nessuna prova manuale** (browser, tastiera, dispositivi) è stata eseguita: sono elencate in `docs/MANUAL_CHECKLIST.md` come NOT RUN.
+
 | # | Criterio | Stato | Evidenza | Note / azione |
 |---|---|---|---|---|
-| 1 | Nessun sistema di pagamento | NOT REVIEWED | | |
-| 2 | Nessun dato carta | NOT REVIEWED | | |
-| 3 | Nessun account/login ospite | NOT REVIEWED | | |
-| 4 | Richiesta pubblica non presentata come prenotazione confermata | NOT REVIEWED | | |
-| 5 | Solo admin può confermare | NOT REVIEWED | | |
-| 6 | Nessun overlap tra confirmed dello stesso appartamento | NOT REVIEWED | | |
-| 7 | Disponibilità ricontrollata lato server | NOT REVIEWED | | |
-| 8 | Prezzo ricalcolato lato server | NOT REVIEWED | | |
-| 9 | Tariffe modificabili senza codice | NOT REVIEWED | | |
-| 10 | Adulti/bambini/animali possono influire sul prezzo | NOT REVIEWED | | |
-| 11 | Prenotazioni esterne inseribili manualmente | NOT REVIEWED | | |
-| 12 | Cancellazione libera le date | NOT REVIEWED | | |
-| 13 | Cancellazione genera bozza email modificabile | NOT REVIEWED | | |
-| 14 | Fallimento SMTP non perde la richiesta | NOT REVIEWED | | |
-| 15 | Area admin protetta | NOT REVIEWED | | |
-| 16 | Storico modifiche presente | NOT REVIEWED | | |
-| 17 | Sito IT/EN | NOT REVIEWED | | |
-| 18 | Utilizzabile da tastiera | NOT REVIEWED | | |
-| 19 | Responsive | NOT REVIEWED | | |
-| 20 | Immagini ottimizzate | NOT REVIEWED | | |
-| 21 | Immagini di provenienza dubbia segnalate | NOT REVIEWED | | |
-| 22 | Ogni appartamento ha pagina indicizzabile | NOT REVIEWED | | |
-| 23 | CSV esportabile | NOT REVIEWED | | |
-| 24 | Funziona su hosting Linux condiviso | NOT REVIEWED | | |
-| 25 | Non dipende obbligatoriamente da provider specifico | NOT REVIEWED | | |
-| 26 | README/config permettono installazione altrove | NOT REVIEWED | | |
-| 27 | Nessun servizio esterno modificato senza autorizzazione | NOT REVIEWED | | |
+| 1 | Nessun sistema di pagamento | PASS | `ScopeTest::testNoPaymentProviderAndNoCardOrBankFieldExistsAnywhere` (scansione di `app`, `templates`, `content`, `bin`, `migrations`, `public`, `composer.json`, `.env.example`), `testDependenciesAreOnlyMailAndTestingLibraries` (solo PHPMailer e PHPUnit, nessuna libreria di pagamento nel lock); prova di sensibilità C1 | La cartella `legacy/` (da eliminare) non fa parte del sito: i file di pagamento furono rimossi in Fase 1b |
+| 2 | Nessun dato carta | PASS | `ScopeTest::testThePublicSiteAsksOnlyForTheDataOfTheRequestFormAndNoPassword` (i campi dei moduli pubblici sono solo quelli ammessi), `testNoPaymentProvider…` (nessun campo carta/IBAN/CVV); prova C2; schema senza colonne di pagamento (`migrations/`) | |
+| 3 | Nessun account/login ospite | PASS | `ScopeTest::testTheOnlyLoginIsTheAdminLoginAndThereIsNoSignUp` (le uniche rotte di accesso sono `/admin/login` e `/admin/logout`), `testNoGuestAccountsExistInTheDatabaseSchema` (elenco esatto delle tabelle); prove C3, C4 | |
+| 4 | Richiesta pubblica non presentata come prenotazione confermata | PASS | `PublicRequestFlowTest::testFullFlowStoresAPendingRequest…`, `testEnglishFlow…`, `EndToEndTest::testTheWholeJourney…` (pagina "Richiesta ricevuta", stato `pending`, nessuna riga in `bookings`); `ScopeTest::testNoPublicTextCallsARequestAConfirmedBooking` e `testThePublicFlowOnlyEverCreatesPendingRequests`; prove C6, C7 | |
+| 5 | Solo admin può confermare | PASS | `EndToEndTest::testAVisitorCannotConfirmRejectOrCancel…` (401 con token pubblico valido), `AdminAccessTest` (matrice su ogni rotta `/admin`), `ScopeTest::testOnlyTheAdminControllersCanDecide…` (solo i controller admin chiamano conferma/rifiuto/cancellazione/blocchi); prova C5 | |
+| 6 | Nessun overlap tra confirmed dello stesso appartamento | PASS | `ConcurrencyTest` (processi PHP reali in parallelo, 8 round, prova con lock disattivato), `AvailabilityTest`, `BookingRulesTest`, `overlapViolations()` dopo ogni scenario di `EndToEndTest` | Verificato su MariaDB 10.11; MySQL non provato |
+| 7 | Disponibilità ricontrollata lato server | PASS | `PublicRequestFlowTest::testDatesTakenBetweenSummaryAndSend…`, `AdminActionsTest::testConfirmationOfATakenPeriod…`, `RequestFlowTest`, `EndToEndTest` (conferma su date già prese rifiutata) | Il controllo vincolante è sotto lock alla conferma |
+| 8 | Prezzo ricalcolato lato server | PASS | `PublicRequestFlowTest::testNothingSentByTheBrowserCanChangeThePriceOrTheStatus`, `PriceCalculatorTest` (34 test), `PricingIntegrationTest`, `AdminActionsTest::testRequestDetailShowsTheServerCalculatedPrice` | Solo con listino di prova: il listino reale manca (`docs/MISSING_DATA.md`) |
+| 9 | Tariffe modificabili senza codice | PASS | `AdminActionsTest::testPriceListEditingChangesRealPricesWithoutTouchingCode`, `PricingConfigTest` | Il titolare deve inserire il listino dall'admin |
+| 10 | Adulti/bambini/animali possono influire sul prezzo | PASS | `PriceCalculatorTest` (adulti extra, bambini gratis/a pagamento, animali, supplementi), `PricingIntegrationTest` | Regole reali da fornire (`docs/MISSING_DATA.md`) |
+| 11 | Prenotazioni esterne inseribili manualmente | PASS | `AdminActionsTest::testManualBookingEndToEnd` e test correlati (origini telefono, email, agenzia, Novasol, altro) | Nessuna integrazione automatica con Novasol/Booking/Airbnb (fuori ambito) |
+| 12 | Cancellazione libera le date | PASS | `AdminActionsTest::testCancellationNeedsAConfirmationPage…`, `BlocksCancellationTest`, `EndToEndTest` (le date tornano offerte al pubblico) | |
+| 13 | Cancellazione genera bozza email modificabile | PASS | `EndToEndTest` (bozza con `<textarea>`, nessuna email di cancellazione inviata da sola), `AdminMailTest::testTheDraftIsEditableAndNotSentUntilTheAdminSendsTheEditedText` | |
+| 14 | Fallimento SMTP non perde la richiesta | PASS | `MailResilienceTest` (13 tipi di errore), `SmtpTransportTest` e server SMTP finto in 10 scenari di guasto, `OutboxFlowTest`, `MailConcurrencyTest` | **Consegna reale NOT RUN**: mancano le credenziali SMTP |
+| 15 | Area admin protetta | PASS | `AdminAccessTest`, `AdminCsrfTest`, `AdminSessionTest`, `RouterGuardTest`, `SecurityTest` (intestazioni, errori, input ostile), `docs/SECURITY_REVIEW.md` | |
+| 16 | Storico modifiche presente | PASS | `AdminActionsTest::testAuditLogListsWhatHappened`, `EndToEndTest` (la conferma e la cancellazione compaiono nello storico), `PersonalDataTest` (anche l'anonimizzazione, senza dati personali) | |
+| 17 | Sito IT/EN | PASS | `PublicPagesTest` (tutte le pagine in IT ed EN, 404 localizzate), `PublicRequestFlowTest::testEnglishFlow…`, `PublicSiteUnitTest` (chiavi e segnaposto IT = EN), `PublicSeoTest` (hreflang, sitemap) | Inglese provvisorio; testi di L'agriturismo e Dintorni da fornire. Prove manuali: `MANUAL_CHECKLIST.md` §6 |
+| 18 | Utilizzabile da tastiera | PARTIAL | `PublicSeoTest` (skip link, landmark, label, ordine delle intestazioni, nessun JavaScript, controlli nativi), `ContrastTest`, `testTheCssMeetsTheTouchTargetAndMotionRules` (focus visibile) | **Prova manuale con tastiera NOT RUN** (`MANUAL_CHECKLIST.md` §2-3) |
+| 19 | Responsive | PARTIAL | CSS fluido con griglie; `PublicSeoTest::testTheCssMeetsTheTouchTargetAndMotionRules` (bersagli da 44 px) e `PublicPagesTest::testSecurityHeadersAreSentOnPublicPages` (meta `viewport`) | **Prova su dispositivi NOT RUN** (`MANUAL_CHECKLIST.md` §4-5) |
+| 20 | Immagini ottimizzate | PARTIAL | `ImageSetTest` (WebP + JPEG, `srcset`, `width`/`height`, lazy, hero ad alta priorità), `bin/optimize-images.php` (solo lint) | Nessuna foto pubblicata: sono segnaposto; lo script non è stato eseguito (manca GD/WebP nel container) |
+| 21 | Immagini di provenienza dubbia segnalate | PASS | `docs/IMAGES.md` e `docs/AUDIT.md` (censimento di 64 file con classi di rischio), `PublicPagesTest::testPhotographsAreMarkedPlaceholders` e `testPagesCarryNoScriptAndNoExternalResources` (nessun `<img>`, nessun hotlink) | Il titolare deve confermare l'origine delle foto |
+| 22 | Ogni appartamento ha pagina indicizzabile | PASS | `PublicPagesTest::testEveryApartmentHasItsOwnPageInBothLanguages` e `testTitlesAreUniqueAndEachPageHasCanonicalAndHreflang`, `PublicSeoTest` (sitemap con tutti gli appartamenti attivi, breadcrumb, dati strutturati) | Descrizioni e meta description dall'admin |
+| 23 | CSV esportabile | PASS | `AdminExportTest` (8 test: formato, BOM, filtri, formule neutralizzate), `CsvTest`, `EndToEndTest` (la richiesta e la prenotazione compaiono nei CSV) | |
+| 24 | Funziona su hosting Linux condiviso | PARTIAL | PHP 8.1+ con `pdo_mysql`, nessun framework né Composer obbligatorio in produzione (solo `vendor/` caricato), fallback `.htaccess` verificato in Docker/Apache (`docs/COMMANDS.md`), verifiche su Apache di cache, compressione e limite del corpo | **Nessun hosting reale provato**; PHP-FPM, cron, permessi di `storage/` da verificare (`MANUAL_CHECKLIST.md` §8) |
+| 25 | Non dipende obbligatoriamente da provider specifico | PASS | `composer.json` (solo PHPMailer, SMTP generico da variabili d'ambiente), database MySQL/MariaDB standard, nessun servizio esterno obbligatorio (`ScopeTest::testDependencies…`; nessuna risorsa esterna nelle pagine: `PublicPagesTest`) | |
+| 26 | README/config permettono installazione altrove | PARTIAL | `docs/COMMANDS.md` (requisiti, installazione locale, migrazioni, email, backup, privacy), `.env.example` commentato | Il `README.md` descrive ancora il pacchetto di prompt: va riscritto (prompt 12, deciso dall'utente) |
+| 27 | Nessun servizio esterno modificato senza autorizzazione | PASS | Nessuna connessione a servizi esterni dal codice o dai test (SMTP solo finto/`log`, nessun Firebase), nessun deploy, nessuna modifica DNS/posta; credenziale Gmail revocata dal titolare; storia Git non riscritta | Il ramo locale coincide con `origin/main` (`git status -sb`): l'agente non ha eseguito `git push` |

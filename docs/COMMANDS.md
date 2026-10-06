@@ -75,7 +75,7 @@ Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
 
 ```bash
 docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
-docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (751 test, circa 7 minuti)
+docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (763 test, circa 7 minuti; con `-- --order-by=random` si prova l'indipendenza dall'ordine)
 ```
 
 Suite singole:

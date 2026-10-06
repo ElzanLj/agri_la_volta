@@ -10,22 +10,22 @@ Regole:
 
 ## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-06)
 
-**Prossima sessione: eseguire `prompts/11_TEST_REGRESSION.md`** (Fase 8: test completo, regressioni e bugfix). Fasi 0-7 completate e committate; working tree pulito a fine sessione.
+**Prossima sessione: eseguire `prompts/12_DOCUMENTATION.md`** (Fase 9: documentazione, a partire dal `README.md`, che descrive ancora il pacchetto di prompt e non il progetto). Fasi 0-8 completate e committate; working tree pulito a fine sessione.
 
 Per ripartire:
-1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **tutti i test PASS**, numero in `docs/TEST_REPORT.md`, circa 6 minuti; se `vendor/` manca: `docker compose exec web composer install`).
-2. Leggere `docs/SESSION_STATE.md`, `docs/MISSING_DATA.md`, `docs/DECISIONS.md` e `docs/SECURITY_REVIEW.md`, poi `prompts/11_TEST_REGRESSION.md`.
-3. Come nelle fasi precedenti: **prima un piano conciso** da far approvare, poi il codice.
+1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **763 test PASS**, circa 7 minuti; se `vendor/` manca: `docker compose exec web composer install`).
+2. Leggere `docs/SESSION_STATE.md`, `docs/MISSING_DATA.md`, `docs/DECISIONS.md`, `docs/ACCEPTANCE_MATRIX.md` e `docs/TEST_REPORT.md` (sezione Fase 8), poi `prompts/12_DOCUMENTATION.md`.
+3. Come nelle fasi precedenti: **prima un piano conciso** da far approvare, poi il codice/i documenti.
 
-Da tenere presente nella Fase 8:
-- confrontare i test con `docs/SPEC.md` (§36 e §41) e compilare `docs/ACCEPTANCE_MATRIX.md`; molti criteri sono già coperti (vedi `docs/TEST_REPORT.md`);
-- **restano NOT RUN** le prove manuali: tastiera, screen reader, mobile, zoom, browser diversi, consegna email reale, HTTPS reale, PHP-FPM, Lighthouse/axe; sono da elencare come limiti e da far fare al titolare con una lista di controllo;
-- documentazione ancora da scrivere (README, installazione su hosting condiviso, import del database, SMTP, backup e ripristino, export CSV): oggi esistono `docs/COMMANDS.md` e `docs/RELEASE_GUIDE.md`/`DELIVERY_CHECKLIST.md` come modelli vuoti;
-- strumenti già presenti: `bin/migrate.php`, `bin/create-admin.php`, `bin/send-queued-mail.php`, `bin/privacy.php`, `bin/optimize-images.php` (quest'ultimo mai eseguito: manca GD/WebP nel container);
-- decisioni del titolare ancora aperte: periodo di conservazione dei dati (`DATA_RETENTION_MONTHS`), `APP_SECRET` di produzione, HSTS (si attiva solo con `APP_URL` https), hosting (PHP-FPM, cron, `vendor/` da caricare, `REMOTE_ADDR` dietro proxy);
-- il test del log (`SecurityTest::testNoPersonalDataOrSecretReachesTheLogs`) legge `storage/logs/`: non eliminare la cartella.
+Da tenere presente nella Fase 9:
+- il `README.md` va riscritto per il progetto reale (non toccarlo prima: scelta dell'utente); contenuto già pronto in `docs/COMMANDS.md` (requisiti, installazione, migrazioni, admin, email, privacy, SEO), `docs/SECURITY_REVIEW.md`, `docs/IMAGES.md`, `docs/MANUAL_CHECKLIST.md`; modelli ancora vuoti: `docs/RELEASE_GUIDE.md` e `docs/DELIVERY_CHECKLIST.md` (poi `prompts/14`: preparazione al rilascio **senza deploy**);
+- documentare: installazione su hosting condiviso (anche senza SSH: import dei file `migrations/*.sql` da phpMyAdmin), caricamento di `vendor/`, `.env`/variabili, creazione dell'admin, SMTP, cron facoltativo, backup e ripristino, export CSV, strumenti `bin/`, limiti residui e dati mancanti;
+- ACCEPTANCE_MATRIX: restano PARTIAL i criteri 18, 19 (prove manuali), 20 (nessuna foto), 24 (nessun hosting reale), 26 (README);
+- **prove manuali NOT RUN**: elencate in `docs/MANUAL_CHECKLIST.md`, da eseguire a cura del titolare; riportarne gli esiti in `docs/TEST_REPORT.md`;
+- decisioni del titolare ancora aperte: periodo di conservazione dati (`DATA_RETENTION_MONTHS`), `APP_SECRET` di produzione, HSTS (solo con `APP_URL` https), hosting (PHP-FPM, cron, `vendor/`, `REMOTE_ADDR` dietro proxy), foto, testi, recapiti, listino, credenziali SMTP;
+- strumenti utili: `bin/migrate.php`, `bin/create-admin.php`, `bin/send-queued-mail.php`, `bin/privacy.php`, `bin/optimize-images.php` (mai eseguito).
 
-Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali (consegna email non verificata), testi definitivi delle email e dei contenuti, numero WhatsApp e recapiti pubblici, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting, `APP_SECRET` di produzione, periodo di conservazione dei dati.
+Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali, testi definitivi (email, pagine, legali), numero WhatsApp e recapiti pubblici, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting, `APP_SECRET` di produzione, periodo di conservazione dei dati.
 
 ## Audit
 
@@ -194,7 +194,7 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 - [x] Test validazione form (HTTP reale, IT e EN, dati conservati, errori collegati ai campi)
 - [x] Test cancellazione
 - [x] Test export CSV
-- [ ] Test manuale mobile/desktop/tastiera/IT/EN
+- [ ] Test manuale mobile/desktop/tastiera/IT/EN (**NOT RUN**: lista di controllo pronta in `docs/MANUAL_CHECKLIST.md`, da eseguire a cura del titolare)
 - [ ] README/installazione locale
 - [ ] Installazione hosting condiviso
 - [ ] Import database
