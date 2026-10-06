@@ -8,25 +8,26 @@ Regole:
 - mantieni una sola fonte di stato: questo file, non checklist parallele nelle chat.
 
 
-## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-06)
+## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-07)
 
-**Sviluppo e review finale completati** (prompt 0-13). **Prossimo passo: `prompts/14_RELEASE_PREP_NO_DEPLOY.md`** (preparazione alla pubblicazione, **senza deploy**; compila `docs/RELEASE_GUIDE.md`), oppure, se l'utente lo decide, l'estensione `prompts/15_ADMIN_CONTENT_BLOCKS.md` (bozza dell'utente da approvare: contenuti e pagine a blocchi modificabili dall'admin; prima di scrivere codice l'agente deve riproporre le scelte **[DA CONFERMARE]**).
+**Sviluppo, review finale e preparazione al rilascio completati** (prompt 0-14). Il codice è pronto per la parte automatizzabile; **nulla è stato pubblicato** e nessun servizio esterno è stato contattato. Prossimo passo: dipende dal titolare — fornire i contenuti e le autorizzazioni, eseguire le prove manuali, scegliere l'hosting; poi seguire `docs/RELEASE_GUIDE.md`. Eventuali nuove richieste di sviluppo partono da un nuovo prompt (es. l'estensione per i contenuti modificabili dall'admin, se l'utente la riprende).
 
 Per ripartire:
-1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **778 test PASS**, circa 7 minuti; se `vendor/` manca: `docker compose exec web composer install`).
-2. Leggere `docs/SESSION_STATE.md`, `docs/FINAL_REVIEW.md`, `docs/DELIVERY_CHECKLIST.md`, `docs/MISSING_DATA.md`, poi il prompt scelto.
+1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **791 test PASS**, circa 7 minuti; se `vendor/` manca: `docker compose exec web composer install`).
+2. Leggere `docs/SESSION_STATE.md`, `docs/RELEASE_GUIDE.md`, `docs/DELIVERY_CHECKLIST.md`, `docs/FINAL_REVIEW.md`, `docs/MISSING_DATA.md`.
 3. Come nelle fasi precedenti: **prima un piano conciso** da far approvare.
 
 Da tenere presente:
-- stato: 23 criteri PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL; vedi `docs/FINAL_REVIEW.md` per la conformità sezione per sezione della SPEC;
+- stato: 23 criteri PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL;
 - **migrazioni**: l'ultima è `0005_apartment_amenities.sql`; la prossima deve avere il numero successivo e non modificare le precedenti;
-- **file dell'utente non committati**: `prompts/15_ADMIN_CONTENT_BLOCKS.md` e una riga in `prompts/README.md` sono bozze dell'utente (non committate dall'agente): ispezionarle con `git status`/`git diff` e non sovrascriverle;
-- `legacy/` è stata rimossa dal repository (recuperabile da `ae3129e`); restano sul disco dell'utente solo file non tracciati (es. `node_modules`);
-- **restano NOT RUN**: prove manuali (`docs/MANUAL_CHECKLIST.md`, a cura del titolare), installazione su hosting reale, consegna email reale, HTTPS reale, Lighthouse/axe/penetration test;
-- da fare **prima di pubblicare** (a carico del titolare, `docs/DELIVERY_CHECKLIST.md`): hosting e dominio, HTTPS, credenziali SMTP, contenuti (listino, testi, servizi, foto, recapiti, WhatsApp), testi legali, periodo di conservazione dei dati, `APP_SECRET`;
+- dominio canonico scelto dal titolare: `https://www.agriturismolavolta.com` (redirect 301 dal dominio senza www, da configurare sull'hosting: `docs/RELEASE_GUIDE.md` §7);
+- **restano NOT RUN**: prove manuali (`docs/MANUAL_CHECKLIST.md`), installazione su hosting reale, consegna email reale, HTTPS reale, reindirizzamenti e pagina di manutenzione `.htaccess`, Lighthouse/axe/penetration test;
+- da fare **prima di pubblicare** (a carico del titolare): autorizzazioni A1–A8, hosting e dominio, HTTPS, credenziali SMTP, contenuti (listino, testi, servizi, foto, recapiti, WhatsApp), testi legali, periodo di conservazione dei dati, `APP_SECRET`;
+- prima e dopo la pubblicazione eseguire `php bin/check-production.php --strict`;
 - il nuovo design del titolare (Figma) cambierà il layout: i test `PublicSeoTest`, `PublicPagesTest` e `ContrastTest` controllano struttura, accessibilità e contrasto e vanno aggiornati con il nuovo layout;
-- la cronologia Git contiene la credenziale Gmail del legacy (già revocata) e non è stata riscritta (decisione P7): riscriverla richiede autorizzazione esplicita;
-- strumenti: `bin/migrate.php`, `bin/create-admin.php`, `bin/send-queued-mail.php`, `bin/privacy.php`, `bin/optimize-images.php` (mai eseguito: manca GD/WebP nel container).
+- il ramo locale può essere avanti di alcuni commit rispetto a `origin/main`: l'agente non ha mai fatto `git push`;
+- la cronologia Git contiene la credenziale Gmail del legacy (già revocata) e non è stata riscritta (decisione P7);
+- strumenti: `bin/migrate.php`, `bin/create-admin.php`, `bin/send-queued-mail.php`, `bin/privacy.php`, `bin/check-production.php`, `bin/optimize-images.php` (mai eseguito: manca GD/WebP nel container).
 
 Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali, testi definitivi (email, pagine, legali), numero WhatsApp e recapiti pubblici, listino prezzi reale, servizi e descrizioni degli appartamenti, foto con provenienza verificata, scelta dell'hosting, `APP_SECRET` di produzione, periodo di conservazione dei dati.
 

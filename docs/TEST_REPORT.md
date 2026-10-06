@@ -98,6 +98,39 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Preparazione al rilascio, senza deploy (prompt 14, 2026-10-07)
+
+Obiettivo: preparare istruzioni e controlli per una futura pubblicazione autorizzata, senza modificare né contattare servizi esterni. Documento: `docs/RELEASE_GUIDE.md`. Nuovo strumento: `bin/check-production.php` (classe `App\Support\ProductionCheck`), di **sola lettura**.
+
+### PASS
+
+| Esecuzione | Esito |
+|---|---|
+| Suite completa (`composer test`) | **791 test, 10049 asserzioni, PASS** (7 min 27 s): 342 unit, 255 integrazione, 183 http, 11 concorrenza |
+| `ProductionCheckTest` (13 test nuovi, integrazione) | installazione pronta = 0 errori e 0 avvisi; 14 situazioni bloccanti (ambiente, `APP_URL` http/locale/di prova/con barra/mancante/con parametri, trasporto `log`, SMTP mancante o con porta non valida, mittente o destinatario non validi, database `_test`); versione PHP ed estensioni; `vendor/`, `storage/logs` e file riservati in `public/`; database non raggiungibile (senza riportare il messaggio del server), migrazioni da applicare, admin assente o con hash non valido, nessun appartamento attivo; 8 avvisi non bloccanti; avvisi di contenuto (listino, descrizioni), file di sviluppo e PHPUnit in `vendor/`, permessi di `.env`; **nessuna password o segreto stampati**; il comando restituisce exit 1 e rifiuta il database dei test |
+| Prove di sensibilità sul controllo | tutte e 7 **rilevate** (http accettato, password SMTP stampata, migrazioni da applicare ignorate, trasporto `log` ammesso, admin mancante solo avviso, database `_test` accettato, PHP vecchio accettato); file ripristinato e verificato |
+
+### Simulazione di produzione in locale ✔ (eseguita in Docker, nulla di esterno contattato)
+
+Copia pulita del progetto con **solo** i file indicati dalla guida (`public app templates content migrations bin storage vendor .htaccess`, `vendor/` generata con `--no-dev`), database usa-e-getta creato dai file SQL (5 migrazioni), admin creato con il comando, contenuti **fittizi**, `.env` con `APP_ENV=production`, `APP_URL=https://www.agriturismolavolta.com` e SMTP verso `127.0.0.1:1` (porta locale chiusa), servita con `php -S`:
+
+| Verifica | Esito |
+|---|---|
+| `php bin/check-production.php --strict` | **27 controlli superati, 0 errori, 0 avvisi**, exit 0; con `APP_ENV=development` → 1 errore, exit 1 |
+| Pagine (`/`, `/en`, `/appartamenti`, pagina appartamento, `/contatti`, `/robots.txt`, `/sitemap.xml`, `/richiedi-disponibilita`, `/admin/login`) | tutte 200 |
+| `/.env`, `/app/…`, `/vendor/autoload.php`, `/migrations/*.sql`, `/bin/migrate.php`, `/composer.json` | 404 (`/storage/logs/` → 301 verso l'URL senza barra, poi non servito) |
+| Intestazioni | HSTS (`max-age=15552000`), CSP, `X-Frame-Options`, `nosniff`, `Permissions-Policy` presenti; nessun `X-Powered-By`; nessun cookie sulle pagine pubbliche |
+| Canonical, sitemap, robots | sul dominio canonico `https://www.agriturismolavolta.com/…` |
+| Servizi dell'appartamento | mostrati (anche nei dati strutturati) |
+| Login admin | cookie `lavolta_session; secure; HttpOnly; SameSite=Lax`; pannello 200 con la sessione, 303 senza |
+| Richiesta pubblica con il server di posta irraggiungibile | accettata (303 verso "ricevuta"); consegna fallita registrata come `connection` con un nuovo tentativo programmato, **senza** nome, email, password né IP nei log |
+
+Ambiente, database e file temporanei sono stati eliminati al termine.
+
+### NOT RUN (con motivo)
+
+Tutto ciò che la guida descrive ma richiede servizi reali: acquisto/attivazione di hosting e certificati, caricamento su un hosting, DNS (record web, `MX`, `SPF`, `DKIM`, `DMARC`), connessione al server SMTP reale e invio di email reali, importazione di dati reali, reindirizzamenti `.htaccess` non-www → www e http → https e pagina di manutenzione (dipendono dall'hosting: **non provati**), prove manuali di accessibilità, PHP 8.1, MySQL. Elenco completo in `docs/RELEASE_GUIDE.md` §14.
+
 ## Review finale (prompt 13, 2026-10-06)
 
 Rilettura integrale della SPEC e confronto con il codice (`docs/FINAL_REVIEW.md`). Rilevate 6 lacune non coperte dai 27 criteri; 5 corrette (servizi degli appartamenti con migrazione `0005`, WhatsApp con le date nel flusso, link a Google Maps, dati strutturati `Apartment`, rimozione di `legacy/`), 1 scelta documentata (recapiti nel piè di pagina).

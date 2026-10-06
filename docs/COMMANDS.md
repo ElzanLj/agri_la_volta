@@ -166,6 +166,15 @@ Richieste in attesa e soggiorni non ancora finiti vengono saltati e segnalati (`
 
 Variabili: `HSTS_MAX_AGE` (secondi, solo con `APP_URL` https, 0 disattiva), `DATA_RETENTION_MONTHS`, `APP_SECRET`. Revisione completa in `docs/SECURITY_REVIEW.md`.
 
+## Controllo di produzione
+
+```bash
+php bin/check-production.php            # esce con 1 se c'è un errore bloccante
+php bin/check-production.php --strict   # esce con 1 anche per gli avvisi
+```
+
+Sola lettura: controlla `APP_ENV`, `APP_URL` https, `APP_SECRET`, PHP e estensioni, `vendor/` senza strumenti di sviluppo, cartelle `storage`, permessi di `.env`, file di sviluppo, database, migrazioni, amministratore, listino, descrizioni, posta (trasporto `smtp`, host, mittente) e recapiti. **Non contatta SMTP né altri servizi e non stampa mai password.** Usato nella guida `docs/RELEASE_GUIDE.md` §6.
+
 ## Area amministrativa
 
 - Indirizzo: `/admin` (sul container: http://localhost:8080/admin). Non compare nella navigazione pubblica e non è indicizzata.

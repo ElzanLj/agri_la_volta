@@ -47,7 +47,7 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [x] Backup → `docs/OPERATIONS.md` §2
 - [x] Ripristino → `docs/OPERATIONS.md` §3 (andata e ritorno verificata con checksum identici)
 - [x] Export CSV → `docs/OPERATIONS.md` §4, `AdminExportTest`
-- [x] Test eseguiti e risultati → `docs/TEST_REPORT.md` (778 test PASS)
+- [x] Test eseguiti e risultati → `docs/TEST_REPORT.md` (791 test PASS)
 - [x] Limitazioni residue → `README.md`, `docs/TEST_REPORT.md` (rischi residui), `docs/SECURITY_REVIEW.md`
 - [x] Informazioni mancanti → `docs/MISSING_DATA.md`
 
@@ -61,6 +61,7 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 
 ## Prima di pubblicare (a carico del titolare / di chi pubblica)
 
+- [ ] Autorizzazioni A1–A8 della guida di rilascio ricevute per iscritto
 - [ ] Hosting, dominio e HTTPS scelti e attivati
 - [ ] Database creato e migrazioni importate; amministratore creato
 - [ ] `.env` di produzione compilato (con `APP_SECRET`) e `vendor/` caricato
@@ -71,8 +72,10 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [ ] Privacy e cookie policy verificate da titolare/consulente
 - [ ] Periodo di conservazione dei dati deciso (`DATA_RETENTION_MONTHS`)
 - [x] Cartella `legacy/` rimossa dal repository (review finale; il file `.env` locale del legacy risulta già cancellato dal titolare)
-- [ ] Prova di fumo del §10 di `docs/INSTALL_SHARED_HOSTING.md` superata
-- [ ] Guida di rilascio compilata (`docs/RELEASE_GUIDE.md`, prompt 14)
+- [ ] `php bin/check-production.php --strict` senza errori sull'installazione reale
+- [ ] Prova di fumo del §10 di `docs/RELEASE_GUIDE.md` superata
+- [ ] Record DNS web richiesti e reindirizzamento `non-www → https://www.agriturismolavolta.com` attivo (`docs/RELEASE_GUIDE.md` §7; richiede autorizzazione A4)
+- [x] Guida di rilascio compilata (`docs/RELEASE_GUIDE.md`, prompt 14: preparata, non eseguita)
 
 ## Handoff finale
 

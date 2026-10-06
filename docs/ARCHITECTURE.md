@@ -31,11 +31,11 @@ app/Repository/           accesso al database (PDO, query parametrizzate)
 app/Security/             AdminAuth, Session, Csrf, OriginCheck, RateLimiter, AppSecret
 app/Mail/                 coda email, trasporti (SMTP, log, non configurato), costruzione dei messaggi, bozza di cancellazione
 app/Site/                 Routes, Locale, Text, Format, Contacts, Amenities, FormToken, Seo, ImageSet
-app/Support/              Logger, AuditLog, Csv, WhatsApp, DeferredWork
+app/Support/              Logger, AuditLog, Csv, WhatsApp, DeferredWork, ProductionCheck
 templates/                layout.php, error.php, public/, admin/
 content/it.php, en.php    testi fissi del sito pubblico (chiavi identiche, verificato da un test)
 migrations/               0001 schema, 0002 appartamenti, 0003 prezzi, 0004 coda email, 0005 servizi degli appartamenti
-bin/                      migrate, create-admin, send-queued-mail, privacy, optimize-images
+bin/                      migrate, create-admin, send-queued-mail, privacy, check-production, optimize-images
 storage/                  logs/, sessions/, mail/ (non versionati)
 tests/                    Unit, Integration, Http, Concurrency, Support
 ```

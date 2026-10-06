@@ -22,7 +22,8 @@ SPA React/Vite con Firebase (dati e login), un finto flusso di pagamento che sal
 | 7 — Sicurezza e privacy | revisione, intestazioni, hash IP con chiave, limite del corpo, esportazione e anonimizzazione dei dati | `95229a8` |
 | 8 — Test e regressioni (prompt 11) | percorso completo end-to-end, test di ambito (niente pagamenti/account), matrice di accettazione, lista di prove manuali | `6c30551` |
 | 8 — Documentazione (prompt 12) | README, architettura, installazione, operazioni, riepilogo, checklist di consegna | `ae3129e` |
-| 9 — Review finale (prompt 13) | rilettura integrale della SPEC; servizi degli appartamenti (migrazione 0005), WhatsApp con le date nel flusso, link a Google Maps, dati strutturati degli appartamenti, rimozione di `legacy/`; `docs/FINAL_REVIEW.md` | commit successivo |
+| 9 — Review finale (prompt 13) | rilettura integrale della SPEC; servizi degli appartamenti (migrazione 0005), WhatsApp con le date nel flusso, link a Google Maps, dati strutturati degli appartamenti, rimozione di `legacy/`; `docs/FINAL_REVIEW.md` | `523dbd2` |
+| 10 — Preparazione al rilascio (prompt 14) | `docs/RELEASE_GUIDE.md` (pacchetto, permessi, DNS da richiedere, prova di fumo, rollback; **non eseguita**), strumento di sola lettura `bin/check-production.php` con test, simulazione di produzione in locale | commit successivo |
 
 ## Cosa è cambiato per chi usa il sito
 
@@ -38,4 +39,4 @@ Firebase (dati, login), il flusso di pagamento e ogni campo carta, il server Nod
 
 ## Numeri (2026-10-06)
 
-778 test automatici PASS (342 unit, 242 integrazione, 183 HTTP, 11 concorrenza); 23 criteri di accettazione su 27 PASS, 4 PARTIAL, 0 FAIL. Dettagli e limiti (prove manuali NOT RUN, consegna email non provata, nessun hosting reale) in `docs/TEST_REPORT.md` e `docs/ACCEPTANCE_MATRIX.md`.
+791 test automatici PASS (342 unit, 255 integrazione, 183 HTTP, 11 concorrenza); 23 criteri di accettazione su 27 PASS, 4 PARTIAL, 0 FAIL. Dettagli e limiti (prove manuali NOT RUN, consegna email non provata, nessun hosting reale) in `docs/TEST_REPORT.md` e `docs/ACCEPTANCE_MATRIX.md`.

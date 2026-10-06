@@ -4,28 +4,29 @@
 
 ## Snapshot
 
-- **Data aggiornamento:** 2026-10-06
+- **Data aggiornamento:** 2026-10-07
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `ae3129e` (documentazione); la review finale è nel commit successivo
-- **Fase corrente:** review finale pre-consegna (prompt 13): **COMPLETATA** — `docs/FINAL_REVIEW.md`
-- **Prompt corrente:** `prompts/13_FINAL_REVIEW.md` (completato)
-- **Stato complessivo:** 778 test PASS; 23 criteri di accettazione PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL, 0 BLOCKED. Rilette tutte le sezioni della SPEC: 6 lacune trovate, 5 corrette (servizi degli appartamenti, WhatsApp con date nel flusso, link Maps, dati strutturati `Apartment`, rimozione di `legacy/`), 1 scelta documentata. **Non pubblicabile finché mancano dati e contenuti del titolare; tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
+- **Commit di riferimento:** `523dbd2` (review finale); la preparazione al rilascio è nel commit successivo
+- **Fase corrente:** preparazione alla pubblicazione, **senza deploy** (prompt 14): **COMPLETATA** — `docs/RELEASE_GUIDE.md`
+- **Prompt corrente:** `prompts/14_RELEASE_PREP_NO_DEPLOY.md` (completato)
+- **Stato complessivo:** 791 test PASS; 23 criteri di accettazione PASS, 4 PARTIAL (18, 19, 20, 24), 0 FAIL. Guida di rilascio compilata (prerequisiti, autorizzazioni A1–A8, pacchetto, permessi, DNS da richiedere, prova di fumo, HSTS graduale, rollback) e simulazione di produzione eseguita in locale. **Non pubblicato; nessun servizio esterno contattato; tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
 
 ## Obiettivo corrente
 
-Preparazione alla pubblicazione **senza deploy**: `prompts/14_RELEASE_PREP_NO_DEPLOY.md` (compila `docs/RELEASE_GUIDE.md`). In alternativa, su decisione dell'utente, l'estensione `prompts/15_ADMIN_CONTENT_BLOCKS.md` (bozza non committata dall'agente, da approvare).
+Nessuno aperto per lo sviluppo. Il passo successivo dipende dal titolare: contenuti e dati (`docs/MISSING_DATA.md`), autorizzazioni (`docs/RELEASE_GUIDE.md` §2), scelta dell'hosting, prove manuali (`docs/MANUAL_CHECKLIST.md`). Il dominio canonico è `https://www.agriturismolavolta.com`.
 
 ## Ultimo lavoro completato
 
-- Rilettura integrale di `docs/SPEC.md` e confronto con il codice; `docs/FINAL_REVIEW.md` (sintesi, 27 criteri, conformità sezione per sezione, lacune, limitazioni, dati mancanti, operazioni prima della pubblicazione).
-- G1 servizi degli appartamenti: migrazione `0005`, `app/Site/Amenities.php`, campo nel form admin, elenco pubblico, dati strutturati. G2 WhatsApp con appartamento/date/ospiti nel flusso. G3 link Maps. G4 JSON-LD `Apartment` con soli campi inseriti. G5 `git rm -r legacy`. G6 recapiti nel piè di pagina (scelta).
-- 15 test nuovi, 7 prove di sensibilità rilevate; un test esistente aggiornato (conseguenza attesa di G4); suite completa 778 PASS.
+- `docs/RELEASE_GUIDE.md`: prerequisiti, punti di autorizzazione A1–A8, pacchetto, `.env` di produzione, permessi, controllo preliminare, DNS web da richiedere (con TTL e **senza** toccare NS/MX/SPF/DKIM/DMARC), reindirizzamento non-www → www, prove prima del cambio DNS (attenzione a `APP_URL` e `Origin`), prova di fumo, sequenza con HSTS graduale, rollback, pagina di manutenzione, elenco di ciò che non è stato eseguito.
+- `bin/check-production.php` e `app/Support/ProductionCheck.php`: controllo di sola lettura (nessuna connessione a SMTP o altri servizi, nessun segreto stampato); 13 test, 7 prove di sensibilità rilevate.
+- Simulazione di produzione in locale (copia pulita, `--no-dev`, database usa-e-getta, SMTP verso una porta locale chiusa): controllo superato (27/27), pagine, intestazioni con HSTS, canonical sul dominio `www`, cookie `Secure`, file riservati non raggiungibili, richiesta salvata con la posta irraggiungibile. Tutto eliminato al termine.
+- `docs/DELIVERY_CHECKLIST.md`, `README.md`, `docs/COMMANDS.md`, `docs/INSTALL_SHARED_HOSTING.md`, `.env.example` aggiornati.
 
 ## Azioni e funzioni: verificate e incomplete
 
-- **Verificate:** vedi `docs/ACCEPTANCE_MATRIX.md`, `docs/FINAL_REVIEW.md`, `docs/TEST_REPORT.md`.
-- **Incomplete/non verificabili ora:** prove manuali (tastiera, screen reader, mobile, desktop, zoom), installazione su hosting reale, consegna email reale, HTTPS reale, strumenti esterni (Lighthouse, axe, ZAP), foto reali, contenuti e dati del titolare, `docs/RELEASE_GUIDE.md` (prompt 14).
+- **Verificate:** vedi `docs/ACCEPTANCE_MATRIX.md`, `docs/FINAL_REVIEW.md`, `docs/TEST_REPORT.md` (sezione Preparazione al rilascio).
+- **Incomplete/non verificabili ora:** prove manuali (tastiera, screen reader, mobile, desktop, zoom), installazione su hosting reale, DNS, consegna email reale, HTTPS reale, reindirizzamenti e pagina di manutenzione `.htaccess` (non provati), strumenti esterni (Lighthouse, axe, ZAP), foto reali, contenuti e dati del titolare.
 ## Working tree / modifiche locali da preservare
 
 - Nessuna modifica locale non committata a fine fase.
@@ -35,7 +36,7 @@ Preparazione alla pubblicazione **senza deploy**: `prompts/14_RELEASE_PREP_NO_DE
 
 ## Test/comandi più recenti
 
-`docker compose exec web composer test` → **778 test, 9914 asserzioni, PASS** (circa 7 minuti: 342 unit, 242 integrazione, 183 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Review finale). Nuova migrazione: `0005`. Nessuna nuova migrazione.
+`docker compose exec web composer test` → **791 test, 10049 asserzioni, PASS** (circa 7 minuti: 342 unit, 255 integrazione, 183 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Preparazione al rilascio). Ultima migrazione: `0005`. Nessuna nuova migrazione.
 
 ## Blocchi aperti
 
@@ -49,7 +50,7 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4,
 
 ## Prossimo passo esatto
 
-`prompts/14_RELEASE_PREP_NO_DEPLOY.md` (vedi il promemoria in `docs/TODO.md`).
+nessuno aperto per lo sviluppo: dipende dal titolare (vedi `docs/RELEASE_GUIDE.md` e il promemoria in `docs/TODO.md`).
 
 ## Note per il prossimo agente
 

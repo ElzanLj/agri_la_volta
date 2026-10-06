@@ -146,4 +146,4 @@ Poi: accedi all'admin; invia una richiesta di prova e controlla la notifica; con
 | Caricamento dei file e `vendor/` | chi pubblica | deploy: non eseguito dall'agente |
 | Redirect http → https, cron, PHP-FPM | provider | impostazioni del pannello |
 
-Per backup, ripristino, aggiornamenti e problemi frequenti vedi `docs/OPERATIONS.md`.
+Per la sequenza completa di pubblicazione (DNS da richiedere, prove prima del cambio, HSTS graduale, rollback) vedi `docs/RELEASE_GUIDE.md`; per backup, ripristino, aggiornamenti e problemi frequenti `docs/OPERATIONS.md`. Dopo l'installazione eseguire `php bin/check-production.php --strict`.

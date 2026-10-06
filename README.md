@@ -29,7 +29,7 @@ docker compose exec web php bin/create-admin.php admin     # chiede la password 
 
 Sito: <http://localhost:8080> · Admin: <http://localhost:8080/admin>
 
-Test: `docker compose exec web composer test` (circa 7 minuti). Altri comandi in [`docs/COMMANDS.md`](docs/COMMANDS.md).
+Test: `docker compose exec web composer test` (circa 7 minuti). Prima di una pubblicazione: `php bin/check-production.php` (controllo di sola lettura, `docs/RELEASE_GUIDE.md`). Altri comandi in [`docs/COMMANDS.md`](docs/COMMANDS.md).
 
 ## Installazione su hosting condiviso
 
@@ -56,7 +56,7 @@ app/               codice PHP: Http (controller, router, middleware), Domain, Se
 templates/         viste PHP (public/, admin/)
 content/           testi fissi del sito: it.php ed en.php (stesse chiavi)
 migrations/        schema e dati iniziali del database (SQL 0001–0005, solo in avanti)
-bin/               strumenti da riga di comando: migrate, create-admin, send-queued-mail, privacy, optimize-images
+bin/               strumenti da riga di comando: migrate, create-admin, send-queued-mail, privacy, check-production, optimize-images
 storage/           log, sessioni, email di prova (scrivibile; non raggiungibile dal web)
 tests/             suite PHPUnit (unit, integration, http, concurrency)
 docs/              documentazione, specifica, decisioni, esiti dei test
@@ -71,6 +71,7 @@ Dettagli e schema del database: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 |---|---|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | architettura finale, struttura, schema del database, flussi principali |
 | [`docs/INSTALL_SHARED_HOSTING.md`](docs/INSTALL_SHARED_HOSTING.md) | installazione su hosting condiviso, database, admin, SMTP |
+| [`docs/RELEASE_GUIDE.md`](docs/RELEASE_GUIDE.md) | guida alla pubblicazione (preparata, **non eseguita**): pacchetto, permessi, DNS da richiedere, prova di fumo, rollback |
 | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | backup, ripristino, CSV, password admin, privacy, aggiornamenti, problemi frequenti |
 | [`docs/COMMANDS.md`](docs/COMMANDS.md) | comandi verificati e configurazione dettagliata |
 | [`docs/CHANGES.md`](docs/CHANGES.md) | riepilogo delle modifiche per fase |
@@ -86,7 +87,7 @@ Dettagli e schema del database: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Stato e limiti
 
-- **Test:** 778 test automatici PASS; 23 criteri di accettazione su 27 PASS, 4 PARTIAL, nessun FAIL.
+- **Test:** 791 test automatici PASS; 23 criteri di accettazione su 27 PASS, 4 PARTIAL, nessun FAIL.
 - **Non eseguito (NOT RUN):** prove manuali con tastiera, screen reader, mobile e desktop; consegna email reale (mancano le credenziali SMTP); installazione su un hosting reale; HTTPS reale. Lista di controllo: [`docs/MANUAL_CHECKLIST.md`](docs/MANUAL_CHECKLIST.md).
 - **Mancano dati del titolare** (nessun dato è stato inventato): listino prezzi, testi di "L'agriturismo" e "Dintorni", descrizioni degli appartamenti, foto con provenienza verificata, recapiti, numero WhatsApp, testi legali, credenziali SMTP, periodo di conservazione dei dati. Elenco completo in [`docs/MISSING_DATA.md`](docs/MISSING_DATA.md). Finché mancano, il sito mostra segnaposto marcati o omette l'informazione.
 - **Vecchia applicazione React/Firebase:** rimossa dal repository (recuperabile dalla cronologia Git, commit `ae3129e`).
