@@ -13,6 +13,7 @@ $app = require dirname(__DIR__) . '/app/bootstrap.php';
 const MAX_REQUEST_BYTES = 1048576;
 
 $request = Request::fromGlobals($app->basePath());
+App\Site\Locale::set(App\Site\Locale::fromPath($request->path));
 
 try {
     if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > MAX_REQUEST_BYTES) {

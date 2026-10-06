@@ -21,6 +21,15 @@ final class View
         500 => ['Errore del server', 'Si è verificato un errore imprevisto. Riprova più tardi.'],
     ];
 
+    private const ERROR_MESSAGES_EN = [
+        400 => ['Invalid request', 'The request could not be processed.'],
+        403 => ['Request not allowed', 'The form has expired or is not valid. Reload the page and try again.'],
+        404 => ['Page not found', 'The page you asked for does not exist or has been moved.'],
+        405 => ['Method not allowed', 'This operation is not allowed on this page.'],
+        413 => ['Request too large', 'The data sent exceeds the allowed size.'],
+        500 => ['Server error', 'An unexpected error occurred. Please try again later.'],
+    ];
+
     /** @param array<string, mixed> $data */
     public static function render(string $template, array $data = [], int $status = 200, ?string $layout = 'layout'): Response
     {
@@ -33,7 +42,8 @@ final class View
 
     public static function error(int $status, string $layout = 'layout'): Response
     {
-        [$title, $message] = self::ERROR_MESSAGES[$status] ?? self::ERROR_MESSAGES[500];
+        $english = $layout === 'layout' && \App\Site\Locale::current() === 'en';
+        [$title, $message] = ($english ? self::ERROR_MESSAGES_EN : self::ERROR_MESSAGES)[$status] ?? ($english ? self::ERROR_MESSAGES_EN : self::ERROR_MESSAGES)[500];
         return self::render('error', ['title' => $title, 'message' => $message, 'noindex' => true, 'loggedIn' => false, 'isAdminError' => $layout === 'admin/layout'], $status, $layout);
     }
 

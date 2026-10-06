@@ -47,3 +47,15 @@ function old(array $values, string $field, string $default = ''): string
     $value = $values[$field] ?? $default;
     return is_scalar($value) ? (string) $value : $default;
 }
+
+/** Fixed text of the public site in the language of the current request (content/it.php, content/en.php). */
+function t(string $key, array $replace = []): string
+{
+    return \App\Site\Text::get($key, \App\Site\Locale::current(), $replace);
+}
+
+/** URL of a public page in the current language, e.g. lurl('apartment', ['slug' => 'rosa']). */
+function lurl(string $route, array $params = [], array $query = []): string
+{
+    return \App\Site\Routes::url($route, \App\Site\Locale::current(), $params, $query);
+}

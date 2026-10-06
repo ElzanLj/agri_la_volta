@@ -98,6 +98,35 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Fase 5 — frontend pubblico e flusso di richiesta (2026-10-06)
+
+**Esito: 684 test, 6912 asserzioni, tutti PASS** (`docker compose exec web composer test`, circa 5 minuti; 613 test precedenti + 71 nuovi). Lint PHP su `app`, `bin`, `public`, `templates`, `content`, `tests`: nessun errore.
+
+| Suite | Test nuovi | Cosa verificano |
+|---|---|---|
+| `unit` — `PublicSiteUnitTest` | 21 | tabella URL (IT senza prefisso, EN sotto `/en`, nessun percorso doppio o sotto `/admin`), lingua dal percorso, chiavi IT = EN e segnaposto uguali, ogni chiave usata nei template esiste, ogni rotta richiamata esiste, token firmato (valido, manomesso, altro scopo, scaduto, troppo veloce, segreto sbagliato), formati, recapiti vuoti/non validi |
+| `http` — `PublicPagesTest` | 19 | tutte le pagine IT/EN rispondono 200 con `lang` giusto, nessuna chiave di testo "grezza" visibile, pagina di ogni appartamento, titoli unici per lingua, canonical e hreflang, cambio lingua verso la pagina equivalente, **nessun cookie e nessun link ad `/admin`**, nessuno script e nessuna risorsa esterna, segnaposto foto, 404 nella lingua giusta (anche slug malevoli), appartamento inattivo non pubblico, redirect senza slash finale, 405 sui POST, campi vuoti omessi, escaping di testo admin con payload XSS, recapiti e WhatsApp assenti se non configurati / presenti con link sicuri se configurati (server dedicato), pagine del flusso `noindex` e `no-store`, **nessuna scrittura sul DB con i GET** |
+| `http` — `PublicRequestFlowTest` | 22 | flusso completo IT ed EN fino a "Richiesta ricevuta" (richiesta `pending`, prezzo del server, nessuna prenotazione, email al gestore in coda, nessun cookie); importi/stato/appartamento/lingua inviati dal browser ignorati; listino mancante = "prezzo da confermare"; l'admin vede la richiesta; date occupate, blocchi e sovrapposizioni parziali non offerti, soggiorni consecutivi sì; capienza, animali, bambini e soggiorno minimo spiegati e non scegliebili (anche via URL); date occupate tra riepilogo e invio rifiutate senza salvare; validazione dei passi 1 e 3 (messaggi, dati conservati, errori collegati ai campi, EN in inglese); consenso privacy obbligatorio (6 varianti); testo del cliente salvato così com'è e mostrato con escaping; "Modifica i miei dati"; slug malevoli; pagina "ricevuta" mostra solo riferimenti validi |
+| `http` — `PublicAntispamTest` | 9 | token assente/vuoto/manomesso/con segreto sbagliato/array/solo nella query: 403 e nessuna scrittura né cookie; token valido accettato; token scaduto → richiesta di reinvio; invio troppo veloce rifiutato (e dopo l'attesa accettato); `Origin`/`Referer` estranei o `null` rifiutati su tutti i passi; honeypot (finto successo, nulla salvato, nessuna email); rate limit (7º invio = 429, salvati solo hash a 64 caratteri, nessun IP); il limite non tocca navigazione e login admin |
+
+### Prove di sensibilità (eseguite a mano, file ripristinato e verificato identico)
+
+Ognuna è stata applicata a `RequestFlowController` e **rilevata** da almeno un test: M1 controllo del token disattivato; M2 honeypot ignorato; M3 rate limit mai contato; M4 controllo `Origin` ignorato; M5 controllo "troppo veloce" ignorato; M6 consenso privacy forzato a vero (2 test falliti); M7 controllo di disponibilità disattivato.
+
+### Difetti trovati e corretti durante la fase
+
+- La pagina "ricevuta" non mostrava mai il riferimento: il formato reale è `LV-XXXXXXXX` (con trattino) e il controllo accettava solo lettere e cifre. Corretto (e il test usa il formato reale).
+- La suite completa superava il timeout predefinito di Composer (300 s) a circa il 92%: `composer.json` ora imposta `process-timeout` a 1200.
+- Errori nei test scritti e corretti (non nel codice): ipotesi che gli altri appartamenti fossero esauriti (hanno capienza non configurata = nessun limite), un soggiorno di 94 notti usato per provare la data passata (oltre il tetto tecnico di 60), titoli identici tra le due lingue per la sola home (l'unicità vale per lingua), asserzioni non vincolanti individuate in revisione e sostituite.
+
+### Limiti noti (NOT RUN)
+
+- **Nessun test manuale nel browser**, né da tastiera/screen reader, né su dispositivi mobili: previsti nella Fase 6/8. Contrasto dei colori non misurato.
+- Nessuna foto reale: i segnaposto sono provvisori. Nessuna verifica di prestazioni (Lighthouse).
+- Il token del modulo non è monouso: un replay dello stesso modulo può creare più richieste, limitate da rate limit (6/ora per IP). Scelta documentata in `docs/DECISIONS.md`.
+- Il rate limit è per IP: utenti dietro lo stesso NAT condividono il limite; dietro un proxy inverso va verificato che `REMOTE_ADDR` sia l'IP del cliente (da controllare con l'hosting scelto).
+- Con PHP-FPM l'invio delle email dopo la risposta non è provato (come in Fase 4); la consegna reale richiede credenziali SMTP.
+
 ## Fase 4 — email, robustezza SMTP e WhatsApp (2026-10-06)
 
 Comando: `docker compose exec web composer test`. Il vero `SmtpTransport` (PHPMailer) è provato contro un **server SMTP finto** (`tests/Support/fake-smtp-server.php`) che parla il protocollo e può guastarsi in 10 modi (più uno scenario lento). **Nessuna credenziale SMTP reale è stata usata né esiste ancora: la consegna reale NON è stata verificata** (vedi limiti).

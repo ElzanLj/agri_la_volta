@@ -10,6 +10,7 @@ use App\Mail\MailTransportFactory;
 use App\Mail\MessageBuilder;
 use App\Mail\NotificationService;
 use App\Mail\PostCommitNotifier;
+use App\Repository\PricingRepository;
 
 /**
  * Composition root for the services that need wiring (mail, notifications). Controllers and CLI
@@ -42,6 +43,12 @@ final class Services
             $this->app->logger,
             [$config->string('SMTP_PASSWORD'), $config->string('SMTP_USERNAME')],
         );
+    }
+
+    /** Price list quoter used for the quotes shown to visitors (same one BookingService stores). */
+    public function priceQuoter(): ConfiguredPriceQuoter
+    {
+        return new ConfiguredPriceQuoter(new PricingRepository($this->app->db()));
     }
 
     /** BookingService whose queued e-mails are sent after each commit. */

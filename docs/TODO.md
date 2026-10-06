@@ -10,24 +10,23 @@ Regole:
 
 ## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-06)
 
-**Prossima sessione: eseguire `prompts/08_PUBLIC_FRONTEND.md`** (Fase 5: pagine pubbliche e flusso di richiesta). Fasi 0-4 completate e committate (ultimo commit: `3010439`); working tree pulito a fine sessione.
+**Prossima sessione: eseguire `prompts/09_I18N_SEO_A11Y_PERF.md`** (Fase 6: IT/EN, SEO, accessibilità, prestazioni, immagini). Fasi 0-5 completate e committate; working tree pulito a fine sessione.
 
 Per ripartire:
-1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **613 test PASS**, circa 4,5 minuti; se `vendor/` manca: `docker compose exec web composer install`).
-2. Leggere `docs/SESSION_STATE.md` (stato, note per il prossimo agente), `docs/MISSING_DATA.md` e `docs/DECISIONS.md`, poi `prompts/08_PUBLIC_FRONTEND.md`.
-3. Come nelle fasi precedenti: **prima un piano conciso** (struttura delle pagine e degli URL IT/EN, flusso di richiesta, test) da far approvare, poi il codice.
+1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **tutti i test PASS**, numero in `docs/TEST_REPORT.md`, circa 5 minuti; se `vendor/` manca: `docker compose exec web composer install`).
+2. Leggere `docs/SESSION_STATE.md`, `docs/MISSING_DATA.md` e `docs/DECISIONS.md` (sezione Fase 5), poi `prompts/09_I18N_SEO_A11Y_PERF.md`.
+3. Come nelle fasi precedenti: **prima un piano conciso** da far approvare, poi il codice.
 
-Da tenere presente nella Fase 5:
-- riusare `BookingService::createRequest` (prezzo, limiti, soggiorno minimo, notifica al gestore già gestiti lato server) e **mai fidarsi di prezzi inviati dal browser**; ottenere il servizio da `App::services()->bookingService()` così l'hook email è collegato;
-- ogni nuova rotta pubblica con form: CSRF, honeypot/rate limit (`RateLimiter` esiste), validazione server-side, escaping con `e()`, nessun cookie per le pagine che non servono;
-- contenuti e stile da `legacy/` (i prezzi e le regole legacy NON sono validi); **foto: solo con provenienza verificata** (le foto coperte da copyright vanno rimosse, nessuna è ancora confermata: usare segnaposto chiaramente marcati);
-- pulsante WhatsApp pubblico: `WhatsApp::businessMessage` + `WhatsApp::link` con `WHATSAPP_NUMBER`; da mostrare **solo se il numero è configurato** (oggi manca);
-- invio email dopo la risposta: `DeferredWork` già collegato in `public/index.php`;
-- IT/EN con contenuti separati, URL: IT senza prefisso, EN con `/en/` (decisione P5); `/admin` non deve comparire nella navigazione pubblica (c'è un test);
-- accessibilità, SEO e performance sono la Fase 6 (`prompts/09`), ma la struttura HTML semantica va impostata già qui.
+Da tenere presente nella Fase 6:
+- le pagine pubbliche esistono già (`app/Http/Controllers/Site/`, `templates/public/`, testi in `content/it.php` e `content/en.php`, URL in `app/Site/Routes.php`); canonical, hreflang, `lang`, skip link, landmark e breadcrumb (solo pagina appartamento) sono già impostati: la fase 6 deve verificarli e completarli, non rifarli;
+- mancano: Open Graph, favicon, `robots.txt`, sitemap, menu mobile con `aria-expanded` se necessario, contrasto verificato, test manuale con tastiera e screen reader, descrizioni uniche per ogni appartamento (dal DB);
+- le foto sono **segnaposto marcati** (`templates/public/_photo.php`): nessuna foto legacy ha provenienza verificata. Quando il titolare le fornisce servono una tabella/gestione foto (non esiste ancora), varianti WebP/responsive, `width`/`height`, lazy loading, hero ottimizzata;
+- non inventare testi per "L'agriturismo" e "Dintorni" (mostrano un avviso); privacy e cookie sono bozze da far verificare al titolare;
+- il test `PublicSiteUnitTest` controlla che le chiavi di `content/it.php` e `content/en.php` coincidano e che ogni chiave usata nei template esista: aggiornarlo se si aggiungono testi;
+- stile: la regola `h1, h2, h3` in `public/assets/css/site.css` vale anche per l'admin; il CSS pubblico è in fondo al file;
+- le pagine del flusso (richiesta) sono `noindex` e `no-store` per scelta.
 
-Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali (consegna email non verificata), testi definitivi delle email e dei contenuti, numero WhatsApp dell'agriturismo, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting (PHP-FPM, cron, `vendor/` da caricare).
-
+Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali (consegna email non verificata), testi definitivi delle email e dei contenuti, numero WhatsApp e recapiti pubblici, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting (PHP-FPM, cron, `vendor/` da caricare), `APP_SECRET` di produzione.
 
 ## Audit
 
@@ -121,18 +120,18 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 
 ## Pubblico e contenuti
 
-- [ ] `/`
-- [ ] `/agriturismo`
-- [ ] `/appartamenti`
-- [ ] pagina singola per ogni appartamento
-- [ ] `/dintorni`
-- [ ] `/richiedi-disponibilita`
-- [ ] `/contatti`
-- [ ] `/privacy`
-- [ ] `/cookie`
+- [x] `/` (IT e EN, appartamenti letti dal DB; verificato da test HTTP)
+- [~] `/agriturismo` (pagina e URL pronti; testo mancante: dato dal titolare)
+- [x] `/appartamenti`
+- [x] pagina singola per ogni appartamento (solo campi compilati dall'admin; 404 se inattivo)
+- [~] `/dintorni` (pagina e URL pronti; testo mancante: dato dal titolare)
+- [x] `/richiedi-disponibilita` (flusso a 4 passi fino a "Richiesta ricevuta"; prezzo e disponibilità dal server)
+- [~] `/contatti` (recapiti mostrati solo se configurati: oggi mancano)
+- [~] `/privacy` (bozza marcata, da verificare dal titolare)
+- [~] `/cookie` (bozza marcata; descrive solo ciò che il sito fa oggi)
 - [x] `/admin` non esposto nella nav pubblica (verificato da test)
-- [ ] IT e EN
-- [ ] Nessun dato mancante inventato
+- [x] IT e EN (contenuti separati, chiavi verificate da un test; EN provvisorio, da correggere a mano)
+- [x] Nessun dato mancante inventato (campi vuoti omessi, foto = segnaposto, recapiti solo se configurati; verificato da test)
 
 ## UX / Accessibilità / SEO / Prestazioni
 
@@ -140,19 +139,19 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 - [ ] Navigazione tastiera
 - [ ] Focus visibile
 - [ ] Label e messaggi errore accessibili
-- [ ] Skip link
+- [x] Skip link (presente su ogni pagina; verifica manuale con tastiera in Fase 6)
 - [ ] Menu mobile accessibile
 - [ ] Alt text
 - [ ] Contrasto adeguato
 - [ ] prefers-reduced-motion
 - [ ] Title e description unici
-- [ ] canonical
-- [ ] hreflang quando appropriato
+- [x] canonical (pagine indicizzabili; verificato da test)
+- [x] hreflang quando appropriato (it, en, x-default; verificato da test)
 - [ ] Open Graph
 - [ ] robots.txt
 - [ ] sitemap
 - [ ] breadcrumb
-- [ ] 404/errori
+- [x] 404/errori (anche in inglese sotto /en)
 - [ ] Schema.org solo con dati reali
 - [ ] Immagini responsive/ottimizzate/lazy fuori above-the-fold
 - [ ] Hero ottimizzata
@@ -161,16 +160,16 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 ## Sicurezza
 
 - [x] Query parametrizzate (nessuna concatenazione di input; verificato con tentativi di SQL injection nei filtri)
-- [~] Escaping output (area admin verificata con payload XSS su ogni pagina; pagine pubbliche in Fase 5)
-- [~] Validazione server-side (servizi e area admin; form pubblico in Fase 5)
+- [x] Escaping output (area admin e pagine pubbliche verificate con payload XSS)
+- [x] Validazione server-side (servizi, area admin e form pubblico)
 - [x] CSRF (guardia a livello di prefisso su tutto `/admin`: token + controllo Origin, nessuna eccezione)
 - [x] Sessioni sicure
 - [x] HttpOnly/Secure/SameSite appropriati (verificati su HTTP e su sito https)
 - [x] Hash password admin sicuro (`password_hash` default/bcrypt)
-- [~] Rate limiting dove necessario (login admin; moduli pubblici in Fase 5/7)
+- [x] Rate limiting dove necessario (login admin; invio richiesta: 6 all'ora per IP)
 - [~] Limiti richieste (corpo max 1 MB nel front controller)
 - [x] Accesso admin controllato lato server
-- [ ] Honeypot/antispam semplice
+- [x] Honeypot/antispam semplice (honeypot, controllo temporale, rate limit, token firmato, Origin)
 - [x] Nessun pagamento/dato carta (nessun codice o campo di pagamento nel progetto)
 
 ## Test e consegna
@@ -185,9 +184,9 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 - [x] Test prezzi stagionali
 - [x] Test variazioni adulti/bambini/animali
 - [x] Test autorizzazione admin (matrice su tutte le rotte `/admin`, via HTTP reale)
-- [~] Test richieste pubbliche (a livello servizio; test HTTP del form in Fase 5)
+- [x] Test richieste pubbliche (HTTP reale: flusso completo, disponibilità, prezzo lato server, antispam)
 - [x] Test fallimento email
-- [~] Test validazione form (validazione server-side testata a livello servizio; form HTML in Fase 5)
+- [x] Test validazione form (HTTP reale, IT e EN, dati conservati, errori collegati ai campi)
 - [x] Test cancellazione
 - [x] Test export CSV
 - [ ] Test manuale mobile/desktop/tastiera/IT/EN

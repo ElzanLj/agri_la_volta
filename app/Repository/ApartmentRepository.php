@@ -21,6 +21,38 @@ final class ApartmentRepository
     }
 
     /**
+     * Active apartments for the public pages, with the text of the given language (NULL when the
+     * admin has not written it yet: the pages then simply omit it).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function listPublic(string $locale): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT a.*, t.description, t.rules, t.meta_title, t.meta_description
+             FROM apartments a
+             LEFT JOIN apartment_translations t ON t.apartment_id = a.id AND t.locale = ?
+             WHERE a.is_active = 1
+             ORDER BY a.sort_order, a.id'
+        );
+        $stmt->execute([$locale]);
+        return $stmt->fetchAll();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findPublicBySlug(string $slug, string $locale): ?array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT a.*, t.description, t.rules, t.meta_title, t.meta_description
+             FROM apartments a
+             LEFT JOIN apartment_translations t ON t.apartment_id = a.id AND t.locale = ?
+             WHERE a.is_active = 1 AND a.slug = ?'
+        );
+        $stmt->execute([$locale, $slug]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
      * Locking read: the apartment row is the per-apartment mutex that serialises every
      * operation able to change its occupation. Must be called inside a transaction.
      *

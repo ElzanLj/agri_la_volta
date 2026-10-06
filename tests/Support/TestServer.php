@@ -10,6 +10,9 @@ namespace Tests\Support;
  */
 final class TestServer
 {
+    /** Secret the test server signs public form tokens with (tests use it to forge expired tokens). */
+    public const APP_SECRET = 'test-only-secret-not-used-anywhere-else';
+
     /** @param resource $process */
     private function __construct(private $process, public readonly int $port, private string $logFile)
     {
@@ -32,6 +35,13 @@ final class TestServer
             'MAIL_LOG_DIR' => sys_get_temp_dir() . '/lavolta-test-mail-' . $port,
             'MAIL_ADMIN_ADDRESS' => 'gestore@example.test',
             'MAIL_FROM_ADDRESS' => 'info@example.test',
+            // Public site: no contact details unless a test sets them; fixed secret so tests can forge tokens.
+            'PUBLIC_PHONE' => '',
+            'PUBLIC_EMAIL' => '',
+            'PUBLIC_ADDRESS' => '',
+            'WHATSAPP_NUMBER' => '',
+            'APP_SECRET' => self::APP_SECRET,
+            'PUBLIC_FORM_MIN_SECONDS' => '0',
         ], $env);
 
         $process = proc_open(

@@ -75,7 +75,7 @@ Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
 
 ```bash
 docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
-docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (613 test, circa 4,5 minuti)
+docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (684 test, circa 5 minuti)
 ```
 
 Suite singole:
@@ -83,7 +83,7 @@ Suite singole:
 ```bash
 docker compose exec web composer test -- --testsuite unit          # secondi, senza DB
 docker compose exec web composer test -- --testsuite integration   # circa 3 s
-docker compose exec web composer test -- --testsuite http          # circa 2 minuti: area admin via HTTP reale (sicurezza, azioni, CSV)
+docker compose exec web composer test -- --testsuite http          # circa 3 minuti: area admin e sito pubblico via HTTP reale (sicurezza, azioni, CSV, pagine, flusso di richiesta, antispam)
 docker compose exec web composer test -- --testsuite concurrency   # circa 70 s, processi PHP reali in parallelo
 docker compose exec web vendor/bin/phpunit --testsuite unit --testdox
 ```
@@ -122,6 +122,25 @@ composer install --no-dev --optimize-autoloader
 Poi caricare `vendor/` insieme al resto del sito (non è versionata). Senza `vendor/` l'invio fallisce con "PHPMailer non installato" e le email restano in coda.
 
 Applicare la migrazione `0004` (`php bin/migrate.php` oppure importando `migrations/0004_email_outbox.sql`) **prima** di pubblicare; se manca, il sito continua a salvare tutto ma non accoda le email (viene registrato nei log).
+
+## Sito pubblico
+
+Pagine (IT senza prefisso, EN sotto `/en`; la tabella degli URL è `app/Site/Routes.php`): home, L'agriturismo, Appartamenti, pagina di ogni appartamento, Dintorni, Richiedi disponibilità, Contatti, Privacy, Cookie.
+
+Flusso di richiesta (nessun JavaScript): date e ospiti → appartamenti disponibili con prezzo → dati del cliente → riepilogo e consenso privacy → "Richiesta ricevuta". Il prezzo è sempre calcolato dal server; la richiesta nasce `pending` e non è mai una prenotazione.
+
+Configurazione (`.env` o variabili dell'hosting; tutte facoltative, una voce vuota non viene mostrata):
+
+| Variabile | Significato |
+|---|---|
+| `PUBLIC_PHONE`, `PUBLIC_EMAIL`, `PUBLIC_ADDRESS` | recapiti mostrati su Contatti e nel piè di pagina |
+| `WHATSAPP_NUMBER` | abilita il pulsante WhatsApp pubblico (messaggio precompilato e modificabile) |
+| `APP_SECRET` | segreto per firmare i token dei moduli pubblici; in produzione impostare un valore casuale lungo (se manca viene derivato dalle credenziali DB) |
+| `PUBLIC_FORM_MIN_SECONDS` | secondi minimi per compilare il passo dei dati (3; `0` disattiva il controllo) |
+
+Contenuti: i testi fissi sono in `content/it.php` e `content/en.php` (stesse chiavi: un test lo verifica); descrizioni, capienza, orari e regole degli appartamenti si inseriscono dall'admin e le pagine omettono ciò che è vuoto. Le foto sono segnaposto finché non ne viene verificata la provenienza.
+
+I moduli pubblici non usano sessioni né cookie: sono protetti da un token firmato, controllo `Origin`, honeypot, controllo temporale e rate limit (6 invii all'ora per IP, salvato solo come hash).
 
 ## Area amministrativa
 

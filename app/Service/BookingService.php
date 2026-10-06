@@ -8,6 +8,7 @@ use App\Database\TransactionRunner;
 use App\Domain\BusyException;
 use App\Domain\ConflictException;
 use App\Domain\GuestCounts;
+use App\Domain\PriceQuote;
 use App\Domain\PriceQuoter;
 use App\Domain\StateException;
 use App\Domain\StayDates;
@@ -132,6 +133,84 @@ final class BookingService
      */
     public function createRequest(array $input): array
     {
+        ['stay' => $stay, 'guests' => $guests, 'apartmentId' => $apartmentId, 'quote' => $quote,
+         'firstName' => $firstName, 'lastName' => $lastName, 'email' => $email, 'phone' => $phone,
+         'notes' => $notes, 'locale' => $locale] = $this->prepareRequest($input);
+
+        $outboxIds = [];
+        $result = $this->transactional(function () use (&$outboxIds, $apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote): array {
+            $row = [
+                'apartment_id' => $apartmentId,
+                'check_in' => $stay->checkIn,
+                'check_out' => $stay->checkOut,
+                'adults' => $guests->adults,
+                'children' => $guests->children,
+                'pets' => $guests->pets,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'phone' => $phone,
+                'notes' => $notes === '' ? null : $notes,
+                'locale' => $locale,
+                'quoted_total_cents' => $quote->totalCents,
+                // Snapshot of the calculation (also when no total could be computed, to say why).
+                'price_breakdown' => json_encode($quote->toSnapshot() + ['quoted_at' => gmdate('Y-m-d\TH:i:s\Z')], JSON_UNESCAPED_UNICODE),
+            ];
+
+            for ($attempt = 0; ; $attempt++) {
+                $row['reference'] = self::newReference();
+                try {
+                    $id = $this->bookings->insertRequest($row);
+                    break;
+                } catch (PDOException $e) {
+                    if (($e->errorInfo[1] ?? 0) !== self::MYSQL_DUPLICATE_ENTRY || $attempt >= 4) {
+                        throw $e;
+                    }
+                }
+            }
+
+            // No personal data in the audit trail.
+            $this->audit->record('booking_request', $id, 'created', 'Richiesta ' . $row['reference'] . ' ricevuta', null, [
+                'status' => 'pending',
+                'apartment_id' => $apartmentId,
+                'check_in' => $stay->checkIn,
+                'check_out' => $stay->checkOut,
+                'adults' => $guests->adults,
+                'children' => $guests->children,
+                'pets' => $guests->pets,
+            ]);
+
+            // The notification is queued with the request: a plain INSERT, no SMTP involved.
+            $this->queueMail($outboxIds, 'new_request_admin', $id, null, $locale);
+
+            return ['id' => $id, 'reference' => $row['reference']];
+        });
+
+        $this->runAfterCommit($outboxIds); // after the commit, outside the transaction
+        return $result;
+    }
+
+    /**
+     * Runs every check of a public request and the price calculation WITHOUT writing anything:
+     * what the guest sees in the summary is computed by exactly the same code that stores the request.
+     *
+     * @param array<string, mixed> $input
+     * @return array{stay: StayDates, guests: GuestCounts, apartment: array<string, mixed>, quote: PriceQuote}
+     * @throws ValidationException|ConflictException|StateException
+     */
+    public function previewRequest(array $input): array
+    {
+        $p = $this->prepareRequest($input);
+        return ['stay' => $p['stay'], 'guests' => $p['guests'], 'apartment' => $p['apartment'], 'quote' => $p['quote']];
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
+     * @throws ValidationException|ConflictException|StateException
+     */
+    private function prepareRequest(array $input): array
+    {
         $errors = [];
         $stay = $guests = null;
 
@@ -214,57 +293,11 @@ final class BookingService
             }
         }
 
-        $outboxIds = [];
-        $result = $this->transactional(function () use (&$outboxIds, $apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote): array {
-            $row = [
-                'apartment_id' => $apartmentId,
-                'check_in' => $stay->checkIn,
-                'check_out' => $stay->checkOut,
-                'adults' => $guests->adults,
-                'children' => $guests->children,
-                'pets' => $guests->pets,
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'email' => $email,
-                'phone' => $phone,
-                'notes' => $notes === '' ? null : $notes,
-                'locale' => $locale,
-                'quoted_total_cents' => $quote->totalCents,
-                // Snapshot of the calculation (also when no total could be computed, to say why).
-                'price_breakdown' => json_encode($quote->toSnapshot() + ['quoted_at' => gmdate('Y-m-d\TH:i:s\Z')], JSON_UNESCAPED_UNICODE),
-            ];
-
-            for ($attempt = 0; ; $attempt++) {
-                $row['reference'] = self::newReference();
-                try {
-                    $id = $this->bookings->insertRequest($row);
-                    break;
-                } catch (PDOException $e) {
-                    if (($e->errorInfo[1] ?? 0) !== self::MYSQL_DUPLICATE_ENTRY || $attempt >= 4) {
-                        throw $e;
-                    }
-                }
-            }
-
-            // No personal data in the audit trail.
-            $this->audit->record('booking_request', $id, 'created', 'Richiesta ' . $row['reference'] . ' ricevuta', null, [
-                'status' => 'pending',
-                'apartment_id' => $apartmentId,
-                'check_in' => $stay->checkIn,
-                'check_out' => $stay->checkOut,
-                'adults' => $guests->adults,
-                'children' => $guests->children,
-                'pets' => $guests->pets,
-            ]);
-
-            // The notification is queued with the request: a plain INSERT, no SMTP involved.
-            $this->queueMail($outboxIds, 'new_request_admin', $id, null, $locale);
-
-            return ['id' => $id, 'reference' => $row['reference']];
-        });
-
-        $this->runAfterCommit($outboxIds); // after the commit, outside the transaction
-        return $result;
+        return [
+            'stay' => $stay, 'guests' => $guests, 'apartmentId' => $apartmentId, 'apartment' => $apartment, 'quote' => $quote,
+            'firstName' => $firstName, 'lastName' => $lastName, 'email' => $email, 'phone' => $phone,
+            'notes' => $notes, 'locale' => $locale,
+        ];
     }
 
     // === Admin: request decisions ===========================================
