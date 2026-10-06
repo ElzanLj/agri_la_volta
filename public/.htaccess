@@ -9,6 +9,10 @@ DirectorySlash Off
     RewriteRule ^ index.php [L]
 </IfModule>
 
+# Request bodies are small (the biggest field is a 2000-character note): refuse anything above 1 MB
+# even when the client sends no Content-Length (chunked transfer).
+LimitRequestBody 1048576
+
 # Compression of text responses.
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css text/plain application/xml image/svg+xml
@@ -17,6 +21,7 @@ DirectorySlash Off
 # Static assets: asset() adds the file's modification time to every URL (?v=...), so they can be
 # cached for a long time and still refresh as soon as a file changes.
 <IfModule mod_headers.c>
+    Header always unset X-Powered-By
     <FilesMatch "\.(css|svg|webp|avif|jpe?g|png|woff2)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>

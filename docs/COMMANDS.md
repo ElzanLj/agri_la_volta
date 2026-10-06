@@ -75,7 +75,7 @@ Prima volta: `docker compose up -d --build` (l'immagine include Composer), poi:
 
 ```bash
 docker compose exec web composer install      # installa PHPUnit in vendor/ (ignorato da Git)
-docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (730 test, circa 6 minuti)
+docker compose exec web composer test         # prepara il DB di test (applica le migrazioni), poi esegue tutte le suite (751 test, circa 7 minuti)
 ```
 
 Suite singole:
@@ -148,6 +148,22 @@ I moduli pubblici non usano sessioni né cookie: sono protetti da un token firma
 - I colori del sito sono variabili `:root` in `public/assets/css/site.css`; `ContrastTest` verifica il contrasto WCAG: se si cambia la palette, eseguire `composer test -- --testsuite unit`.
 - Immagini: nessuna foto è pubblicata finché non ne è verificata la provenienza (`docs/IMAGES.md`). Per generare le varianti responsive di una foto verificata: `php bin/optimize-images.php <originale> <nome> [larghezze]` (richiede PHP con GD e WebP; non disponibile nel container di sviluppo).
 - Cache e compressione degli asset sono in `public/.htaccess`; gli URL degli asset hanno `?v=<data di modifica>`.
+
+## Privacy e sicurezza
+
+Dati personali (solo riga di comando; simulazione di default, `--apply` per eseguire):
+
+```bash
+php bin/privacy.php export mario.rossi@example.com            # tutto ciò che il sistema conserva su una persona (JSON)
+php bin/privacy.php erase mario.rossi@example.com             # cosa verrebbe anonimizzato
+php bin/privacy.php erase mario.rossi@example.com --apply     # anonimizza (nome, email, telefono, note); date e appartamento restano
+php bin/privacy.php purge --months=24                         # simula: soggiorni terminati da più di 24 mesi
+php bin/privacy.php purge --months=24 --apply
+```
+
+Richieste in attesa e soggiorni non ancora finiti vengono saltati e segnalati (`--include-active` per includerli in `erase`). Senza `--months` il comando usa `DATA_RETENTION_MONTHS`; se è vuota non fa nulla. I backup del database non vengono modificati.
+
+Variabili: `HSTS_MAX_AGE` (secondi, solo con `APP_URL` https, 0 disattiva), `DATA_RETENTION_MONTHS`, `APP_SECRET`. Revisione completa in `docs/SECURITY_REVIEW.md`.
 
 ## Area amministrativa
 

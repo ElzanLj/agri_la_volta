@@ -9,7 +9,7 @@ use PDO;
 /**
  * Counts events per bucket and client in a sliding window, stored in the database
  * so it works on shared hosting without extra services. Client keys (e.g. IP
- * addresses) are stored only as hashes and purged after a day.
+ * addresses) are stored only as keyed hashes (HMAC) and purged after a day.
  */
 final class RateLimiter
 {
@@ -48,6 +48,7 @@ final class RateLimiter
 
     private static function hash(string $clientKey): string
     {
-        return hash('sha256', $clientKey);
+        // Keyed hash: an unkeyed SHA-256 of an IP address can be reversed by trying every address.
+        return hash_hmac('sha256', $clientKey, AppSecret::value());
     }
 }

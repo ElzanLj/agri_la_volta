@@ -171,6 +171,19 @@ Piano approvato dall'utente il 2026-10-06, con le tre scelte confermate (favicon
 | 2026-10-06 | Immagini: pronti il markup responsive (`ImageSet`) e lo script di ottimizzazione, ma **nessuna gestione foto nel DB/admin** finché non c'è un set verificato; `bin/optimize-images.php` non eseguito (manca GD/WebP nel container); AVIF non generato | tabella foto subito | non esistono foto verificate da gestire | `docs/IMAGES.md`, `ImageSet.php` |
 | 2026-10-06 | Il server PHP dei test usa un router (`tests/Support/router.php`) che serve i file statici come fa Apache con `public/.htaccess`, così si possono testare favicon e CSS | solo il front controller | prima i file statici davano 404 nel test server | `TestServer` |
 
+## Decisioni Fase 7 — sicurezza e privacy tecnica (2026-10-06)
+
+Piano approvato dall'utente il 2026-10-06, con le tre scelte confermate (anonimizzare invece di cancellare, HSTS solo in HTTPS, conservazione automatica spenta).
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-06 | **Anonimizzare** (nome, email, telefono, note, motivi, testi di email) invece di cancellare le righe: date, appartamento, ospiti e prezzo restano, quindi le date restano occupate e i conteggi coerenti; mai `DELETE` | cancellazione delle righe | una prenotazione cancellata libererebbe le date; i dati personali non servono più | `PersonalDataService`, `bin/privacy.php` |
+| 2026-10-06 | Richieste in attesa e soggiorni non ancora finiti sono saltati (e segnalati) salvo `--include-active`; ogni operazione è una simulazione salvo `--apply`; l'audit registra che è avvenuto e quanto, mai per chi | eseguire subito | si deve ancora rispondere o ospitare quelle persone; evitare cancellazioni per errore | idem |
+| 2026-10-06 | Conservazione automatica **spenta**: `DATA_RETENTION_MONTHS` vuoto = `purge` non fa nulla; il periodo lo decide il titolare | un periodo predefinito | è una decisione legale/di business, non tecnica | `.env.example`, `docs/MISSING_DATA.md` |
+| 2026-10-06 | HSTS (180 giorni, senza `includeSubDomains` né `preload`) solo se `APP_URL` è https e `HSTS_MAX_AGE` non è 0 | sempre acceso; spento finché non si sceglie l'hosting | su HTTP non deve mai partire; una volta attivo i browser rifiutano HTTP | `Response::transportSecurity` |
+| 2026-10-06 | Un solo segreto applicativo (`AppSecret`) per token dei moduli e hash degli IP del rate limit (HMAC); in mancanza di `APP_SECRET` è derivato dalle credenziali DB | segreti separati | meno configurazione; l'IP non è più invertibile da chi legge il DB | `app/Security/AppSecret.php` |
+| 2026-10-06 | Rischi accettati e documentati: blocco del login solo per IP, token del modulo non monouso, rate limit per IP | blocco per utente, token monouso nel DB | impatto limitato rispetto alla complessità; da rivedere con l'hosting | `docs/SECURITY_REVIEW.md` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

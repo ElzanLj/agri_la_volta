@@ -7,26 +7,27 @@
 - **Data aggiornamento:** 2026-10-06
 - **Agente/strumento ultimo utilizzato:** Claude Code
 - **Branch:** `main`
-- **Commit di riferimento:** `d0451eb` (Fase 5); la Fase 6 è nel commit successivo
-- **Fase corrente:** Fase 6 — IT/EN, SEO, accessibilità, prestazioni e immagini: **COMPLETATA per la parte automatizzabile** (prompt 09); la verifica manuale resta NOT RUN
-- **Prompt corrente:** `prompts/09_I18N_SEO_A11Y_PERF.md` (completato)
-- **Stato complessivo:** sito pubblico IT/EN con SEO tecnica, struttura accessibile verificata da test e contrasto WCAG misurato; 730 test PASS. **Mancano contenuti e dati reali** (testi, foto, recapiti, listino, credenziali SMTP) e le prove manuali con tastiera, screen reader e dispositivi
+- **Commit di riferimento:** `c90d6d6` (Fase 6); la Fase 7 è nel commit successivo
+- **Fase corrente:** Fase 7 — sicurezza, privacy tecnica e antispam: **COMPLETATA** (prompt 10); revisione in `docs/SECURITY_REVIEW.md`
+- **Prompt corrente:** `prompts/10_SECURITY_PRIVACY_SPAM.md` (completato)
+- **Stato complessivo:** nessun finding di gravità alta; 4 finding corretti (hash IP con chiave, strumenti di esportazione/anonimizzazione, intestazioni di sicurezza, limite del corpo), 2 rischi accettati e documentati; 751 test PASS. **Non verificati:** prove manuali (tastiera, screen reader, mobile), HTTPS/hosting reali, consegna email reale, penetration test indipendente
 
 ## Obiettivo corrente
 
-Fase 7 (sicurezza, privacy tecnica, antispam): `prompts/10_SECURITY_PRIVACY_SPAM.md`. Molto è già fatto in Fasi 3-5 (vedi `docs/TODO.md`, promemoria): la fase deve verificare e completare.
+Fase 8 (test completo, regressioni e bugfix): `prompts/11_TEST_REGRESSION.md`. Confrontare la suite con `docs/SPEC.md` §36/§41, compilare `docs/ACCEPTANCE_MATRIX.md`, elencare ciò che resta NOT RUN.
 
 ## Ultimo lavoro completato
 
-- SEO: `robots.txt` e `sitemap.xml` generati (`app/Site/Seo.php`, `SeoController`), Open Graph/Twitter card, favicon SVG, breadcrumb visibile + `BreadcrumbList`, `LodgingBusiness` solo con recapiti configurati; asset con `?v=` (data di modifica), cache lunga e compressione in `public/.htaccess`.
-- Accessibilità: ogni pagina ha un `h1` e nessun salto di livello (schede appartamento a `h2` in elenco), landmark etichettati, label su ogni campo, avvisi sui campi obbligatori, `caption` nascosta sulla tabella prezzi, bersagli da 44 px. Palette in variabili `:root`, contrasto verificato da `ContrastTest` (nessun colore cambiato: già conforme).
-- Immagini: `app/Site/ImageSet.php` + `_photo.php` (picture, srcset, width/height, lazy, hero), `bin/optimize-images.php` (non eseguito), `docs/IMAGES.md` con censimento e procedura. Foto reali: nessuna (segnaposto).
-- Test: 46 nuovi (25 contrasto, 4 immagini, 17 SEO/accessibilità); `tests/Support/router.php` serve i file statici nel server di test; 7 prove di sensibilità tutte rilevate.
+- F1: `RateLimiter` salva HMAC (non SHA-256 semplice) dell'IP, con `app/Security/AppSecret.php` (condiviso con `FormToken`).
+- F2: `app/Service/PersonalDataService.php` e `bin/privacy.php` (export JSON, anonimizzazione di una persona, conservazione per età; simulazione di default; richieste in attesa e soggiorni non finiti saltati). Conservazione automatica spenta (`DATA_RETENTION_MONTHS` vuoto).
+- F3: `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `X-Permitted-Cross-Domain-Policies`, HSTS solo con `APP_URL` https (`HSTS_MAX_AGE`), `X-Powered-By` rimosso.
+- F4: `LimitRequestBody 1048576` in `public/.htaccess` (verificato su Apache).
+- 21 test nuovi (10 dati personali, 4 sicurezza di integrazione, 7 sicurezza HTTP); 8 prove di sensibilità tutte rilevate.
 
 ## Azioni e funzioni: verificate e incomplete
 
-- **Verificate (automaticamente):** robots, sitemap, metadati, dati strutturati, breadcrumb, intestazioni, landmark, label, id unici, nomi dei link, contrasto, bersagli e focus nel CSS, assenza di JavaScript e risorse esterne, peso delle pagine.
-- **Incomplete/non verificabili ora:** prova manuale con tastiera/screen reader/mobile/zoom (NOT RUN); Lighthouse/axe; foto reali e ottimizzazione immagini; gestione foto nel DB/admin (rinviata); testi di L'agriturismo e Dintorni; recapiti e WhatsApp; testi legali.
+- **Verificate:** intestazioni su ogni tipo di risposta, HSTS condizionale, nessuna fuga di informazioni nei 500 (anche con debug in produzione), input ostile su ogni parametro pubblico, limite del corpo, assenza di dati personali/segreti/IP nei log, intestazioni email, anonimizzazione ed esportazione.
+- **Incomplete/non verificabili ora:** HTTPS reale e HSTS in produzione, PHP-FPM, hosting; consegna email reale; backup non toccati dall'anonimizzazione; periodo di conservazione da decidere; penetration test indipendente; prove manuali di accessibilità.
 ## Working tree / modifiche locali da preservare
 
 - Nessuna modifica locale non committata a fine fase.
@@ -36,7 +37,7 @@ Fase 7 (sicurezza, privacy tecnica, antispam): `prompts/10_SECURITY_PRIVACY_SPAM
 
 ## Test/comandi più recenti
 
-`docker compose exec web composer test` → **730 test, 8038 asserzioni, PASS** (circa 5 minuti 40 s: 328 unit, 223 integrazione, 168 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 6). Nessuna nuova migrazione.
+`docker compose exec web composer test` → **751 test, 9535 asserzioni, PASS** (circa 7 minuti 20 s: 328 unit, 237 integrazione, 175 http, 11 concorrenza). Dettagli in `docs/TEST_REPORT.md` (sezione Fase 7). Nessuna nuova migrazione.
 
 ## Blocchi aperti
 
@@ -46,11 +47,11 @@ Fase 7 (sicurezza, privacy tecnica, antispam): `prompts/10_SECURITY_PRIVACY_SPAM
 
 ## Decisioni da non reinterpretare
 
-Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4, 5 e 6 registrate (locking, tetti tecnici, tariffa per appartamento/notte, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare", outbox email, token firmato senza sessione, passi separati, segnaposto per le foto, dati solo dal DB).
+Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4, 5, 6 e 7 registrate (locking, tetti tecnici, tariffa per appartamento/notte, soggiorno minimo dalla data di arrivo, listino mancante = "prezzo da confermare", outbox email, token firmato senza sessione, passi separati, segnaposto per le foto, dati solo dal DB).
 
 ## Prossimo passo esatto
 
-`prompts/10_SECURITY_PRIVACY_SPAM.md` (vedi il promemoria in `docs/TODO.md`).
+`prompts/11_TEST_REGRESSION.md` (vedi il promemoria in `docs/TODO.md`).
 
 ## Note per il prossimo agente
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Site;
 
-use App\App;
+use App\Security\AppSecret;
 
 /**
  * CSRF token for the public forms that does NOT need a session (so anonymous visitors never
@@ -42,17 +42,6 @@ final class FormToken
 
     private static function sign(string $purpose, string $issuedAt): string
     {
-        return hash_hmac('sha256', $purpose . '|' . $issuedAt, self::secret());
-    }
-
-    /** APP_SECRET when set; otherwise derived from the database credentials, which never leave the server. */
-    private static function secret(): string
-    {
-        $config = App::current()->config;
-        $secret = $config->string('APP_SECRET');
-        if ($secret !== '') {
-            return $secret;
-        }
-        return hash('sha256', 'lavolta-public-form|' . $config->string('DB_NAME') . '|' . $config->string('DB_USER') . '|' . $config->string('DB_PASSWORD'));
+        return hash_hmac('sha256', $purpose . '|' . $issuedAt, AppSecret::value());
     }
 }

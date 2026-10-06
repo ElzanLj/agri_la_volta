@@ -11,6 +11,10 @@ final class Response
         'X-Content-Type-Options' => 'nosniff',
         'X-Frame-Options' => 'DENY',
         'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        // The site needs none of these browser features: deny them outright.
+        'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+        'Cross-Origin-Opener-Policy' => 'same-origin',
+        'X-Permitted-Cross-Domain-Policies' => 'none',
         'Content-Security-Policy' => "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
             . "frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
     ];
@@ -50,10 +54,31 @@ final class Response
         return $clone;
     }
 
+    /**
+     * HSTS only when the site is configured for HTTPS (APP_URL starts with https://) and HSTS_MAX_AGE is not 0:
+     * browsers then refuse plain HTTP for that long, so it must never be sent by an HTTP-only installation.
+     *
+     * @return array<string, string>
+     */
+    private static function transportSecurity(): array
+    {
+        try {
+            $config = \App\App::current()->config;
+        } catch (\LogicException) {
+            return [];
+        }
+        $maxAge = $config->int('HSTS_MAX_AGE', 15552000);
+        if ($maxAge <= 0 || !str_starts_with($config->string('APP_URL'), 'https://')) {
+            return [];
+        }
+        return ['Strict-Transport-Security' => 'max-age=' . $maxAge];
+    }
+
     public function send(bool $includeBody = true): void
     {
         http_response_code($this->status);
-        foreach ($this->headers + self::DEFAULT_HEADERS as $name => $value) {
+        header_remove('X-Powered-By'); // do not advertise the PHP version
+        foreach ($this->headers + self::DEFAULT_HEADERS + self::transportSecurity() as $name => $value) {
             header($name . ': ' . $value);
         }
         if ($includeBody) {

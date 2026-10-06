@@ -98,6 +98,35 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Fase 7 — sicurezza e privacy tecnica (2026-10-06)
+
+**Esito: 751 test, 9535 asserzioni, tutti PASS** (`composer test`, circa 7 minuti 20 s; 730 test precedenti + 21 nuovi: 328 unit, 237 integrazione, 175 http, 11 concorrenza). Lint PHP senza errori. Revisione completa e finding in `docs/SECURITY_REVIEW.md`.
+
+| Suite | Test nuovi | Cosa verificano |
+|---|---|---|
+| `integration` — `PersonalDataTest` | 10 | esportazione per email (senza distinzione di maiuscole, senza dati di altre persone, comprese prenotazioni manuali e testi di email); simulazione che non cambia nulla; anonimizzazione che conserva appartamento, date e occupazione (una nuova richiesta sulle stesse date è ancora in conflitto), non tocca altre persone, svuota anche motivi di cancellazione e testi di email, lascia un audit senza nome né email, seconda esecuzione a zero; richieste in attesa e soggiorni in corso saltati (e inclusi con l'opzione); conservazione con il giorno limite escluso, richieste in attesa mai toccate, periodi non validi rifiutati; strumento da riga di comando sicuro di default (simulazione, `purge` senza periodo non fa nulla, email non valida e comando ignoto = errore) |
+| `integration` — `SecurityIntegrationTest` | 4 | hash del rate limit = HMAC e diverso da SHA-256 semplice, conteggio per client intatto; a capo in nome, cognome e note mai in intestazioni email; indirizzi con a capo, virgole o `<>` rifiutati |
+| `http` — `SecurityTest` | 7 | intestazioni di sicurezza su 11 tipi di risposta (anche 403/404/405/redirect/robots/sitemap), nessun `X-Powered-By`, CSP senza `unsafe-*`; HSTS assente su HTTP e con `APP_URL` http o `HSTS_MAX_AGE=0`, presente solo con https, senza `includeSubDomains`/`preload`; errori 500 con `APP_ENV=production` e `APP_DEBUG=true` e database inesistente: pagina generica IT/EN, nessun SQLSTATE, percorso, nome del database o password; 20 stringhe ostili su ogni parametro pubblico (SQL, XSS, a capo, null byte, percorsi, lunghissime, unicode): nessun 500, nessun cookie, nessuna intestazione iniettata, database invariato; stesse stringhe nei campi del modulo: salvate come testo, mai eseguite, anche nell'admin; corpi sopra 1 MB rifiutati con 413 su pubblico e admin; **nessun dato personale, segreto o IP nei log** dopo un'intera sequenza (richiesta, conferma, token falso, honeypot, rate limit, login fallito, CSRF rifiutato) con valori-marcatore, e il test verifica che i log non siano vuoti |
+
+### Verifiche manuali su Apache (container)
+
+`X-Powered-By` assente; `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `X-Permitted-Cross-Domain-Policies` presenti; invio a blocchi di 2 MB → 413, con `Content-Length` di 2 MB → 413, richiesta piccola → risposta normale (il limite di Apache non è provabile con PHPUnit); `composer audit`: nessun avviso; `storage/`, `vendor/`, `composer.json`, `docs/`, `.git/`, `tests/`, `bin/`, `docker-compose.yml` → 404.
+
+### Prove di sensibilità (file ripristinati e verificati identici)
+
+Tutte e 8 **rilevate**: M1 HSTS inviato anche su HTTP; M2 hash IP di nuovo senza chiave; M3 `Permissions-Policy` tolta; M4 IP scritto nel log; M5 telefono non cancellato dall'anonimizzazione; M6 richieste in attesa non protette; M7 `X-Powered-By` non rimosso; M8 limite di conservazione spostato di un giorno.
+
+### Difetti trovati e corretti durante la fase
+
+F1-F4 di `docs/SECURITY_REVIEW.md` (hash IP invertibile, nessuna esportazione/cancellazione dei dati, intestazioni mancanti, limite del corpo aggirabile con invio a blocchi). Errori nei test scritti e corretti (non nel codice): chiavi numeriche dell'elenco usate come messaggio, uno scenario del test dei log che dopo la conferma non trovava più l'appartamento libero, aspettativa errata sulla lingua dei 500, asserzione troppo severa sul testo di un nome mostrato su una riga.
+
+### Limiti noti (NOT RUN)
+
+- Nessun penetration test indipendente né scanner automatico (ZAP, Burp, nikto): non disponibili qui.
+- HTTPS reale, cookie `Secure` e HSTS in produzione, PHP-FPM, configurazione e permessi dell'hosting, consegna reale delle email: non verificabili senza hosting e credenziali.
+- L'anonimizzazione non tocca i backup del database; la durata di conservazione non è decisa (`DATA_RETENTION_MONTHS` vuoto).
+- Rischi accettati: blocco del login solo per IP, token del modulo non monouso, rate limit per IP (vedi `docs/SECURITY_REVIEW.md`).
+
 ## Fase 6 — SEO, accessibilità, prestazioni e immagini (2026-10-06)
 
 **Esito: 730 test, 8038 asserzioni, tutti PASS** (`composer test`, circa 5 minuti 40 s; 684 test precedenti + 46 nuovi: 328 unit, 223 integrazione, 168 http, 11 concorrenza). Lint PHP senza errori.

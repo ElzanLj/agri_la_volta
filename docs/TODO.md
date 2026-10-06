@@ -10,21 +10,22 @@ Regole:
 
 ## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-06)
 
-**Prossima sessione: eseguire `prompts/10_SECURITY_PRIVACY_SPAM.md`** (Fase 7: sicurezza, privacy tecnica, antispam). Fasi 0-6 completate e committate; working tree pulito a fine sessione.
+**Prossima sessione: eseguire `prompts/11_TEST_REGRESSION.md`** (Fase 8: test completo, regressioni e bugfix). Fasi 0-7 completate e committate; working tree pulito a fine sessione.
 
 Per ripartire:
-1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **tutti i test PASS**, numero in `docs/TEST_REPORT.md`, circa 5-6 minuti; se `vendor/` manca: `docker compose exec web composer install`).
-2. Leggere `docs/SESSION_STATE.md`, `docs/MISSING_DATA.md` e `docs/DECISIONS.md` (sezioni Fase 5 e 6), poi `prompts/10_SECURITY_PRIVACY_SPAM.md`.
+1. `docker compose up -d` e verifica della baseline: `docker compose exec web composer test` (attesi **tutti i test PASS**, numero in `docs/TEST_REPORT.md`, circa 6 minuti; se `vendor/` manca: `docker compose exec web composer install`).
+2. Leggere `docs/SESSION_STATE.md`, `docs/MISSING_DATA.md`, `docs/DECISIONS.md` e `docs/SECURITY_REVIEW.md`, poi `prompts/11_TEST_REGRESSION.md`.
 3. Come nelle fasi precedenti: **prima un piano conciso** da far approvare, poi il codice.
 
-Da tenere presente nella Fase 7:
-- gran parte è già fatta e testata: query parametrizzate, escaping, CSRF admin e token firmato pubblico, `OriginCheck`, sessioni admin, rate limit (login e invio richiesta), honeypot, controllo temporale, CSP rigida, nessun cookie ai visitatori. La fase 7 deve **verificare e completare** (log senza dati personali, minimizzazione, conservazione dei dati, intestazioni HSTS/Permissions-Policy, configurazione di produzione, dipendenze), non rifare;
-- limiti noti da affrontare o accettare: token del modulo non monouso (replay limitato dal rate limit), rate limit per IP (NAT/proxy: verificare `REMOTE_ADDR` con l'hosting), `APP_SECRET` di produzione da impostare;
-- nessun test manuale in browser è stato eseguito finora (tastiera, screen reader, mobile): restano **NOT RUN** in `docs/TEST_REPORT.md`;
-- le foto sono segnaposto (`docs/IMAGES.md`); la gestione foto nel DB è rinviata; `bin/optimize-images.php` non è mai stato eseguito (manca GD/WebP nel container);
-- il test `PublicSiteUnitTest` controlla le chiavi dei testi IT/EN; `ContrastTest` il contrasto delle variabili `:root`; `PublicSeoTest` struttura, SEO e accessibilità di ogni pagina: aggiornarli se si cambia il layout;
-- stile: la regola `h1, h2, h3` in `public/assets/css/site.css` vale anche per l'admin; il CSS pubblico è in fondo al file e deve usare le variabili di colore.
-Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali (consegna email non verificata), testi definitivi delle email e dei contenuti, numero WhatsApp e recapiti pubblici, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting (PHP-FPM, cron, `vendor/` da caricare), `APP_SECRET` di produzione.
+Da tenere presente nella Fase 8:
+- confrontare i test con `docs/SPEC.md` (§36 e §41) e compilare `docs/ACCEPTANCE_MATRIX.md`; molti criteri sono già coperti (vedi `docs/TEST_REPORT.md`);
+- **restano NOT RUN** le prove manuali: tastiera, screen reader, mobile, zoom, browser diversi, consegna email reale, HTTPS reale, PHP-FPM, Lighthouse/axe; sono da elencare come limiti e da far fare al titolare con una lista di controllo;
+- documentazione ancora da scrivere (README, installazione su hosting condiviso, import del database, SMTP, backup e ripristino, export CSV): oggi esistono `docs/COMMANDS.md` e `docs/RELEASE_GUIDE.md`/`DELIVERY_CHECKLIST.md` come modelli vuoti;
+- strumenti già presenti: `bin/migrate.php`, `bin/create-admin.php`, `bin/send-queued-mail.php`, `bin/privacy.php`, `bin/optimize-images.php` (quest'ultimo mai eseguito: manca GD/WebP nel container);
+- decisioni del titolare ancora aperte: periodo di conservazione dei dati (`DATA_RETENTION_MONTHS`), `APP_SECRET` di produzione, HSTS (si attiva solo con `APP_URL` https), hosting (PHP-FPM, cron, `vendor/` da caricare, `REMOTE_ADDR` dietro proxy);
+- il test del log (`SecurityTest::testNoPersonalDataOrSecretReachesTheLogs`) legge `storage/logs/`: non eliminare la cartella.
+
+Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md`): credenziali SMTP reali (consegna email non verificata), testi definitivi delle email e dei contenuti, numero WhatsApp e recapiti pubblici, listino prezzi reale, foto con provenienza verificata, scelta dell'hosting, `APP_SECRET` di produzione, periodo di conservazione dei dati.
 
 ## Audit
 
@@ -165,7 +166,13 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 - [x] HttpOnly/Secure/SameSite appropriati (verificati su HTTP e su sito https)
 - [x] Hash password admin sicuro (`password_hash` default/bcrypt)
 - [x] Rate limiting dove necessario (login admin; invio richiesta: 6 all'ora per IP)
-- [~] Limiti richieste (corpo max 1 MB nel front controller)
+- [x] Limiti richieste (corpo max 1 MB nel front controller e, anche con invio a blocchi, in Apache con `LimitRequestBody`)
+- [x] Intestazioni di sicurezza (CSP, Permissions-Policy, COOP, nosniff, DENY, HSTS solo in HTTPS; `X-Powered-By` rimosso)
+- [x] Nessun dato personale né segreto nei log (provato con valori-marcatore)
+- [x] Nessuna fuga di informazioni negli errori 500, anche con `APP_DEBUG=true` in produzione
+- [x] Hash degli IP del rate limit con chiave (HMAC)
+- [x] Esportazione e anonimizzazione dei dati personali (`bin/privacy.php`); conservazione automatica spenta finché il titolare non decide `DATA_RETENTION_MONTHS`
+- [x] Security review documentata (`docs/SECURITY_REVIEW.md`: nessun finding alto, 4 corretti, 2 rischi accettati)
 - [x] Accesso admin controllato lato server
 - [x] Honeypot/antispam semplice (honeypot, controllo temporale, rate limit, token firmato, Origin)
 - [x] Nessun pagamento/dato carta (nessun codice o campo di pagamento nel progetto)
