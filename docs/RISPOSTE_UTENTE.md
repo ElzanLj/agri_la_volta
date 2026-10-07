@@ -103,112 +103,112 @@ File: `prompts/16_CONTENT_MODEL_DESIGN.md`
 
 ### D1 — Dove salvare le impostazioni del sito [tecnica]
 
-- [ ] A. Una tabella a riga unica con una colonna per ogni dato *(consigliata)*
+- [x] A. Una tabella a riga unica con una colonna per ogni dato *(consigliata)*
 - [ ] B. Tabella chiave/valore
 - [ ] C. Restare su `.env`
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D2 — Formattazione dei testi nelle pagine [tecnica]
 
 - [ ] A. Solo paragrafi (riga vuota = nuovo paragrafo)
-- [ ] B. Paragrafi + elenchi puntati con righe che iniziano con `- ` *(consigliata)*
+- [x] B. Paragrafi + elenchi puntati con righe che iniziano con `- ` *(consigliata)*
 - [ ] C. Markdown ridotto (grassetto, link)
 - [ ] D. Editor visuale (WYSIWYG)
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D3 — Pagina inglese quando il testo inglese manca [titolare]
 
 - [ ] A. Mostrare il testo italiano
-- [ ] B. Mostrare un avviso "testo in preparazione" (come oggi) e omettere la sezione *(consigliata)*
+- [x] B. Mostrare un avviso "testo in preparazione" (come oggi) e omettere la sezione *(consigliata)*
 - [ ] C. Pagina EN in `noindex` finché incompleta
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D4 — Recapiti oggi in `.env` (`PUBLIC_*`, `WHATSAPP_NUMBER`) [tecnica]
 
-- [ ] A. Database prima, `.env` come riserva se il campo è vuoto *(consigliata)*
+- [x] A. Database prima, `.env` come riserva se il campo è vuoto *(consigliata)*
 - [ ] B. Import una tantum, poi solo database
 - [ ] C. Solo database da subito
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D5 — Cosa conservare della foto caricata [tecnica]
 
 - [ ] A. Solo le varianti ridimensionate
-- [ ] B. Un "master" ricodificato senza EXIF/GPS (lato lungo 2400–3000 px) fuori dalla cartella pubblica (`storage/`), da cui si rigenerano le varianti *(consigliata)*
+- [x] B. Un "master" ricodificato senza EXIF/GPS (lato lungo 2400–3000 px) fuori dalla cartella pubblica (`storage/`), da cui si rigenerano le varianti *(consigliata)*
 - [ ] C. L'originale grezzo fuori dalla cartella pubblica
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D6 — Privacy e cookie modificabili dall'admin [titolare]
 
-- [ ] A. Sì, come pagine con sezioni e flag "bozza" *(consigliata)*
+- [x] A. Sì, come pagine con sezioni e flag "bozza" *(consigliata)*
 - [ ] B. Restano nel codice
 - [ ] C. Solo privacy; la cookie policy resta nel codice
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D7 — Terza lingua [titolare]
 
-- [ ] A. No per ora; il titolare verifica da quali paesi arrivano gli ospiti (dati Booking/Novasol) *(consigliata)*
+- [x] A. No per ora; il titolare verifica da quali paesi arrivano gli ospiti (dati Booking/Novasol) *(consigliata)*
 - [ ] B. Tedesco subito
 - [ ] C. Struttura multilingua generica
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D8 — Pagina "Appartamenti" (elenco) amministrabile [tecnica]
 
-- [ ] A. Sì, solo introduzione e meta *(consigliata)*
+- [x] A. Sì, solo introduzione e meta *(consigliata)*
 - [ ] B. No
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D9 — Organizzazione del menu admin [tecnica]
 
-- [ ] A. Quattro gruppi: Gestione · Listino · Sito · Sistema *(consigliata)*
+- [x] A. Quattro gruppi: Gestione · Listino · Sito · Sistema *(consigliata)*
 - [ ] B. Elenco piatto come oggi
 - [ ] C. Menu a tendina
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D10 — Contratto dei campi [tecnica]
 
-- [ ] A. Approvarlo (con eventuali correzioni) come riferimento vincolante per i prompt 17–28 *(consigliata)*
+- [x] A. Approvarlo (con eventuali correzioni) come riferimento vincolante per i prompt 17–28 *(consigliata)*
 - [ ] B. Decidere campo per campo durante le fasi
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D11 — Segnalazione dei campi vuoti [tecnica]
 
-- [ ] A. Tre livelli: frase sotto ogni campo facoltativo ("se lo lasci vuoto…"), indicatori negli elenchi ("manca EN", "senza foto"), checklist in dashboard *(consigliata)*
+- [x] A. Tre livelli: frase sotto ogni campo facoltativo ("se lo lasci vuoto…"), indicatori negli elenchi ("manca EN", "senza foto"), checklist in dashboard *(consigliata)*
 - [ ] B. Solo checklist in dashboard
 - [ ] C. Rendere obbligatori quasi tutti i campi
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D12 — Threat model delle nuove superfici [tecnica]
 
-- [ ] A. Una pagina `docs/THREAT_MODEL.md`, scritta ora e aggiornata da ogni fase che aggiunge una superficie (casi d'abuso, impatto, controllo previsto e fase) *(consigliata)*
+- [x] A. Una pagina `docs/THREAT_MODEL.md`, scritta ora e aggiornata da ogni fase che aggiunge una superficie (casi d'abuso, impatto, controllo previsto e fase) *(consigliata)*
 - [ ] B. Nessun documento
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D13 — Pagine pubbliche quando il database non risponde [tecnica]
 
-- [ ] A. Cache su file di impostazioni e contatti (riscritta a ogni salvataggio) + pagina 503 con i contatti e `Retry-After` quando il database non risponde *(consigliata)*
+- [x] A. Cache su file di impostazioni e contatti (riscritta a ogni salvataggio) + pagina 503 con i contatti e `Retry-After` quando il database non risponde *(consigliata)*
 - [ ] B. Solo la pagina 503
 - [ ] C. Niente
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ### D14 — Due persone che modificano lo stesso contenuto [tecnica]
 
-- [ ] A. Blocco ottimistico: ogni modulo porta la data dell'ultima modifica; se nel frattempo è cambiata compare "Qualcun altro ha modificato questa pagina: ricarica prima di salvare", senza perdere ciò che hai scritto *(consigliata)*
+- [x] A. Blocco ottimistico: ogni modulo porta la data dell'ultima modifica; se nel frattempo è cambiata compare "Qualcun altro ha modificato questa pagina: ricarica prima di salvare", senza perdere ciò che hai scritto *(consigliata)*
 - [ ] B. L'ultimo salvataggio vince
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate, procedi" (la risposta consigliata).
 
 ## Prompt 17 — Account admin gestibile senza SSH
 

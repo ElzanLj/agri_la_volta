@@ -98,6 +98,22 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Prompt 16 — progetto della gestione contenuti (2026-10-07)
+
+Fase di **soli documenti** (nessun codice, migrazione o test modificati; `git diff` contiene solo file `.md`). Ramo `fase-16-content-model`, PHP 8.2.34, MariaDB 10.11.
+
+**Baseline prima delle modifiche:** `docker compose exec -u www-data web composer test` → **906 test, 10919 asserzioni, PASS** (7 min 57 s). Eseguita come `www-data`, come Apache, per non creare file di `root` in `storage/`.
+
+**Un primo giro è stato inutilizzabile e non conta:** lo stesso comando, la prima volta, ha eseguito tutti i 906 test senza alcun errore, ma PHPUnit è uscito con codice 255 senza riepilogo perché non poteva scrivere `.phpunit.cache/test-results` (cartella rimasta di `root`). Non è un fallimento dei test; ho sistemato i permessi della cache (solo sviluppo, ignorata da Git) e rieseguito l'intera suite: è il risultato qui sopra.
+
+**Dopo le modifiche:** nessun test rieseguito, perché non è cambiato nulla di ciò che i test leggono (solo documenti).
+
+**Verifiche fatte sul design (non automatiche):**
+- container di sviluppo: `gd=NO`, `exif=NO`, `zip=NO`, `fileinfo=sì`, `sodium=sì`; `upload_max_filesize=2M`, `post_max_size=8M`, `memory_limit=128M` → la libreria foto (prompt 19) e il backup con foto (prompt 27) non si possono sviluppare né provare finché non si aggiorna l'immagine Docker (consenso richiesto all'inizio del prompt 19);
+- `.gitignore` oggi non copre `storage/cache`, `storage/media`, `public/media` (da aggiungere nei prompt 18 e 19);
+- `ScopeTest` elenca le tabelle esatte e dovrà essere aggiornato a ogni fase;
+- scansione segreti sul diff: solo parole ("password", `APP_SECRET`) nei testi, nessun valore.
+
 ## Prompt 15 — correzioni dell'esistente (2026-10-07)
 
 Ramo `fase-15-existing-fixes`; PHP 8.2.34, MariaDB 10.11 (container `mariadb:10.11`), database di test `agriturismo_test`. MySQL 8 non provato (prompt 28).

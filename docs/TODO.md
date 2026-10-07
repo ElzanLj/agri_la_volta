@@ -13,8 +13,18 @@ Regole:
 La sequenza operativa ora è **14 → 32** (`prompts/README.md`, `docs/PRE_RELEASE_ROADMAP.md`, mappa 00–32 in `docs/PLAN.md`). Il promemoria qui sotto descrive lo stato al termine del vecchio prompt 14 (oggi 31) ed è ancora valido per ciò che riguarda dati mancanti e autorizzazioni.
 
 - [x] 14 — sync dello stato, guardrail, audit dei contenuti (commit `c8aec3d` sul ramo `fase-14-state-sync`)
-- [x] 15 — correzioni dell'esistente (ramo `fase-15-existing-fixes`, **nel working tree, non committato**; 905 test PASS)
-- [ ] 16 — progetto della gestione contenuti (**prossimo passo**) · 17–30 · 31 (ex 14) · 32 (dopo un deploy autorizzato)
+- [x] 15 — correzioni dell'esistente (commit `c424b28` sul ramo `fase-15-existing-fixes`; 905 test PASS, poi 906 con il test del Logger)
+- [x] 16 — progetto della gestione contenuti (ramo `fase-16-content-model`; `docs/CMS_DESIGN.md`, `docs/THREAT_MODEL.md`, `docs/CAMPI_CONTENUTI.md` approvato; **nel working tree, non committato**)
+- [ ] 17 — account admin senza SSH (**prossimo passo**) · 18–30 · 31 (ex 14) · 32 (dopo un deploy autorizzato)
+
+### Promemoria per le fasi 17–27 (dal design del prompt 16)
+
+- [ ] **Prompt 19, prima di iniziare:** chiedere il consenso a modificare l'immagine Docker di sviluppo (`gd` con jpeg/webp, `exif`, `zip`, limiti di upload) e **riconfermare** che la copia delle foto è un master senza metadati e non il file originale (SPEC §23; `MISSING_DATA`)
+- [ ] **Prompt 26, prima di iniziare:** se si sceglie la password SMTP nel database (opzioni B o C) scrivere in `AGENTS.md` l'eccezione a "SMTP tramite variabili d'ambiente", con il consenso dell'utente (finding A13)
+- [ ] Prompt 18 e 19: aggiungere a `.gitignore` `/storage/cache/*`, `/storage/media/*`, `/public/media/*` (con `.gitkeep`) e un `.htaccess` di negazione nelle cartelle nuove di `storage/`
+- [ ] Ogni fase: aggiornare `ScopeTest` (elenco esatto delle tabelle), `DatabaseTestCase::resetDatabase()`, `AdminAccessTest::REVIEWED_ADMIN_ROUTES`, `migrations/CHECKSUMS`, e le righe di `CAMPI_CONTENUTI.md` e `THREAT_MODEL.md`
+- [ ] Prompt 18: quando le impostazioni sono nel database, valutare di togliere la riserva `.env` per i recapiti (decisione D4 = A: riserva transitoria)
+- [ ] Titolare: verificare da quali paesi arrivano gli ospiti (terza lingua, D7) e le estensioni PHP dell'hosting (`MISSING_DATA`)
 
 ## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-07)
 

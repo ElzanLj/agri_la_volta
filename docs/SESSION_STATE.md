@@ -6,31 +6,28 @@
 
 - **Data aggiornamento:** 2026-10-07
 - **Agente/strumento ultimo utilizzato:** Claude Code
-- **Branch:** `fase-15-existing-fixes` (strategia Git D1 = A: un ramo per fase, unito a mano dall'utente a `main`; partito da `fase-14-state-sync`, commit `c8aec3d`). Nessun push.
-- **Commit di riferimento:** `c8aec3d` (prompt 14). Le modifiche del prompt 15 sono nel working tree, **non committate** (serve una frase esplicita dell'utente in chat)
-- **Fase corrente:** roadmap pre-release, **prompt 15** (correzioni dell'esistente): **COMPLETATO nel working tree**, in attesa della revisione dell'utente e del suo "Prova tu" (sotto)
-- **Prompt corrente:** `prompts/15_EXISTING_FIXES.md` (completato); prossimo: `prompts/16_CONTENT_MODEL_DESIGN.md`
-- **Stato complessivo:** 905 test PASS (ordine normale e casuale); 23 criteri di accettazione PASS, 4 PARTIAL (18, 19, 20, 24), 0 FAIL (matrice non rivista dopo il prompt 15: se ne occupa il prompt 30). **Non pubblicato; nessun servizio esterno contattato; tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
+- **Branch:** `fase-16-content-model` (strategia Git D1 = A: un ramo per fase, unito a mano dall'utente a `main`; partito da `fase-15-existing-fixes`). Nessun push.
+- **Commit di riferimento:** `c424b28` (prompt 15, su `fase-15-existing-fixes`; il prompt 14 è `c8aec3d`). Le modifiche del prompt 16 sono nel working tree, **non committate** (serve una frase esplicita dell'utente in chat)
+- **Fase corrente:** roadmap pre-release, **prompt 16** (progetto della gestione contenuti): **COMPLETATO nel working tree**, in attesa della revisione dell'utente
+- **Prompt corrente:** `prompts/16_CONTENT_MODEL_DESIGN.md` (completato); prossimo: `prompts/17_ADMIN_ACCOUNT_NO_SSH.md`
+- **Stato complessivo:** 906 test PASS (baseline del prompt 16, vedi "Test/comandi più recenti"); 23 criteri di accettazione PASS, 4 PARTIAL (18, 19, 20, 24), 0 FAIL. **Non pubblicato; nessun servizio esterno contattato; tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
 
 ## Obiettivo corrente
 
-Concluso il prompt 15. Risposte dell'utente (2026-10-07): "Consigliate" per D1–D8; D1 = A confermata, D4 = A ("scelta prudente"). Cosa è stato fatto, con le prove in `docs/TEST_REPORT.md` e i finding in `docs/SECURITY_REVIEW.md` ("Riesame del 2026-10-07"):
+Concluso il prompt 16, **solo documenti** (nessun codice, migrazione o test). Risposte dell'utente (2026-10-07): "consigliate, procedi" per D1–D14, quindi D1 A, D2 B, D3 B, D4 A, D5 B, D6 A, D7 A, D8 A, D9 A, D10 A, D11 A, D12 A, D13 A, D14 A. Prodotti:
 
-- **Storico senza testo libero** (`reason_present`), `bin/privacy.php audit-clean`, avviso sotto i campi motivo e note, chiave di invio azzerata con l'ospite;
-- **Rifiuto con conferma**: pagina con riepilogo e anteprima dell'email; POST senza `conferma=1` non fa nulla;
-- **Doppio invio**: `submission_key` (migrazione `0006`), `createRequest` idempotente anche con invii simultanei;
-- **Rate limit** "registra poi conta" (`RateLimiter::attempt`), login falliti nelle ultime 24 ore in dashboard; solo `REMOTE_ADDR` (D4 = A);
-- **Host canonico** (301 verso l'host di `APP_URL`), **migrazioni** con lock, parser corretto, solo `NNNN_nome.sql`, `migrations/CHECKSUMS`, pre-controllo dei dati, **vincoli `CHECK`** (migrazione `0007`);
-- **Coerenza dei dati** (`ConsistencyChecker`, `bin/check-consistency.php`), `APP_ENV` con valori ammessi, log del database senza messaggi, LiteSpeed e `ignore_user_abort`, riferimento "ricevuta" solo se reale, caratteri invisibili, `.htaccess` di negazione;
-- **Guardiani sempre attivi** (checksum, escape nei template, funzioni pericolose, indirizzi esterni, matrice delle rotte admin), tutti con prova di sensibilità (12 su 12 rilevate).
+- `docs/CMS_DESIGN.md`: decisioni, cosa resta fuori dall'admin, schema (colonne, vincoli, indici), regole di resa e ripiego, cache e pagina 503, blocco ottimistico, organizzazione dell'admin, sicurezza per superficie, piano di test per i prompt 17–27, punti aperti;
+- `docs/THREAT_MODEL.md`: 49 casi d'abuso in 8 gruppi, da aggiornare a ogni fase che aggiunge una superficie;
+- `docs/CAMPI_CONTENUTI.md`: **APPROVATO**, con 14 correzioni elencate in testa;
+- `DECISIONS`, `MISSING_DATA` (paesi degli ospiti, estensioni PHP dell'hosting, conferma sul master delle foto), `RISPOSTE_UTENTE`, `TODO`.
 
 Per le attività del titolare, il passo successivo dipende da lui: contenuti e dati (`docs/MISSING_DATA.md`), autorizzazioni (`docs/RELEASE_GUIDE.md` §2), scelta dell'hosting, prove manuali (`docs/MANUAL_CHECKLIST.md`). Il dominio canonico è `https://www.agriturismolavolta.com`.
 
 ## Ultimo lavoro completato
 
-- Prompt 14 (commit `c8aec3d`): roadmap 14–32 sincronizzata, guardrail in `AGENTS.md`, finding della review in `docs/TODO.md`, inventario dei contenuti verificato, conflitto di merge risolto nel `README.md`.
-- Prompt 15 (working tree): vedi "Obiettivo corrente". File nuovi principali: `app/Http/CanonicalHost.php`, `app/Http/InvisibleChars.php`, `app/Service/ConsistencyChecker.php`, `app/Support/AuditCleaner.php`, `app/Database/Migration*.php`, `bin/check-consistency.php`, `bin/migration-checksums.php`, `migrations/0006`, `0007`, `CHECKSUMS`, `templates/admin/requests/reject.php`, dieci `.htaccess` di negazione.
-- Preparazione al rilascio (vecchio prompt 14, oggi `31_RELEASE_PREP_NO_DEPLOY`): `docs/RELEASE_GUIDE.md` e `bin/check-production.php`, da aggiornare nel prompt 31.
+- Prompt 16 (working tree): vedi "Obiettivo corrente".
+- Prompt 15 (commit `c424b28`): Storico senza testo libero, rifiuto con conferma, invio idempotente, rate limit, host canonico, migrazioni sicure (`0006`, `0007`, `CHECKSUMS`), coerenza dei dati, guardiani architetturali; correzione del `Logger` dopo la segnalazione dei permessi sul log.
+- Prompt 14 (commit `c8aec3d`): roadmap sincronizzata, guardrail in `AGENTS.md`, finding della review, inventario dei contenuti.
 
 ## Azioni e funzioni: verificate e incomplete
 
@@ -39,20 +36,20 @@ Per le attività del titolare, il passo successivo dipende da lui: contenuti e d
 
 ## Working tree / modifiche locali da preservare
 
-- Modifiche del prompt 15 non committate: codice in `app/`, `bin/`, `public/`, `templates/`, `migrations/` (0006, 0007, CHECKSUMS), `tests/`, dieci `.htaccess`, documenti in `docs/` e `README.md`.
+- Modifiche del prompt 16 non committate, **solo documenti**: `docs/CMS_DESIGN.md` (nuovo), `docs/THREAT_MODEL.md` (nuovo), `docs/CAMPI_CONTENUTI.md`, `docs/DECISIONS.md`, `docs/MISSING_DATA.md`, `docs/RISPOSTE_UTENTE.md`, `docs/TODO.md`, `docs/SESSION_STATE.md`, `docs/PLAN.md`, `prompts/README.md`. Il codice del prompt 15 è già nel commit `c424b28`.
 - `vendor/` e `.phpunit.cache/` locali, `storage/mail/` per `MAIL_TRANSPORT=log` (ignorati da Git). Il `.env` locale usa `MAIL_TRANSPORT=log`; i recapiti `PUBLIC_*` e `WHATSAPP_NUMBER` locali sono vuoti.
 - `.env` locale con password DB casuali di sviluppo (ignorato). Le migrazioni `0006` e `0007` sono già applicate al database di sviluppo e a quello di test.
 - Password admin locale impostata dall'utente; volumi Docker vecchi puliti dall'utente. I container Docker sono in esecuzione (avviati in questa sessione).
 
 ## Test/comandi più recenti
 
-`docker compose exec web composer test` → **905 test, 10917 asserzioni, PASS** (7 min 10 s: 397 unit, 291 integrazione, 203 http, 14 concorrenza); con `--order-by=random` (seme `1791401578`): 905 test, PASS. Dettagli in `docs/TEST_REPORT.md` (sezione Prompt 15). Ultima migrazione: `0007_data_constraints`.
+`docker compose exec -u www-data web composer test` (baseline del prompt 16, prima di modificare i documenti) → **906 test, 10919 asserzioni, PASS** (7 min 57 s). Nessun test rieseguito dopo: il prompt 16 ha cambiato solo documenti. Ultimo giro in ordine casuale: prompt 15, seme `1791401578`, 905 test PASS. Dettagli in `docs/TEST_REPORT.md` (sezioni Prompt 16 e 15). Ultima migrazione: `0007_data_constraints`. **Eseguire i comandi nel container con `-u www-data`** (altrimenti si creano file di `root` che Apache non può scrivere).
 
 ## Blocchi aperti
 
 1. Hosting di produzione non scelto (requisiti minimi in `docs/COMMANDS.md`; per le email servono la cartella `vendor/` caricata e, se possibile, PHP-FPM e cron; con proxy inverso verificare che `REMOTE_ADDR` sia l'IP del cliente per il rate limit: scelta D4 = A, `TRUSTED_PROXIES` non introdotta).
 2. **Credenziali SMTP reali non fornite**: finché mancano, le email restano in coda e la consegna reale non è verificata.
-3. Dati mancanti: vedi `docs/MISSING_DATA.md` (listino, foto, testi, recapiti, WhatsApp, `APP_SECRET`).
+3. Dati mancanti: vedi `docs/MISSING_DATA.md` (listino, foto, testi, recapiti, WhatsApp, `APP_SECRET`, paesi degli ospiti, estensioni PHP dell'hosting).
 4. Decisione P4 (`legacy/`): aperta, da chiudere nel prompt 28 (i file tracciati sono già stati rimossi il 2026-10-06). Nel repository esiste ancora una cartella locale `legacy/` non tracciata, che non è stata aperta.
 5. Finding della review con parte residua in altre fasi: `docs/TODO.md`, sezione "Finding della review 2026-10-07" (voci `[~]`).
 
@@ -62,9 +59,10 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4,
 
 ## Prossimo passo esatto
 
-1. L'utente rivede le modifiche del prompt 15 ed esegue il "Prova tu" (riepilogo finale di questa sessione); dice esplicitamente in chat se committare (nessun commit, push o deploy senza una sua frase).
-2. Poi `prompts/16_CONTENT_MODEL_DESIGN.md` (progetto della gestione contenuti), in un nuovo ramo `fase-16-content-model` (partendo da `fase-15-existing-fixes`); le sue domande D1–D14 vanno prima all'utente.
-3. Le attività del titolare (contenuti, autorizzazioni, hosting) restano indicate in `docs/TODO.md` e `docs/RELEASE_GUIDE.md`.
+1. L'utente rivede `docs/CMS_DESIGN.md`, `docs/THREAT_MODEL.md` e le correzioni in testa a `docs/CAMPI_CONTENUTI.md`, e dice esplicitamente in chat se committare (nessun commit, push o deploy senza una sua frase).
+2. Poi `prompts/17_ADMIN_ACCOUNT_NO_SSH.md` (cambio password dall'admin senza SSH), in un nuovo ramo `fase-17-admin-account` (partendo da `fase-16-content-model`); le sue domande D1–D6 vanno prima all'utente. Prima di iniziare il 17 leggere `docs/CMS_DESIGN.md` §7–§9 e la tabella Account di `CAMPI_CONTENUTI.md`.
+3. Promemoria per i prompt 19 e 26 (consenso per l'immagine Docker, conferma sul master delle foto, eccezione ad `AGENTS.md` per l'SMTP): `docs/TODO.md`.
+4. Le attività del titolare (contenuti, autorizzazioni, hosting) restano indicate in `docs/TODO.md` e `docs/RELEASE_GUIDE.md`.
 
 ## Note per il prossimo agente
 
