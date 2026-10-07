@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 # Agriturismo La Volta — sito con richieste di disponibilità
 
 Sito web in **PHP + MySQL/MariaDB** per un agriturismo con sei appartamenti, pensato per un normale **hosting Linux condiviso**. I visitatori consultano gli appartamenti (italiano e inglese) e inviano una **richiesta di disponibilità**; il gestore la conferma o la rifiuta dall'area amministrativa. **Non ci sono pagamenti online né account per gli ospiti.**
+=======
+# Agriturismo La Volta 
+>>>>>>> 9455058276e776fa5332d8206796d7a428093f04
 
 > Stato: sviluppo completato per la parte automatizzabile, **non ancora pubblicato**. Mancano dati e contenuti del titolare e le prove manuali: vedi [Stato e limiti](#stato-e-limiti).
 
@@ -39,6 +43,7 @@ Vedi [`docs/INSTALL_SHARED_HOSTING.md`](docs/INSTALL_SHARED_HOSTING.md): requisi
 
 Tutto in variabili d'ambiente o nel file `.env` (mai nel repository). L'esempio commentato è [`.env.example`](.env.example).
 
+<<<<<<< HEAD
 | Gruppo | Variabili |
 |---|---|
 | Applicazione | `APP_ENV`, `APP_DEBUG`, `APP_URL`, `APP_TIMEZONE`, `APP_SECRET` |
@@ -48,6 +53,8 @@ Tutto in variabili d'ambiente o nel file `.env` (mai nel repository). L'esempio 
 | Sicurezza e privacy | `HSTS_MAX_AGE` (solo con `APP_URL` https), `PUBLIC_FORM_MIN_SECONDS`, `DATA_RETENTION_MONTHS` |
 
 ## Struttura del progetto
+=======
+>>>>>>> 9455058276e776fa5332d8206796d7a428093f04
 
 ```text
 public/            unica cartella raggiungibile dal web (index.php, assets/)
