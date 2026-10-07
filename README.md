@@ -71,9 +71,6 @@ Prima di modificare il progetto:
 
 Non lanciare tutti i prompt in sequenza automaticamente. Ogni prompt è una **fase con stop condition**. La fase successiva parte solo quando lo stato corrente è coerente e i test pertinenti sono stati realmente eseguiti oppure i blocchi sono documentati.
 
-## Se cambi AI
-
-Non ricominciare da zero. Usa `prompts/95_AGENT_HANDOFF.md`. Il nuovo agente deve leggere almeno `AGENTS.md`, `docs/SESSION_STATE.md`, `docs/DECISIONS.md`, `docs/TODO.md`, `docs/TEST_REPORT.md`, `docs/MISSING_DATA.md` e il diff Git corrente.
 
 ## Nessun deploy automatico
 
