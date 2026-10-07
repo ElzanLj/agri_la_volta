@@ -24,6 +24,45 @@ final class AdminAccessTest extends HttpTestCase
         ));
     }
 
+    /**
+     * Every admin route that exists, reviewed one by one: all of them sit behind the three guards of the
+     * /admin prefix (no-store, authentication, CSRF on writes) and are exercised by the tests below. A route
+     * added in app/routes_admin.php must be added here too: that is the moment someone looks at it.
+     */
+    private const REVIEWED_ADMIN_ROUTES = [
+        'GET /admin', 'GET /admin/login', 'POST /admin/login', 'POST /admin/logout',
+        'GET /admin/richieste', 'GET /admin/richieste/{id}', 'POST /admin/richieste/{id}/conferma',
+        'GET /admin/richieste/{id}/rifiuta', 'POST /admin/richieste/{id}/rifiuta',
+        'GET /admin/prenotazioni', 'GET /admin/prenotazioni/nuova', 'POST /admin/prenotazioni', 'GET /admin/prenotazioni/{id}',
+        'GET /admin/prenotazioni/{id}/cancella', 'POST /admin/prenotazioni/{id}/cancella',
+        'GET /admin/prenotazioni/{id}/bozza-cancellazione', 'POST /admin/prenotazioni/{id}/bozza-cancellazione',
+        'GET /admin/email', 'POST /admin/email/{id}/riprova',
+        'GET /admin/blocchi', 'POST /admin/blocchi', 'POST /admin/blocchi/{id}/rimuovi',
+        'GET /admin/calendario',
+        'GET /admin/appartamenti', 'GET /admin/appartamenti/{id}', 'POST /admin/appartamenti/{id}',
+        'GET /admin/listino', 'GET /admin/listino/tariffe/nuova', 'POST /admin/listino/tariffe', 'GET /admin/listino/tariffe/{id}',
+        'POST /admin/listino/tariffe/{id}', 'POST /admin/listino/tariffe/{id}/elimina',
+        'GET /admin/listino/regole/nuova', 'POST /admin/listino/regole', 'GET /admin/listino/regole/{id}',
+        'POST /admin/listino/regole/{id}', 'POST /admin/listino/regole/{id}/elimina',
+        'GET /admin/storico',
+        'GET /admin/export', 'GET /admin/export/richieste.csv', 'GET /admin/export/prenotazioni.csv',
+    ];
+
+    public function testEveryAdminRouteIsInTheReviewedMatrix(): void
+    {
+        $actual = array_map(static fn (array $r): string => $r['method'] . ' ' . $r['pattern'], $this->adminRoutes());
+        sort($actual);
+        $expected = self::REVIEWED_ADMIN_ROUTES;
+        sort($expected);
+
+        self::assertSame(
+            [],
+            array_values(array_diff($actual, $expected)),
+            'These admin routes are not in REVIEWED_ADMIN_ROUTES: check that they are protected and covered by the access tests, then list them.',
+        );
+        self::assertSame([], array_values(array_diff($expected, $actual)), 'These reviewed routes no longer exist: remove them from the list.');
+    }
+
     public function testRouteEnumerationIsNotVacuous(): void
     {
         $routes = $this->protectedRoutes();

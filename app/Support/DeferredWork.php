@@ -16,9 +16,26 @@ final class DeferredWork
     /** @var list<callable(): void> */
     private static array $jobs = [];
 
+    /**
+     * The function that closes the connection to the client, when the server has one: PHP-FPM
+     * (fastcgi_finish_request) or LiteSpeed (litespeed_finish_request).
+     *
+     * @param (callable(string): bool)|null $exists injectable for tests (defaults to function_exists)
+     */
+    public static function finishFunction(?callable $exists = null): ?string
+    {
+        $exists ??= 'function_exists';
+        foreach (['fastcgi_finish_request', 'litespeed_finish_request'] as $name) {
+            if ($exists($name)) {
+                return $name;
+            }
+        }
+        return null;
+    }
+
     public static function available(): bool
     {
-        return function_exists('fastcgi_finish_request');
+        return self::finishFunction() !== null;
     }
 
     /** @param callable(): void $job */
@@ -41,7 +58,10 @@ final class DeferredWork
         $jobs = self::$jobs;
         self::$jobs = [];
 
-        $finishRequest ??= self::available() ? 'fastcgi_finish_request' : null;
+        // A visitor who closes the page must not stop the jobs halfway (an e-mail left in "sending").
+        ignore_user_abort(true);
+
+        $finishRequest ??= self::finishFunction();
         if ($finishRequest !== null) {
             try {
                 $finishRequest();

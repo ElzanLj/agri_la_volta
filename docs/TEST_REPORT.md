@@ -98,6 +98,50 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Prompt 15 — correzioni dell'esistente (2026-10-07)
+
+Ramo `fase-15-existing-fixes`; PHP 8.2.34, MariaDB 10.11 (container `mariadb:10.11`), database di test `agriturismo_test`. MySQL 8 non provato (prompt 28).
+
+**Baseline prima delle modifiche** (ramo `fase-14-state-sync`): `docker compose exec web composer test` → 791 test, 10055 asserzioni, PASS (6 min 34 s); `composer test -- --order-by=random`, seme `1791397690` → 791 test, 10054 asserzioni, PASS.
+
+**Dopo le modifiche:**
+
+| Comando | Esito |
+|---|---|
+| `docker compose exec web composer test` (unit, integration, http, concurrency) | **905 test, 10917 asserzioni, PASS** (7 min 10 s). Per suite: unit 397, integration 291, http 203, concurrency 14 |
+| `docker compose exec web composer test -- --order-by=random`, seme `1791401578` | **905 test, 10917 asserzioni, PASS** (6 min 59 s). Eseguita prima dell'ultima modifica, di una riga, a un test (`sleep(1)` in `testAFreshFormWithTheSameDataIsAGenuinelyNewRequest`) |
+
+Nuovi: 114 test. Non eseguiti (**NOT RUN**): MySQL 8.0/8.4, PHP-FPM e LiteSpeed reali (si prova solo la funzione di chiusura della risposta, con un finto `finish_request`), Apache con `AllowOverride` ridotto (i `.htaccess` di negazione sono verificati nel contenuto, non nel comportamento di un server che li ignora), hosting reale.
+
+**Dopo il giro completo (segnalazione dell'utente, stesso giorno):** con il file di log del giorno di proprietà di `root` (creato da comandi eseguiti nel container come root) il login e il modulo di disponibilità davano "Fatal error ... Permission denied" in `Logger.php`. Causa: un errore di scrittura del log diventava un'eccezione. Corretto (il `Logger` ripiega su `error_log`), aggiunto `HardeningUnitTest::testALogFileThatCannotBeWrittenNeverBreaksThePage` (riprodotto prima della correzione), file riportati a `www-data`, login e pagina della richiesta provati su Apache. Eseguiti dopo la correzione: `tests/Unit/HardeningUnitTest.php` (25 test, PASS). **La suite completa (ora 906 test) non è stata rieseguita dopo questa modifica.**
+
+**Un test fragile trovato e corretto:** il primo giro completo in ordine normale ha avuto 1 fallimento (`testAFreshFormWithTheSameDataIsAGenuinelyNewRequest`). Il token del modulo contiene l'ora in secondi: due caricamenti della pagina nello stesso secondo hanno lo stesso token e sono (correttamente) lo stesso modulo. Nessuna persona può farlo; il test ora aspetta un secondo. Limite documentato in `DECISIONS`.
+
+**Test esistenti adattati** (non c'erano altre modifiche a test già presenti):
+- rifiuto con POST diretto: `AdminActionsTest`, `AdminCsrfTest`, `AdminMailTest`, `EndToEndTest` ora inviano `conferma=1`, come fa la pagina di conferma; in `AdminCsrfTest::testActionUrlsCannotBeTriggeredWithGet` l'indirizzo `/rifiuta` non è più "solo POST" (risponde alla GET con la pagina di conferma, che non scrive);
+- `BlocksCancellationTest` (2 test): lo Storico ora contiene `reason_present`, non il testo;
+- `SecurityIntegrationTest::testTheKeyedHashStillCountsPerClient`: usa `attempt()` (registra poi conta);
+- `AdminSessionTest::testSessionCookieIsSecureWhenTheSiteRunsOverHttps`: la richiesta porta l'`Host` del sito (un indirizzo diverso da `APP_URL` viene reindirizzato);
+- `PublicRequestFlowTest::testReceivedPageShowsOnlyAWellFormedReference`: la pagina mostra solo il riferimento di una richiesta reale.
+
+**Nuovi test per area:**
+
+| Area | File | Cosa prova |
+|---|---|---|
+| Migrazioni | `Unit/MigratorTest`, `Integration/MigratorDatabaseTest` | `;`, `--` e apici dentro i testi riletti identici dal database; commenti; solo `NNNN_nome.sql`; lock (una sola applicazione con 3 processi insieme, lock rilasciato dopo un errore); `CHECKSUMS` e sua violazione deliberata |
+| Vincoli | `Integration/DataConstraintsTest`, `DataConstraintsMigrationTest` | ogni `CHECK` rifiuta lo stato impossibile e accetta i validi; la `0007` si ferma **senza cambiare nulla** con dati incoerenti e passa dopo la correzione; flussi normali e strumenti privacy intatti |
+| Coerenza | `Integration/ConsistencyCheckerTest` | una voce per tipo di problema; database sano e attività normale = nessun risultato; sola lettura; codici di uscita del comando |
+| Storico / privacy | `Integration/AuditPrivacyTest` | dopo `erase` nessuna colonna di testo di nessuna tabella contiene il nome (scansione di `information_schema`); stesso test per i blocchi; pulizia delle voci vecchie, ripetibile; chiave di invio azzerata |
+| Rifiuto | `Http/AdminActionsTest` (4 test) | POST diretto = nessuna modifica; anteprima uguale all'email realmente accodata; pagina non disponibile per richieste già decise o inesistenti; pulsanti separati |
+| Doppio invio e limiti | `Http/ExistingFixesTest`, `Concurrency/ConcurrencyTest` (3 test) | stesso modulo inviato due volte = una richiesta e una email; 8 invii simultanei = una richiesta, stessa risposta; 20 tentativi in parallelo: mai oltre il limite; `X-Forwarded-For` falsi non aggirano né i moduli né il login |
+| Host, ricevuta, caratteri | `Unit/CanonicalHostTest`, `Http/ExistingFixesTest` | 301 con percorso e query, target mai dall'header `Host`, nessun redirect per POST/senza `APP_URL`/con `X-Forwarded-Host`; riferimento mostrato solo se reale e recente; caratteri invisibili tolti |
+| Piccole correzioni | `Unit/HardeningUnitTest` | `APP_ENV` (`prod`, `PRODUCTION`, ` production`, vuoto = produzione); log del database senza email né credenziali; cartella log non scrivibile → `error_log`; funzione di chiusura (FPM/LiteSpeed) e `ignore_user_abort`; IP del client sempre `REMOTE_ADDR` |
+| Guardiani | `Unit/ArchitectureGuardTest`, `Unit/MigratorTest`, `Http/AdminAccessTest` | ogni `<?=` dei template è escapato o su un elenco rivisto (riconosce in modo strutturale "condizione ? testo fisso : testo fisso"); nessuna funzione che esegue comandi o codice in `app/` e `public/`; nessun indirizzo esterno in `templates/` e `public/`; `.htaccess` di negazione presenti; nessun Node; rotte admin in una matrice rivista |
+
+**Prove di sensibilità** (violazione introdotta di proposito, il test deve fallire; file ripristinati e verificati): migrazione già rilasciata modificata, valore non escapato in un template, `shell_exec` in `app/`, script da un indirizzo esterno in un template, rotta admin nuova non rivista, rate limit che conta prima di registrare, chiave di invio disattivata, Storico che copia di nuovo il motivo, migrazioni senza lock, rifiuto senza passaggio di conferma, redirect all'host spento, `APP_ENV` non più riportato a produzione → **12 su 12 rilevate**.
+
+**Altre verifiche:** le migrazioni `0001`–`0007` importate a mano, file per file, in un database vuoto (come farebbe phpMyAdmin): 12 tabelle, 7 versioni registrate, 3 vincoli presenti. Scansione segreti del diff: solo nomi di variabile, commenti e testi (nessun `.env*` nel diff).
+
 ## Preparazione al rilascio, senza deploy (vecchio prompt 14, oggi 31, 2026-10-07)
 
 Obiettivo: preparare istruzioni e controlli per una futura pubblicazione autorizzata, senza modificare né contattare servizi esterni. Documento: `docs/RELEASE_GUIDE.md`. Nuovo strumento: `bin/check-production.php` (classe `App\Support\ProductionCheck`), di **sola lettura**.

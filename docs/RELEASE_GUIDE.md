@@ -94,7 +94,7 @@ Nessuno di questi passaggi va eseguito senza un "sì" esplicito del titolare. L'
 ## 4. Hosting e database ⚠ A1, A2
 
 1. Dal pannello creare un database **vuoto** (`utf8mb4_unicode_ci`) e un utente con privilegi solo su quel database. Non importare dati reali di altro tipo (A7).
-2. Importare **in ordine** `migrations/0001_initial_schema.sql` … `0005_apartment_amenities.sql` (phpMyAdmin → *Importa*, `utf8mb4`) oppure `php bin/migrate.php` se c'è SSH ✔ (verificato: 12 tabelle, 6 appartamenti, nessun prezzo).
+2. Importare **in ordine** `migrations/0001_initial_schema.sql` … `0007_data_constraints.sql` (phpMyAdmin → *Importa*, `utf8mb4`) oppure `php bin/migrate.php` se c'è SSH ✔ (verificato: 12 tabelle, 6 appartamenti, nessun prezzo).
 3. Creare l'amministratore: `php bin/create-admin.php admin` oppure l'inserimento SQL con hash generato in locale ✔ (`docs/INSTALL_SHARED_HOSTING.md` §6).
 4. **Non ripristinare mai** un backup di sviluppo o di test sul database di produzione.
 

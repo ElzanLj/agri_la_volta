@@ -38,7 +38,7 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [x] Architettura finale → `docs/ARCHITECTURE.md`
 - [x] Struttura progetto → `README.md`, `docs/ARCHITECTURE.md`
 - [x] Schema database → `docs/ARCHITECTURE.md` (12 tabelle), `migrations/`
-- [x] Migrazioni SQL → `migrations/0001`–`0005`, importate da zero in un database vuoto: 12 tabelle, `bin/migrate.php --status` tutte applicate
+- [x] Migrazioni SQL → `migrations/0001`–`0007`, importate da zero in un database vuoto (anche a mano, file per file, come farebbe phpMyAdmin, verificato il 2026-10-07): 12 tabelle, `bin/migrate.php --status` tutte applicate
 - [x] Configurazioni richieste → `README.md`, `docs/INSTALL_SHARED_HOSTING.md` §5
 - [x] `.env.example` → commentato, senza segreti
 - [x] Sviluppo locale → `README.md`, `docs/COMMANDS.md`

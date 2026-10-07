@@ -16,6 +16,7 @@ use App\Http\Response;
 use App\Http\View;
 use App\Repository\ApartmentRepository;
 use App\Repository\AvailabilityRepository;
+use App\Repository\BookingRepository;
 use App\Security\OriginCheck;
 use App\Security\RateLimiter;
 use App\Site\FormToken;
@@ -39,6 +40,8 @@ final class RequestFlowController extends SitePage
     private const RATE_MAX = 6;
     private const RATE_WINDOW_SECONDS = 3600;
     private const HONEYPOT = 'contact_website';
+    /** How long after sending a request its reference is still shown on the "received" page. */
+    private const RECEIVED_MINUTES = 15;
 
     private const SEARCH_FIELDS = ['check_in', 'check_out', 'adults', 'children', 'pets'];
     private const CUSTOMER_FIELDS = ['first_name', 'last_name', 'email', 'phone', 'notes'];
@@ -149,19 +152,24 @@ final class RequestFlowController extends SitePage
 
         $limiter = new RateLimiter($this->app->db());
         $client = $request->ip();
-        if ($limiter->tooManyAttempts(self::RATE_BUCKET, $client, self::RATE_MAX, self::RATE_WINDOW_SECONDS)) {
+        // Recorded first, then counted: parallel submissions cannot all slip under the limit.
+        if (!$limiter->attempt(self::RATE_BUCKET, $client, self::RATE_MAX, self::RATE_WINDOW_SECONDS)) {
             $this->app->logger->warning('Public request rate limited');
             return $this->problemPage($locale, 'flow.error.too_many', 429);
         }
-        $limiter->hit(self::RATE_BUCKET, $client);
 
         $apartment = $this->bookableApartment($values, $locale);
         if ($apartment === null) {
             return $this->redirect('request.apartments', $locale, $this->searchQuery($values));
         }
 
+        $input = $this->serviceInput($values, $apartment, $locale, $request->input('privacy_accepted') === '1');
+        // The same form (same token) sent twice with the same data is one request: double click, slow phone.
+        // A page loaded again carries a new token, so a genuinely new request with the same data still works.
+        $input['submission_key'] = self::submissionKey($request->input('_form'), $input);
+
         try {
-            $result = $this->app->services()->bookingService()->createRequest($this->serviceInput($values, $apartment, $locale, $request->input('privacy_accepted') === '1'));
+            $result = $this->app->services()->bookingService()->createRequest($input);
         } catch (ValidationException $e) {
             $errors = $this->translate($e->errors(), $locale, $e->context());
             if (array_keys($errors) === ['privacy_accepted']) {
@@ -181,12 +189,18 @@ final class RequestFlowController extends SitePage
 
     public function received(Request $request, string $locale): Response
     {
+        // The reference is shown only when it belongs to a request that really exists and was made a few
+        // minutes ago. Any other value in the address (a made-up reference, a link in an e-mail that
+        // someone fabricated) gets the generic text, so the page cannot be used to display text of choice.
         $reference = $request->query('rif');
+        $known = preg_match('/^[A-Z0-9][A-Z0-9-]{3,19}\z/', $reference) === 1
+            ? (new BookingRepository($this->app->db()))->recentRequestReference($reference, self::RECEIVED_MINUTES)
+            : null;
         return $this->render('request/received', $locale, 'request.received', [
             'title' => Text::get('flow.received.title', $locale),
             'noindex' => true,
             'private' => true,
-            'reference' => preg_match('/^[A-Z0-9][A-Z0-9-]{3,19}\z/', $reference) ? $reference : null,
+            'reference' => $known,
         ]);
     }
 
@@ -387,6 +401,19 @@ final class RequestFlowController extends SitePage
     private function searchQuery(array $values): array
     {
         return array_filter(array_intersect_key($values, array_flip(self::SEARCH_FIELDS)), static fn (string $v): bool => $v !== '');
+    }
+
+    /**
+     * Hash of the form token and of everything the guest sent (never the consent flag, which is part
+     * of the same form). The key is stored with the request and cleared when it is anonymised.
+     *
+     * @param array<string, mixed> $input
+     */
+    private static function submissionKey(string $token, array $input): string
+    {
+        unset($input['privacy_accepted']);
+        ksort($input);
+        return hash('sha256', $token . '|' . json_encode($input, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     }
 
     /**

@@ -49,6 +49,16 @@ docker compose down            # ferma i container; i dati restano nel volume db
 
 `docker compose down -v` **cancella** il database locale (volume `db_data`).
 
+### Permessi dei file creati nel container (solo sviluppo)
+
+`docker compose exec web ...` esegue i comandi come **root**, mentre Apache usa `www-data`. Se un comando o un test crea per primo il file di log del giorno (`storage/logs/app-AAAA-MM-GG.log`) o una sessione, il file resta di root e Apache non può più scriverci. Il sito non si rompe più (il `Logger` ripiega su `error_log`), ma il log del giorno non viene scritto. Per rimediare:
+
+```bash
+docker compose exec web chown -R www-data:www-data storage
+```
+
+Per evitarlo, lancia i comandi come `www-data`: `docker compose exec -u www-data web php bin/migrate.php`.
+
 ## Database / migrazioni
 
 ```bash
@@ -59,6 +69,33 @@ php bin/migrate.php --status   # [x] applicata / [ ] da applicare
 - File in `migrations/NNNN_descrizione.sql`, applicati una sola volta (tabella `schema_migrations`).
 - Ogni file termina con `INSERT IGNORE INTO schema_migrations ...`: su hosting senza riga di comando si possono importare i file **in ordine** da phpMyAdmin e `bin/migrate.php` li riconoscerà come già applicati.
 - Le migrazioni sono **solo in avanti**: MySQL/MariaDB confermano le istruzioni DDL una per una, quindi non esiste rollback automatico.
+
+### Formato e protezioni delle migrazioni
+
+- Contano solo i file `NNNN_nome.sql` (quattro cifre, nome in minuscolo con `a-z`, cifre e `_`), con numeri consecutivi. Qualsiasi altro file in `migrations/` viene ignorato (e un test segnala quelli con un nome diverso).
+- Un'istruzione termina con un `;` **fuori da testo tra apici, virgolette, backtick e commenti**: un `;` o una riga che inizia con `--` dentro un testo non spezza la query. I commenti `-- `, `#` e `/* */` vengono ignorati.
+- **Due esecuzioni insieme sono impossibili**: `bin/migrate.php` prende un lock del database (`GET_LOCK`). La seconda esecuzione si ferma subito con "Another migration run is in progress"; riprova quando la prima ha finito.
+- **Una migrazione rilasciata non si modifica mai**: `migrations/CHECKSUMS` elenca l'impronta SHA-256 di ogni file (a capo normalizzati) e un test fallisce se un file cambia o se ne manca la riga. Per modificare lo schema si crea un file nuovo col numero successivo, poi `php bin/migration-checksums.php` ne aggiunge la riga (aggiunge soltanto, non riscrive le esistenti).
+- Alcune migrazioni controllano i dati **prima** di partire. Esempio: la `0007` aggiunge vincoli e, se nel database ci sono righe che li violano, si ferma con un messaggio che dice cosa correggere e **non modifica nulla**.
+
+### Migrazione interrotta a metà
+
+Una migrazione che fallisce a metà lascia applicate le istruzioni già eseguite e **non** viene registrata come applicata. Prima di riprovare:
+
+1. leggi l'errore (nome del file e istruzione);
+2. con `php bin/migrate.php --status` verifica che il file sia ancora `[ ]`;
+3. guarda nel database cosa è già cambiato (tabelle e colonne create dal file) e annulla a mano le istruzioni già eseguite, oppure ripristina il backup fatto prima di migrare (consigliato);
+4. correggi la causa e riesegui `php bin/migrate.php`.
+
+Non cancellare mai righe da `schema_migrations` per "forzare" un file già applicato.
+
+### Coerenza dei dati
+
+```bash
+php bin/check-consistency.php   # sola lettura; esce con 0 se tutto è coerente, 1 se trova qualcosa, 2 se non riesce a controllare
+```
+
+Cerca: prenotazioni confermate sovrapposte nello stesso appartamento, prenotazioni sovrapposte a un blocco, richieste "confermate" senza prenotazione confermata, prenotazioni attive collegate a una richiesta non confermata, email rimaste in invio oltre il tempo consentito. Stampa solo numeri e riferimenti, **non corregge nulla**: serve capire la causa. La pagina nell'admin e l'avviso in dashboard arrivano con il prompt 26.
 
 ### Backup e ripristino (strategia)
 
@@ -164,6 +201,21 @@ php bin/privacy.php purge --months=24 --apply
 
 Richieste in attesa e soggiorni non ancora finiti vengono saltati e segnalati (`--include-active` per includerli in `erase`). Senza `--months` il comando usa `DATA_RETENTION_MONTHS`; se è vuota non fa nulla. I backup del database non vengono modificati.
 
+Storico: da ottobre 2026 lo Storico non copia più il testo libero dei motivi (registra solo "motivo presente: sì/no"). Per ripulire le voci scritte da versioni precedenti:
+
+```bash
+php bin/privacy.php audit-clean            # simula: quante voci contengono un motivo scritto a mano
+php bin/privacy.php audit-clean --apply    # le sostituisce con "motivo presente"; si può ripetere senza danni
+```
+
+Un'anonimizzazione toglie anche la chiave di invio del modulo (un hash derivato dai dati dell'ospite).
+
+Client e proxy: il limite dei tentativi usa **solo** l'indirizzo della connessione (`REMOTE_ADDR`); gli header `X-Forwarded-For`, `CF-Connecting-IP` e simili vengono ignorati perché chiunque può falsificarli. Se l'hosting mette un proxy davanti al sito, tutti i visitatori sembreranno avere lo stesso indirizzo e condivideranno i limiti: va verificato sull'hosting scelto (l'avviso in "Stato del sistema" arriva con il prompt 26).
+
+Host canonico: se `APP_URL` è impostato, le richieste GET/HEAD verso un altro nome di dominio (per esempio senza `www`) ricevono un redirect 301 verso l'host di `APP_URL`, mantenendo percorso e parametri. Non c'è redirect se `APP_URL` è vuoto, per i POST o se la richiesta porta `X-Forwarded-Host` (un proxy che riscrive `Host` creerebbe un ciclo: in quel caso lascia `APP_URL` vuoto). Il passaggio da http a https resta compito dell'hosting.
+
+`APP_ENV` accetta solo `production`, `development`, `testing`; qualsiasi altro valore (anche `prod` o `Production`) vale `production` e viene segnalato nel log.
+
 Variabili: `HSTS_MAX_AGE` (secondi, solo con `APP_URL` https, 0 disattiva), `DATA_RETENTION_MONTHS`, `APP_SECRET`. Revisione completa in `docs/SECURITY_REVIEW.md`.
 
 ## Controllo di produzione
@@ -204,5 +256,7 @@ Test HTTP manuali con `curl` (vedi `docs/TEST_REPORT.md`). Nessuna suite automat
 ## Note hosting condiviso
 
 - Document root su `public/` quando il pannello lo consente; altrimenti caricare il progetto nella root del sito: il `.htaccess` principale reindirizza tutto in `public/` e rende irraggiungibili `.env`, `app/`, `migrations/`, `storage/` ecc. Se `mod_rewrite` manca, il sito risponde 403 invece di esporre file.
+- Le cartelle private (`storage/`, `app/`, `migrations/`, `bin/`, `templates/`, `content/`, `docs/`, `prompts/`, `tests/`, `docker/`) contengono un `.htaccess` che nega ogni accesso. È una **difesa parziale**: funziona solo se il server legge i `.htaccess`. Se l'hosting li ignora, queste cartelle sono raggiungibili: la difesa vera è puntare il document root a `public/`, e la verifica va fatta con richieste HTTP reali (`docs/RELEASE_GUIDE.md`; controllo automatico in "Stato del sistema" nel prompt 26 e verifica dopo la pubblicazione nel prompt 32).
+- Con server LiteSpeed, l'invio delle email dopo la risposta funziona come con PHP-FPM (`litespeed_finish_request`).
 - `storage/logs/` e `storage/sessions/` devono essere scrivibili da PHP.
 - Variabili d'ambiente reali del pannello hosting, se presenti, prevalgono su `.env`.

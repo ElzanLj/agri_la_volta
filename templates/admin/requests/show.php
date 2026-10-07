@@ -72,16 +72,14 @@ $nights = (int) (new DateTimeImmutable((string) $row['check_in']))->diff(new Dat
 <?php if ($row['status'] === 'pending'): ?>
 <h2>Decisione</h2>
 <p>Confermare crea la prenotazione e occupa le date; il sistema ricontrolla la disponibilità al momento della conferma. Alla decisione il cliente riceve un'email (se l'invio fallisce la decisione resta comunque salvata).</p>
-<div class="actions">
-    <form method="post" action="<?= e(url('/admin/richieste/' . $row['id'] . '/conferma')) ?>">
-        <?= csrf_field() ?>
-        <button type="submit" class="button">Conferma richiesta</button>
-    </form>
-    <form method="post" action="<?= e(url('/admin/richieste/' . $row['id'] . '/rifiuta')) ?>">
-        <?= csrf_field() ?>
-        <button type="submit" class="button button-secondary">Rifiuta richiesta</button>
-    </form>
-</div>
+<form method="post" action="<?= e(url('/admin/richieste/' . $row['id'] . '/conferma')) ?>">
+    <?= csrf_field() ?>
+    <button type="submit" class="button">Conferma richiesta</button>
+</form>
+
+<h3 class="decision-reject">Non puoi accettare questa richiesta?</h3>
+<p>Il rifiuto avvisa il cliente con un'email. Prima di procedere vedrai il riepilogo e il testo del messaggio.</p>
+<p><a class="button button-danger" href="<?= e(url('/admin/richieste/' . $row['id'] . '/rifiuta')) ?>">Rifiuta la richiesta…</a></p>
 <?php endif; ?>
 
 <?= \App\Http\View::capture('admin/_email_status', ['emails' => $emails]) ?>

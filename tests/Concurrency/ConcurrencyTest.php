@@ -120,6 +120,55 @@ final class ConcurrencyTest extends DatabaseTestCase
         }
     }
 
+    public function testTheSameFormSentManyTimesAtOnceStoresOneRequestAndOneEmail(): void
+    {
+        $key = hash('sha256', 'stesso-modulo');
+        for ($round = 1; $round <= self::ROUNDS; $round++) {
+            $this->resetDatabase();
+            $input = $this->requestInput('2027-06-10', '2027-06-15') + ['submission_key' => $key . ''];
+
+            $results = $this->runParallel(array_fill(0, self::WORKERS, ['action' => 'request', 'params' => ['input' => $input]]));
+
+            $ctx = "round $round";
+            self::assertSame(self::WORKERS, $this->countOk($results), "$ctx: every send gets an answer, none fails: " . json_encode($results));
+            self::assertSame(1, (int) $this->scalar('SELECT COUNT(*) FROM booking_requests'), "$ctx: one request only");
+            self::assertSame(1, (int) $this->scalar("SELECT COUNT(*) FROM email_outbox WHERE type = 'new_request_admin'"), "$ctx: one notification only");
+            $references = array_unique(array_map(static fn (array $r): string => (string) $r['result']['reference'], $results));
+            self::assertCount(1, $references, "$ctx: everyone gets the same reference");
+            self::assertSame(1, count(array_filter($results, static fn (array $r): bool => $r['result']['duplicate'] === false)), "$ctx: exactly one send created it");
+        }
+    }
+
+    public function testDifferentFormsSentAtOnceAreDifferentRequests(): void
+    {
+        $this->resetDatabase();
+        $jobs = [];
+        for ($i = 0; $i < 4; $i++) {
+            $jobs[] = ['action' => 'request', 'params' => ['input' => $this->requestInput('2027-06-10', '2027-06-15') + ['submission_key' => hash('sha256', 'modulo-' . $i)]]];
+        }
+
+        $results = $this->runParallel($jobs);
+
+        self::assertSame(4, $this->countOk($results));
+        self::assertSame(4, (int) $this->scalar('SELECT COUNT(*) FROM booking_requests'));
+    }
+
+    public function testManyParallelAttemptsNeverLetMoreThanTheLimitThrough(): void
+    {
+        for ($round = 1; $round <= 4; $round++) {
+            $this->resetDatabase();
+            $job = ['action' => 'rate_attempt', 'params' => ['bucket' => 'admin_login', 'key' => '203.0.113.9', 'max' => 5, 'window' => 900]];
+
+            $results = $this->runParallel(array_fill(0, 20, $job));
+
+            $allowed = count(array_filter($results, static fn (array $r): bool => ($r['result'] ?? false) === true));
+            self::assertLessThanOrEqual(5, $allowed, "round $round: at most the limit may pass: " . json_encode($results));
+            foreach ($results as $result) {
+                self::assertTrue($result['ok'] ?? false, 'no worker may fail: ' . json_encode($result));
+            }
+        }
+    }
+
     public function testTheSameRequestConfirmedByManyWorkersCreatesOneBooking(): void
     {
         for ($round = 1; $round <= self::ROUNDS; $round++) {

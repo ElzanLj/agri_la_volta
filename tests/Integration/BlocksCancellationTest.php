@@ -92,7 +92,11 @@ final class BlocksCancellationTest extends DatabaseTestCase
         self::assertFalse($this->row('SELECT id FROM availability_blocks WHERE id = ?', [$blockId]));
         $created = $this->row("SELECT * FROM audit_log WHERE entity_type = 'availability_block' AND action = 'created' AND entity_id = ?", [$blockId]);
         $deleted = $this->row("SELECT * FROM audit_log WHERE entity_type = 'availability_block' AND action = 'deleted' AND entity_id = ?", [$blockId]);
-        self::assertSame('manutenzione', json_decode($created['new_values'], true)['reason']);
+        // The history says that a reason was written, never what it was (free text can name a guest).
+        self::assertTrue(json_decode($created['new_values'], true)['reason_present']);
+        self::assertArrayNotHasKey('reason', json_decode($created['new_values'], true));
+        self::assertStringNotContainsString('manutenzione', (string) $created['new_values']);
+        self::assertTrue(json_decode($deleted['old_values'], true)['reason_present']);
         self::assertSame('2027-06-10', json_decode($deleted['old_values'], true)['start_date']);
         self::assertNull($deleted['new_values']);
     }
@@ -198,7 +202,7 @@ final class BlocksCancellationTest extends DatabaseTestCase
 
         $audit = $this->row("SELECT * FROM audit_log WHERE entity_type = 'booking' AND action = 'status_changed' AND entity_id = ?", [$id]);
         self::assertSame(['status' => 'confirmed'], json_decode($audit['old_values'], true));
-        self::assertSame(['status' => 'cancelled', 'reason' => 'motivo'], json_decode($audit['new_values'], true));
+        self::assertSame(['status' => 'cancelled', 'reason_present' => true], json_decode($audit['new_values'], true), 'the history never carries the free text of the reason');
     }
 
     public function testCancellationReasonIsLengthLimited(): void

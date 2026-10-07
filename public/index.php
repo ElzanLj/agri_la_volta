@@ -18,6 +18,15 @@ App\Site\Locale::set(App\Site\Locale::fromPath($request->path));
 try {
     if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > MAX_REQUEST_BYTES) {
         $response = View::error(413);
+    } elseif (($canonical = App\Http\CanonicalHost::redirectTarget(
+        $app->config->string('APP_URL'),
+        $request->header('Host'),
+        $request->method,
+        (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+        $request->header('X-Forwarded-Host') !== '',
+    )) !== null) {
+        // The site answers on another host name than the one in APP_URL: one address for everyone.
+        $response = Response::redirect($canonical, 301);
     } elseif ($request->method === 'GET' && $request->path !== '/' && str_ends_with($request->path, '/')) {
         // One canonical URL per page: no trailing slash.
         $response = Response::redirect(url(rtrim($request->path, '/')), 301);

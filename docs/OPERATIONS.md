@@ -69,6 +69,8 @@ php bin/privacy.php erase mario.rossi@example.com --apply    # esegue
 php bin/privacy.php purge --months=24 --apply                # anonimizza i soggiorni terminati da più di 24 mesi
 ```
 
+Lo Storico non conserva più il testo libero dei motivi (solo "motivo presente"). Per ripulire le voci vecchie: `php bin/privacy.php audit-clean` (simula) e `--apply`. Un controllo di coerenza dei dati si lancia con `php bin/check-consistency.php` (sola lettura).
+
 L'anonimizzazione toglie nome, email, telefono, note e testi di email, ma **conserva** appartamento, date e prezzo del soggiorno (le date restano occupate). Richieste in attesa e soggiorni non ancora finiti vengono saltati e segnalati. Il **periodo di conservazione lo decide il titolare** (con un consulente): finché `DATA_RETENTION_MONTHS` è vuoto non viene fatto nulla in automatico. Dettagli in `docs/COMMANDS.md`.
 
 ## 7. Email in coda
@@ -79,7 +81,7 @@ L'anonimizzazione toglie nome, email, telefono, note e testi di email, ma **cons
 
 1. **Backup** del database (§2) e nota della versione attuale.
 2. Carica i file nuovi (stesse regole del §2 dell'installazione; non sovrascrivere `.env` né `storage/`).
-3. Se la nuova versione contiene migrazioni (`migrations/`): importale **in ordine** (`php bin/migrate.php`, o phpMyAdmin con i soli file nuovi).
+3. Se la nuova versione contiene migrazioni (`migrations/`): importale **in ordine** (`php bin/migrate.php`, o phpMyAdmin con i soli file nuovi). `bin/migrate.php` impedisce due esecuzioni insieme e, per la migrazione dei vincoli (`0007`), controlla i dati prima di partire; con phpMyAdmin questi controlli non ci sono. Se una migrazione si interrompe: `docs/COMMANDS.md`, "Migrazione interrotta a metà".
 4. Esegui la prova di fumo (`docs/INSTALL_SHARED_HOSTING.md` §10).
 5. **Rollback**: le migrazioni vanno solo in avanti. Per tornare indietro ripristina il backup del database del punto 1 e ricarica i file della versione precedente.
 

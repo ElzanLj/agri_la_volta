@@ -145,6 +145,24 @@ a {
     background: var(--color-bg);
 }
 
+/* Irreversible actions (e.g. rejecting a request): a different colour from the main button. */
+.button-danger {
+    color: #fff;
+    background: var(--color-error);
+    border-color: var(--color-error);
+}
+
+.button-danger:hover {
+    background: #6b1717;
+}
+
+/* Keeps the destructive choice well away from the main action. */
+.decision-reject {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
 .alert {
     padding: 0.75rem 1rem;
     border-radius: 4px;

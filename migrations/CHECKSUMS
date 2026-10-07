@@ -1,0 +1,11 @@
+# SHA-256 of every released migration (line endings normalised to LF).
+# A released migration must never change: to alter the schema add a new file with the next number.
+# A test (MigrationsGuardTest) fails if a file differs from this list or is missing from it.
+# Add a line for a new migration with: php bin/migration-checksums.php (it only appends missing entries).
+86f596dbeab7bd80dacee318aa50c71c80eb04bf11562f3292183c322cfca32e  0001_initial_schema
+ec0dffc19685d82833625b9de0a5ab221c034aec5649545a50826a14dfa05f78  0002_seed_apartments
+f82e9f4e6d6f8faa66cf706029114808273c0ec150a236e379f847abeb798ea9  0003_pricing
+e0520072eee212a79937188c4206c94f1a6b3026874da235af6b4168135b04ef  0004_email_outbox
+78b9c7aa943b619f2fafb64456f64f3223db1f5de47530168a0d4591395d8d3a  0005_apartment_amenities
+f304b00458b9e397784c8e6031354b2c557df48cbc78d34f7058a3660c6bde75  0006_submission_key
+c63357c9fe5a25b7d0aaa9226959b72fec78b2c4af253cda8afcece0a7c43830  0007_data_constraints

@@ -129,7 +129,7 @@ final class EndToEndTest extends PublicSiteTestCase
         self::assertSame(0, $this->overlapViolations());
 
         // The admin can still refuse the second one.
-        self::assertSame(303, $this->adminPost($admin, '/admin/richieste/' . $ids[1] . '/rifiuta')->status);
+        self::assertSame(303, $this->adminPost($admin, '/admin/richieste/' . $ids[1] . '/rifiuta', ['conferma' => '1'])->status);
         self::assertSame('rejected', $this->scalar('SELECT status FROM booking_requests WHERE id = ?', [$ids[1]]));
         self::assertSame(1, $this->countRows('email_outbox', "type = 'request_rejected'"));
     }

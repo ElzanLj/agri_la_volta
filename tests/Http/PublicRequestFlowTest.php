@@ -425,8 +425,11 @@ final class PublicRequestFlowTest extends PublicSiteTestCase
     public function testReceivedPageShowsOnlyAWellFormedReference(): void
     {
         $client = $this->client();
+        // Only the reference of a request that really exists (and is recent) is shown.
+        $real = $this->service->createRequest($this->requestInput('2027-06-10', '2027-06-15'))['reference'];
 
-        self::assertStringContainsString('ABC234', $client->get(self::path('request.received') . '?rif=ABC234')->body);
+        self::assertStringContainsString($real, $client->get(self::path('request.received') . '?rif=' . $real)->body);
+        self::assertStringNotContainsString('ABC234', $client->get(self::path('request.received') . '?rif=ABC234')->body, 'well formed but not a real reference');
         foreach (['<script>alert(1)</script>', 'abc', 'ABC 234', str_repeat('A', 40), 'ABC234%0A'] as $bad) {
             $body = $client->get(self::path('request.received') . '?rif=' . rawurlencode($bad))->body;
             self::assertStringNotContainsString('Riferimento della richiesta', $body, $bad);

@@ -20,17 +20,37 @@ final class BookingRepository
     {
         $this->db->prepare(
             'INSERT INTO booking_requests
-                (reference, apartment_id, check_in, check_out, adults, children, pets,
+                (reference, submission_key, apartment_id, check_in, check_out, adults, children, pets,
                  first_name, last_name, email, phone, notes, locale,
                  quoted_total_cents, price_breakdown, status, privacy_accepted_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'pending\', UTC_TIMESTAMP())'
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'pending\', UTC_TIMESTAMP())'
         )->execute([
-            $row['reference'], $row['apartment_id'], $row['check_in'], $row['check_out'],
+            $row['reference'], $row['submission_key'] ?? null, $row['apartment_id'], $row['check_in'], $row['check_out'],
             $row['adults'], $row['children'], $row['pets'],
             $row['first_name'], $row['last_name'], $row['email'], $row['phone'], $row['notes'], $row['locale'],
             $row['quoted_total_cents'], $row['price_breakdown'],
         ]);
         return (int) $this->db->lastInsertId();
+    }
+
+    /** @return array{id: int, reference: string}|null the request stored for a submission key */
+    public function requestBySubmissionKey(string $key): ?array
+    {
+        $stmt = $this->db->prepare('SELECT id, reference FROM booking_requests WHERE submission_key = ?');
+        $stmt->execute([$key]);
+        $row = $stmt->fetch();
+        return $row ? ['id' => (int) $row['id'], 'reference' => (string) $row['reference']] : null;
+    }
+
+    /** The reference, only when a request with it exists and was created in the last $minutes minutes. */
+    public function recentRequestReference(string $reference, int $minutes): ?string
+    {
+        $stmt = $this->db->prepare(
+            'SELECT reference FROM booking_requests WHERE reference = ? AND created_at > UTC_TIMESTAMP() - INTERVAL ? MINUTE'
+        );
+        $stmt->execute([$reference, $minutes]);
+        $found = $stmt->fetchColumn();
+        return $found === false ? null : (string) $found;
     }
 
     /** @return array<string, mixed>|null */

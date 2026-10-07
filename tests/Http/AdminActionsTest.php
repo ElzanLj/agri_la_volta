@@ -242,7 +242,7 @@ final class AdminActionsTest extends HttpTestCase
     {
         $request = $this->makeRequest();
 
-        $response = $this->act('/admin/richieste/' . $request['id'] . '/rifiuta');
+        $response = $this->act('/admin/richieste/' . $request['id'] . '/rifiuta', ['conferma' => '1']);
 
         self::assertSame(303, $response->status);
         self::assertSame('rejected', $this->scalar('SELECT status FROM booking_requests WHERE id = ?', [$request['id']]));
@@ -733,6 +733,70 @@ final class AdminActionsTest extends HttpTestCase
 
         $method = $this->admin->send('DELETE', '/admin/richieste');
         self::assertContains($method->status, [403, 405]);
+    }
+
+    public function testADirectRejectionPostWithoutTheConfirmationStepChangesNothing(): void
+    {
+        $request = $this->makeRequest();
+        $before = $this->snapshot();
+
+        $response = $this->act('/admin/richieste/' . $request['id'] . '/rifiuta');
+
+        self::assertSame(303, $response->status);
+        self::assertStringEndsWith('/admin/richieste/' . $request['id'] . '/rifiuta', (string) $response->location(), 'it leads to the confirmation page');
+        self::assertSame('pending', $this->scalar('SELECT status FROM booking_requests WHERE id = ?', [$request['id']]));
+        self::assertSame(0, $this->countRows('email_outbox', "type = 'request_rejected'"));
+        $this->assertDatabaseUnchanged($before, 'a rejection without the confirmation step must not write anything');
+    }
+
+    public function testTheConfirmationPageShowsTheSummaryAndTheExactEmailAndWritesNothing(): void
+    {
+        $request = $this->makeRequest('2027-06-10', '2027-06-15', ['email' => 'ospite.prova@example.test']);
+        $before = $this->snapshot();
+
+        $page = $this->admin->get('/admin/richieste/' . $request['id'] . '/rifiuta');
+
+        self::assertSame(200, $page->status);
+        self::assertStringContainsString($request['reference'], $page->body);
+        self::assertStringContainsString('ospite.prova@example.test', $page->body);
+        self::assertStringContainsString("Rifiuta e avvisa l'ospite", $page->body);
+        self::assertStringContainsString('Torna indietro', $page->body);
+        $this->assertDatabaseUnchanged($before, 'the confirmation page only reads');
+        self::assertSame('pending', $this->scalar('SELECT status FROM booking_requests WHERE id = ?', [$request['id']]));
+
+        // The text shown is the text of the e-mail that is really queued and built after the rejection.
+        $this->act('/admin/richieste/' . $request['id'] . '/rifiuta', ['conferma' => '1']);
+        $row = $this->db->query("SELECT * FROM email_outbox WHERE type = 'request_rejected'")->fetch();
+        self::assertIsArray($row);
+        $sent = (new \App\Mail\MessageBuilder($this->db, \App\App::current()->config))->build($row);
+        $escaped = static fn (string $text): string => htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        self::assertStringContainsString($escaped($sent->body), $page->body, 'preview body = e-mail body');
+        self::assertStringContainsString($escaped($sent->subject), $page->body, 'preview subject = e-mail subject');
+    }
+
+    public function testTheConfirmationPageOfADecidedOrUnknownRequestIsRefused(): void
+    {
+        $request = $this->makeRequest();
+        $this->act('/admin/richieste/' . $request['id'] . '/rifiuta', ['conferma' => '1']);
+
+        $again = $this->admin->get('/admin/richieste/' . $request['id'] . '/rifiuta');
+        self::assertSame(303, $again->status, 'a request already decided has no confirmation page');
+        self::assertStringEndsWith('/admin/richieste/' . $request['id'], (string) $again->location());
+
+        self::assertSame(404, $this->admin->get('/admin/richieste/99999/rifiuta')->status);
+        self::assertSame(404, $this->admin->get('/admin/richieste/abc/rifiuta')->status);
+    }
+
+    public function testTheRejectButtonIsSeparatedFromTheConfirmButton(): void
+    {
+        $request = $this->makeRequest();
+
+        $body = $this->admin->get('/admin/richieste/' . $request['id'])->body;
+
+        self::assertStringContainsString('Conferma richiesta', $body);
+        self::assertStringContainsString('button-danger', $body);
+        self::assertStringNotContainsString('/rifiuta"><input', $body);
+        self::assertStringNotContainsString('method="post" action="/admin/richieste/' . $request['id'] . '/rifiuta"', $body, 'no one-click rejection form on the request page');
     }
 
     public function testAdminPagesHaveTheNavigationAndNoScripts(): void

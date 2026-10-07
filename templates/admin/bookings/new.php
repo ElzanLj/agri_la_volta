@@ -97,6 +97,7 @@ $origins = array_diff_key(Labels::ORIGINS, ['website' => true]); // "website" is
     <div class="field">
         <label for="notes">Note</label>
         <textarea id="notes" name="notes" rows="3" maxlength="2000"<?= invalid_attrs($errors, 'notes', 'err-notes') ?>><?= e(old($values, 'notes')) ?></textarea>
+        <p class="hint" id="notes-hint">Scrivi solo ciò che serve. Niente dati sanitari né dati di altre persone.</p>
         <?= field_error($errors, 'notes', 'err-notes') ?>
     </div>
 

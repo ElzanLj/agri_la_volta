@@ -19,7 +19,8 @@ use App\Http\Admin\Labels;
     <?= csrf_field() ?>
     <div class="field">
         <label for="motivo">Motivo (facoltativo, solo uso interno)</label>
-        <textarea id="motivo" name="motivo" rows="3" maxlength="1000"><?= e($reason) ?></textarea>
+        <textarea id="motivo" name="motivo" rows="3" maxlength="1000" aria-describedby="motivo-aiuto"><?= e($reason) ?></textarea>
+        <p class="hint" id="motivo-aiuto">Scrivi solo ciò che serve. Niente dati sanitari né dati di altre persone.</p>
     </div>
     <button type="submit" class="button">Conferma la cancellazione</button>
     <a href="<?= e(url('/admin/prenotazioni/' . $row['id'])) ?>">Annulla</a>

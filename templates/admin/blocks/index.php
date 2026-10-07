@@ -42,6 +42,7 @@ use App\Http\Admin\Labels;
     <div class="field">
         <label for="reason">Motivo (facoltativo)</label>
         <input type="text" id="reason" name="reason" maxlength="255" value="<?= e(old($values, 'reason')) ?>"<?= invalid_attrs($errors, 'reason', 'err-reason') ?>>
+        <p class="hint" id="reason-hint">Scrivi solo ciò che serve (es. "lavori", "uso personale"). Niente nomi, dati sanitari né dati di altre persone.</p>
         <?= field_error($errors, 'reason', 'err-reason') ?>
     </div>
     <button type="submit" class="button">Crea blocco</button>

@@ -128,7 +128,8 @@ final class PersonalDataService
         try {
             if ($requestIds !== []) {
                 $this->db->prepare(
-                    "UPDATE booking_requests SET first_name = ?, last_name = ?, email = CONCAT('eliminato-', id, '@invalid.invalid'), phone = '-', notes = NULL WHERE id IN (" . self::in($requestIds) . ')'
+                    // submission_key is derived from the guest's data (hash), so it goes too.
+                    "UPDATE booking_requests SET first_name = ?, last_name = ?, email = CONCAT('eliminato-', id, '@invalid.invalid'), phone = '-', notes = NULL, submission_key = NULL WHERE id IN (" . self::in($requestIds) . ')'
                 )->execute([self::ANONYMOUS_NAME, self::ANONYMOUS_NAME, ...$requestIds]);
             }
             if ($bookingIds !== []) {

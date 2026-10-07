@@ -43,4 +43,10 @@ set_error_handler(static function (int $severity, string $message, string $file,
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
-return new App\App($config, new App\Support\Logger(BASE_PATH . '/storage/logs'));
+$logger = new App\Support\Logger(BASE_PATH . '/storage/logs');
+if (!$config->environmentIsRecognised()) {
+    // The value itself is not logged; the site runs as production (see Config::environment()).
+    $logger->warning('APP_ENV is not one of production, development, testing: treated as production');
+}
+
+return new App\App($config, $logger);

@@ -202,7 +202,7 @@ final class AdminMailTest extends HttpTestCase
     {
         $request = $this->request('2027-06-10', '2027-06-15', ['locale' => 'en']);
 
-        $response = $this->act('/admin/richieste/' . $request['id'] . '/rifiuta');
+        $response = $this->act('/admin/richieste/' . $request['id'] . '/rifiuta', ['conferma' => '1']);
 
         self::assertSame(303, $response->status);
         self::assertSame('rejected', $this->scalar('SELECT status FROM booking_requests WHERE id = ?', [$request['id']]));
@@ -218,7 +218,7 @@ final class AdminMailTest extends HttpTestCase
         $request = $this->request('2027-06-10', '2027-06-15');
         $started = microtime(true);
 
-        $response = $this->act('/admin/richieste/' . $request['id'] . '/rifiuta');
+        $response = $this->act('/admin/richieste/' . $request['id'] . '/rifiuta', ['conferma' => '1']);
 
         self::assertSame(303, $response->status);
         self::assertLessThan(8.0, microtime(true) - $started, 'the hanging server cost about the 2 second timeout, not more');
@@ -234,7 +234,7 @@ final class AdminMailTest extends HttpTestCase
         $this->act('/admin/richieste/' . $a['id'] . '/conferma');
         self::$smtp->setScenario('ok');
         $b = $this->request('2027-07-10', '2027-07-15');
-        $this->act('/admin/richieste/' . $b['id'] . '/rifiuta');
+        $this->act('/admin/richieste/' . $b['id'] . '/rifiuta', ['conferma' => '1']);
 
         $all = $this->admin->get('/admin/email');
         self::assertSame(200, $all->status);

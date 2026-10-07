@@ -21,6 +21,8 @@ use App\Security\RateLimiter;
 final class AdminController extends BasePage
 {
     private const LOGIN_BUCKET = 'admin_login';
+    /** Failed logins only, never cleared by a success: the dashboard counts them over 24 hours. */
+    public const FAILED_BUCKET = 'admin_login_failed';
     private const LOGIN_MAX_FAILURES = 5;
     private const LOGIN_WINDOW_SECONDS = 900;
 
@@ -30,6 +32,7 @@ final class AdminController extends BasePage
             'title' => 'Area amministrativa',
             'counts' => $this->queries()->dashboardCounts($this->today()),
             'mail' => (new OutboxRepository($this->app->db()))->countsByStatus(),
+            'failedLogins' => (new RateLimiter($this->app->db()))->countRecent(self::FAILED_BUCKET, 86400),
         ]);
     }
 
@@ -47,15 +50,16 @@ final class AdminController extends BasePage
 
         $limiter = new RateLimiter($this->app->db());
         $client = $request->ip();
-        if ($limiter->tooManyAttempts(self::LOGIN_BUCKET, $client, self::LOGIN_MAX_FAILURES, self::LOGIN_WINDOW_SECONDS)) {
+        // The attempt is recorded before the password is checked, so parallel guesses cannot all slip under the limit.
+        if (!$limiter->attempt(self::LOGIN_BUCKET, $client, self::LOGIN_MAX_FAILURES, self::LOGIN_WINDOW_SECONDS)) {
             $this->app->logger->warning('Admin login rate limited');
             return $this->loginPage('Troppi tentativi non riusciti. Riprova tra qualche minuto.', $username, 429);
         }
 
-        $password = $request->input('password');
+        $password = $request->rawInput('password');
         $auth = new AdminAuth($this->app->db());
         if ($username === '' || $password === '' || strlen($password) > 1024 || !$auth->attempt($username, $password)) {
-            $limiter->hit(self::LOGIN_BUCKET, $client);
+            $limiter->hit(self::FAILED_BUCKET, $client); // feeds the "failed logins in the last 24 hours" figure
             $this->app->logger->warning('Admin login failed');
             return $this->loginPage('Nome utente o password non corretti.', $username, 422);
         }

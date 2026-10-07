@@ -52,6 +52,7 @@ return static function (Router $router, App $app): void {
     $router->get('/admin/richieste', [$requests, 'index']);
     $router->get('/admin/richieste/{id}', [$requests, 'show']);
     $router->post('/admin/richieste/{id}/conferma', [$requests, 'confirm']);
+    $router->get('/admin/richieste/{id}/rifiuta', [$requests, 'rejectForm']); // confirmation page, writes nothing
     $router->post('/admin/richieste/{id}/rifiuta', [$requests, 'reject']);
 
     $router->get('/admin/prenotazioni', [$bookings, 'index']);

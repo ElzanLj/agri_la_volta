@@ -4,6 +4,16 @@
 
 Stato: **ESEGUITA il 2026-10-06** (prompt 13), sul repository reale, rileggendo `docs/SPEC.md` per intero (§1–§41) e confrontandola con il codice, i test e i documenti. Nessun deploy è stato eseguito né è autorizzato da questo documento.
 
+## Riaperto il 2026-10-07 (prompt 15)
+
+Le correzioni del prompt 15 cambiano punti descritti da questa review; lo stato PASS dei criteri non è stato toccato, ma queste righe non sono più vere come scritte e verranno rivedute nel prompt 30:
+
+- **Privacy / Storico:** dove si legge che l'anonimizzazione copre i "motivi", vale ora la regola nuova: lo Storico non contiene più testo libero (`reason_present`), e le voci vecchie si ripuliscono con `php bin/privacy.php audit-clean` (`docs/SECURITY_REVIEW.md`, F2 riaperto e richiuso).
+- **Rifiuto di una richiesta:** non è più un clic: passa da una pagina di conferma con l'anteprima dell'email.
+- **Doppio invio del modulo pubblico:** non crea più due richieste (migrazione `0006`).
+- **Migrazioni:** ora `0001`–`0007`; l'ultima aggiunge vincoli nel database (`0007`). I numeri "0005 è l'ultima migrazione" e "791 test" in questo documento sono quelli del 2026-10-06.
+- **Rate limit, host canonico, `APP_ENV`, log degli errori del database, invio differito con LiteSpeed:** vedi `docs/SECURITY_REVIEW.md`, "Riesame del 2026-10-07".
+
 ## Sintesi
 
 Il sito soddisfa **tutti i requisiti funzionali e tecnici della SPEC che si possono verificare senza un ambiente reale**: richieste a passi senza pagamenti né account, conferma solo da admin, nessuna sovrapposizione (provata con processi concorrenti), prezzi e disponibilità solo sul server, tariffe configurabili, email resilienti, area admin protetta con storico ed esportazioni, sito IT/EN con SEO, sicurezza e strumenti per la privacy, documentazione di installazione e manutenzione.

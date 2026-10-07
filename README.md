@@ -55,8 +55,8 @@ app/               codice PHP: Http (controller, router, middleware), Domain, Se
                    Security, Mail, Site (pagine pubbliche), Support
 templates/         viste PHP (public/, admin/)
 content/           testi fissi del sito: it.php ed en.php (stesse chiavi)
-migrations/        schema e dati iniziali del database (SQL 0001–0005, solo in avanti)
-bin/               strumenti da riga di comando: migrate, create-admin, send-queued-mail, privacy, check-production, optimize-images
+migrations/        schema e dati iniziali del database (SQL 0001–0007, solo in avanti; `CHECKSUMS` ne protegge le modifiche)
+bin/               strumenti da riga di comando: migrate, migration-checksums, create-admin, send-queued-mail, privacy, check-production, check-consistency, optimize-images
 storage/           log, sessioni, email di prova (scrivibile; non raggiungibile dal web)
 tests/             suite PHPUnit (unit, integration, http, concurrency)
 docs/              documentazione, specifica, decisioni, esiti dei test

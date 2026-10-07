@@ -39,6 +39,8 @@ try {
         'manual' => $service->createManualBooking($params['input']),
         'block' => $service->createBlock((int) $params['apartment_id'], $params['start'], $params['end'], $params['reason'] ?? null),
         'cancel' => $service->cancelBooking((int) $params['booking_id'], $params['reason'] ?? null),
+        'request' => $service->createRequest($params['input']),
+        'rate_attempt' => (new \App\Security\RateLimiter($db))->attempt($params['bucket'], $params['key'], (int) $params['max'], (int) $params['window']),
         default => throw new InvalidArgumentException('unknown action'),
     };
     echo json_encode(['ok' => true, 'result' => $result]), "\n";

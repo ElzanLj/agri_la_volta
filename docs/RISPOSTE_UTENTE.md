@@ -17,19 +17,19 @@ File: `prompts/14_STATE_SYNC_CONTENT_AUDIT.md`
 
 ### D1 — Strategia Git per le fasi [titolare]
 
-- [ ] A. Un ramo per fase (`fase-NN-nome`), che l'utente unisce a mano al ramo principale quando ha provato il risultato *(consigliata)*
+- [x] A. Un ramo per fase (`fase-NN-nome`), che l'utente unisce a mano al ramo principale quando ha provato il risultato *(consigliata)*
 - [ ] B. Si resta sul ramo corrente e prima di ogni fase si crea un tag locale `prima-fase-NN`
 - [ ] C. Nessuna precauzione
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate" (A).
 
 ### D2 — Guardrail negli strumenti degli agenti [titolare]
 
-- [ ] A. Aggiungere ad `AGENTS.md` (letto da Claude, Codex e Cursor) una breve sezione che rimanda a `docs/GUARDRAIL_FASI.md` e ne riassume i punti vietati *(consigliata)*
+- [x] A. Aggiungere ad `AGENTS.md` (letto da Claude, Codex e Cursor) una breve sezione che rimanda a `docs/GUARDRAIL_FASI.md` e ne riassume i punti vietati *(consigliata)*
 - [ ] B. Lasciare solo il documento: i prompt lo richiamano comunque
 - [ ] C. Non usarli
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliate" (A). Testo approvato in chat ("Salva AGENTS.md con il testo proposto").
 
 ## Prompt 15 — Correzioni dell'esistente prima della gestione contenuti
 
@@ -37,65 +37,65 @@ File: `prompts/15_EXISTING_FIXES.md`
 
 ### D1 — Rifiuto di una richiesta [titolare]
 
-- [ ] A. Pagina di conferma con riepilogo, anteprima dell'email che riceverà l'ospite e pulsanti separati ("Rifiuta e avvisa l'ospite" / "Torna indietro") *(consigliata)*
+- [x] A. Pagina di conferma con riepilogo, anteprima dell'email che riceverà l'ospite e pulsanti separati ("Rifiuta e avvisa l'ospite" / "Torna indietro") *(consigliata)*
 - [ ] B. Come A, più un messaggio facoltativo all'ospite (es. "possiamo proporvi altre date")
 - [ ] C. Nessuna conferma (come oggi)
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "Consigliate, per la D1 va bene quello che hai scelto te" (A).
 
 ### D2 — Storico e testo libero (privacy) [tecnica]
 
-- [ ] A. Lo Storico non contiene più testo libero personale: dei motivi registra solo "motivo presente: sì/no"; le voci già esistenti vengono ripulite da una migrazione/comando idempotente *(consigliata)*
+- [x] A. Lo Storico non contiene più testo libero personale: dei motivi registra solo "motivo presente: sì/no"; le voci già esistenti vengono ripulite da una migrazione/comando idempotente *(consigliata)*
 - [ ] B. Si mantiene il testo e l'anonimizzazione lo cancella anche dallo Storico delle entità coinvolte
 - [ ] C. Nessuna modifica
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "Consigliate" (A).
 
 ### D3 — Doppio invio del modulo pubblico [tecnica]
 
-- [ ] A. Chiave di invio unica: colonna `submission_key` con `UNIQUE` (hash del token del modulo e dei dati); un secondo POST identico mostra la stessa pagina "ricevuta" con lo stesso riferimento, senza nuova richiesta né nuova email *(consigliata)*
+- [x] A. Chiave di invio unica: colonna `submission_key` con `UNIQUE` (hash del token del modulo e dei dati); un secondo POST identico mostra la stessa pagina "ricevuta" con lo stesso riferimento, senza nuova richiesta né nuova email *(consigliata)*
 - [ ] B. Token monouso con tabella dedicata
 - [ ] C. Niente
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "Consigliate" (A).
 
 ### D4 — IP del visitatore dietro proxy o CDN [tecnica]
 
-- [ ] A. Solo `REMOTE_ADDR` come oggi; il prompt 26 aggiunge in "Stato del sistema" un avviso se arrivano header di proxy *(consigliata)*
+- [x] A. Solo `REMOTE_ADDR` come oggi; il prompt 26 aggiunge in "Stato del sistema" un avviso se arrivano header di proxy *(consigliata)*
 - [ ] B. Variabile facoltativa `TRUSTED_PROXIES` (elenco di IP/CIDR): solo da quei proxy si legge `X-Forwarded-For` o `CF-Connecting-IP`
 - [ ] C. Leggere sempre gli header
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "per D4 vado sulla scelta prudente" (A).
 
 ### D5 — Host canonico [tecnica]
 
-- [ ] A. Redirect 301 delle GET verso l'host di `APP_URL` quando `Host` è diverso (nessun redirect se `APP_URL` non è configurato); il redirect a https resta compito dell'hosting *(consigliata)*
+- [x] A. Redirect 301 delle GET verso l'host di `APP_URL` quando `Host` è diverso (nessun redirect se `APP_URL` non è configurato); il redirect a https resta compito dell'hosting *(consigliata)*
 - [ ] B. Nessun redirect, solo documentazione
 - [ ] C. Redirect a https anche nel PHP
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "Consigliate" (A).
 
 ### D6 — Verifica di coerenza dei dati [tecnica]
 
-- [ ] A. Servizio in sola lettura + comando `bin/check-consistency.php` + test (la pagina admin e l'allarme in dashboard arrivano nel prompt 26) *(consigliata)*
+- [x] A. Servizio in sola lettura + comando `bin/check-consistency.php` + test (la pagina admin e l'allarme in dashboard arrivano nel prompt 26) *(consigliata)*
 - [ ] B. Solo il comando, senza servizio riusabile
 - [ ] C. Niente
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "Consigliate" (A).
 
 ### D7 — Vincoli aggiuntivi nel database [tecnica]
 
-- [ ] A. Nuova migrazione con `CHECK`: `bookings.status='cancelled'` ⇔ `cancelled_at` presente; `booking_requests.decided_at` coerente con lo stato; limiti su adulti, bambini, animali; `email_outbox.status='sent'` ⇒ `sent_at`. Prima dell'`ALTER` la migrazione verifica che i dati esistenti li rispettino *(consigliata)*
+- [x] A. Nuova migrazione con `CHECK`: `bookings.status='cancelled'` ⇔ `cancelled_at` presente; `booking_requests.decided_at` coerente con lo stato; limiti su adulti, bambini, animali; `email_outbox.status='sent'` ⇒ `sent_at`. Prima dell'`ALTER` la migrazione verifica che i dati esistenti li rispettino *(consigliata)*
 - [ ] B. Nessun vincolo nuovo
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "Consigliate" (A).
 
 ### D8 — Tentativi di accesso falliti [tecnica]
 
-- [ ] A. Numero di tentativi falliti nelle ultime 24 ore mostrato in dashboard *(consigliata)*
+- [x] A. Numero di tentativi falliti nelle ultime 24 ore mostrato in dashboard *(consigliata)*
 - [ ] B. Niente
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "Consigliate" (A).
 
 ## Prompt 16 — Progetto della gestione contenuti
 

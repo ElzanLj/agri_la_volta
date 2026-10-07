@@ -177,7 +177,8 @@ final class AdminSessionTest extends HttpTestCase
         $https = TestServer::start(['APP_URL' => 'https://shop.example.test']);
         try {
             $client = new HttpClient($https->baseUrl());
-            $cookie = implode("\n", $client->get('/admin/login')->setCookies());
+            // A visitor reaches the site by its own address (the test server is also reachable by IP, and that is redirected).
+            $cookie = implode("\n", $client->get('/admin/login', ['Host' => 'shop.example.test'])->setCookies());
 
             self::assertMatchesRegularExpression('/;\s*secure\b/i', $cookie, 'HTTPS site: the cookie must be Secure');
             self::assertMatchesRegularExpression('/;\s*httponly\b/i', $cookie);

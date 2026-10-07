@@ -10,6 +10,8 @@ declare(strict_types=1);
  *                                                           anonymises that person's requests and bookings
  *   php bin/privacy.php purge [--months=N] [--apply]        anonymises stays that ended more than N months ago
  *                                                           (N defaults to DATA_RETENTION_MONTHS; without either, nothing is done)
+ *   php bin/privacy.php audit-clean [--apply]               removes from the history (Storico) the free-text reasons written by
+ *                                                           older versions; safe to run again
  *
  * erase and purge only REPORT what they would do unless --apply is given. Anonymising keeps the
  * dates and the apartment of each stay (they stay occupied) and removes name, e-mail, phone and notes.
@@ -75,7 +77,14 @@ switch ($command) {
         $report($service->purgeOlderThan($months, $apply), $apply);
         break;
 
+    case 'audit-clean':
+        // Older versions copied the free-text reason of cancellations and blocks into the history.
+        $found = (new App\Support\AuditCleaner($app->db()))->clean($apply);
+        echo ($apply ? 'ESEGUITO' : 'SIMULAZIONE (nessuna modifica: aggiungi --apply per eseguire)') . "\n";
+        printf("Voci dello Storico con un motivo scritto a mano: %d\n", $found);
+        break;
+
     default:
-        fwrite(STDERR, "Uso: php bin/privacy.php export <email> | erase <email> [--apply] [--include-active] | purge [--months=N] [--apply]\n");
+        fwrite(STDERR, "Uso: php bin/privacy.php export <email> | erase <email> [--apply] [--include-active] | purge [--months=N] [--apply] | audit-clean [--apply]\n");
         exit(1);
 }

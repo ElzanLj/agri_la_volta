@@ -30,9 +30,18 @@ try {
     $ran = $migrator->migrate(static function (string $version): void {
         echo "Applying {$version}\n";
     });
+} catch (App\Database\MigrationBlockedException $e) {
+    // Refused before the first statement: the database is exactly as it was.
+    fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
+} catch (RuntimeException $e) {
+    // For example another migration run holds the lock: nothing was started by this run.
+    fwrite(STDERR, 'Migration not started: ' . $e->getMessage() . "\n");
+    exit(1);
 } catch (Throwable $e) {
     fwrite(STDERR, 'Migration failed: ' . $e->getMessage() . "\n");
-    fwrite(STDERR, "DDL is committed statement by statement: check the database state before retrying.\n");
+    fwrite(STDERR, "DDL is committed statement by statement: the statements before the failing one stay applied.\n");
+    fwrite(STDERR, "Check the database state before retrying (see docs/COMMANDS.md, \"Migrazione interrotta a metà\").\n");
     exit(1);
 }
 

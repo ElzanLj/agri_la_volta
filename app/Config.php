@@ -43,9 +43,29 @@ final class Config
         return in_array($value, ['1', 'true', 'yes', 'on'], true);
     }
 
+    /** The only values APP_ENV may have. */
+    public const ENVIRONMENTS = ['production', 'development', 'testing'];
+
+    /**
+     * The environment in force. Anything that is not exactly one of the allowed values (a typo such as
+     * "prod", a different case, stray spaces, empty) counts as production, so a mistake can never switch
+     * the production protections off.
+     */
+    public function environment(): string
+    {
+        $value = $this->string('APP_ENV', 'production');
+        return in_array($value, self::ENVIRONMENTS, true) ? $value : 'production';
+    }
+
+    /** False when APP_ENV is set to something that is not an allowed value (it is then treated as production). */
+    public function environmentIsRecognised(): bool
+    {
+        return in_array($this->string('APP_ENV', 'production'), self::ENVIRONMENTS, true);
+    }
+
     public function isProduction(): bool
     {
-        return $this->string('APP_ENV', 'production') === 'production';
+        return $this->environment() === 'production';
     }
 
     /** Debug output is never enabled in production, whatever APP_DEBUG says. */

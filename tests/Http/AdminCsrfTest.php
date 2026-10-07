@@ -126,16 +126,16 @@ final class AdminCsrfTest extends HttpTestCase
         $token = $this->tokenFor($client);
         $base = self::$server->baseUrl();
 
-        $withOrigin = $client->post('/admin/richieste/' . $ids['request'] . '/rifiuta', ['_csrf' => $token], ['Origin' => $base]);
+        $withOrigin = $client->post('/admin/richieste/' . $ids['request'] . '/rifiuta', ['_csrf' => $token, 'conferma' => '1'], ['Origin' => $base]);
         self::assertSame(303, $withOrigin->status, 'same-site Origin + valid token must work');
         self::assertSame('rejected', $this->scalar('SELECT status FROM booking_requests WHERE id = ?', [$ids['request']]));
 
         $second = $this->makeRequest('2027-07-10', '2027-07-12');
-        $withReferer = $client->post('/admin/richieste/' . $second['id'] . '/rifiuta', ['_csrf' => $token], ['Referer' => $base . '/admin/richieste']);
+        $withReferer = $client->post('/admin/richieste/' . $second['id'] . '/rifiuta', ['_csrf' => $token, 'conferma' => '1'], ['Referer' => $base . '/admin/richieste']);
         self::assertSame(303, $withReferer->status, 'same-site Referer + valid token must work');
 
         $third = $this->makeRequest('2027-07-20', '2027-07-22');
-        $noHints = $client->post('/admin/richieste/' . $third['id'] . '/rifiuta', ['_csrf' => $token]);
+        $noHints = $client->post('/admin/richieste/' . $third['id'] . '/rifiuta', ['_csrf' => $token, 'conferma' => '1']);
         self::assertSame(303, $noHints->status, 'no Origin/Referer + valid token must work');
     }
 
@@ -182,7 +182,6 @@ final class AdminCsrfTest extends HttpTestCase
 
         foreach ([
             '/admin/richieste/' . $ids['request'] . '/conferma',
-            '/admin/richieste/' . $ids['request'] . '/rifiuta',
             '/admin/blocchi/' . $ids['block'] . '/rimuovi',
             '/admin/listino/tariffe/1/elimina',
             '/admin/listino/regole/1/elimina',
@@ -192,6 +191,10 @@ final class AdminCsrfTest extends HttpTestCase
             self::assertSame(405, $response->status, "GET $path");
             self::assertSame('POST', $response->header('Allow'));
         }
+        // The rejection URL answers GET with its confirmation page, which writes nothing.
+        $page = $client->get('/admin/richieste/' . $ids['request'] . '/rifiuta');
+        self::assertSame(200, $page->status);
+        self::assertStringContainsString("Rifiuta e avvisa l'ospite", $page->body);
 
         $this->assertDatabaseUnchanged($before, 'GET on an action URL must do nothing');
         self::assertSame(200, $client->get('/admin')->status, 'GET /admin/logout must not log out');

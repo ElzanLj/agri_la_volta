@@ -41,14 +41,27 @@ final class SecurityIntegrationTest extends DatabaseTestCase
     public function testTheKeyedHashStillCountsPerClient(): void
     {
         $limiter = new RateLimiter($this->db);
-        foreach (range(1, 3) as $i) {
-            $limiter->hit('bucket', '198.51.100.1');
-        }
-
-        self::assertTrue($limiter->tooManyAttempts('bucket', '198.51.100.1', 3, 60));
-        self::assertFalse($limiter->tooManyAttempts('bucket', '198.51.100.2', 3, 60), 'another client is not affected');
+        // The attempt is recorded first and then counted: the third is the last allowed one.
+        self::assertTrue($limiter->attempt('bucket', '198.51.100.1', 3, 60));
+        self::assertTrue($limiter->attempt('bucket', '198.51.100.1', 3, 60));
+        self::assertTrue($limiter->attempt('bucket', '198.51.100.1', 3, 60));
+        self::assertFalse($limiter->attempt('bucket', '198.51.100.1', 3, 60), 'the fourth attempt is over the limit');
+        self::assertTrue($limiter->attempt('bucket', '198.51.100.2', 3, 60), 'another client is not affected');
         $limiter->clear('bucket', '198.51.100.1');
-        self::assertFalse($limiter->tooManyAttempts('bucket', '198.51.100.1', 3, 60));
+        self::assertTrue($limiter->attempt('bucket', '198.51.100.1', 3, 60), 'clearing starts a new window');
+    }
+
+    public function testCountRecentCountsEveryClientOfABucketOnly(): void
+    {
+        $limiter = new RateLimiter($this->db);
+        $limiter->hit('failures', '198.51.100.1');
+        $limiter->hit('failures', '198.51.100.2');
+        $limiter->hit('other', '198.51.100.1');
+
+        self::assertSame(2, $limiter->countRecent('failures', 86400));
+        self::assertSame(1, $limiter->countRecent('other', 86400));
+        $this->db->exec("UPDATE rate_limit_hits SET created_at = UTC_TIMESTAMP() - INTERVAL 2 DAY WHERE bucket = 'failures'");
+        self::assertSame(0, $limiter->countRecent('failures', 86400 * 3), 'the window never goes beyond the 24 hours that are kept');
     }
 
     public function testLineBreaksInCustomerTextNeverBecomeMailHeaders(): void

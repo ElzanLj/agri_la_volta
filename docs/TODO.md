@@ -12,8 +12,9 @@ Regole:
 
 La sequenza operativa ora è **14 → 32** (`prompts/README.md`, `docs/PRE_RELEASE_ROADMAP.md`, mappa 00–32 in `docs/PLAN.md`). Il promemoria qui sotto descrive lo stato al termine del vecchio prompt 14 (oggi 31) ed è ancora valido per ciò che riguarda dati mancanti e autorizzazioni.
 
-- [~] 14 — sync dello stato, guardrail, audit dei contenuti (ramo `fase-14-state-sync`; Parti A–E fatte, in attesa della revisione dell'utente; `AGENTS.md` salvato)
-- [ ] 15 — correzioni dell'esistente (**prossimo passo**) · 16–30 · 31 (ex 14) · 32 (dopo un deploy autorizzato)
+- [x] 14 — sync dello stato, guardrail, audit dei contenuti (commit `c8aec3d` sul ramo `fase-14-state-sync`)
+- [x] 15 — correzioni dell'esistente (ramo `fase-15-existing-fixes`, **nel working tree, non committato**; 905 test PASS)
+- [ ] 16 — progetto della gestione contenuti (**prossimo passo**) · 17–30 · 31 (ex 14) · 32 (dopo un deploy autorizzato)
 
 ## ▶ Promemoria: da dove ripartire (aggiornato 2026-10-07)
 
@@ -26,7 +27,7 @@ Per ripartire:
 
 Da tenere presente:
 - stato: 23 criteri PASS, 4 PARTIAL (18 tastiera, 19 responsive, 20 immagini, 24 hosting reale), 0 FAIL;
-- **migrazioni**: l'ultima è `0005_apartment_amenities.sql`; la prossima deve avere il numero successivo e non modificare le precedenti;
+- **migrazioni**: l'ultima è `0007_data_constraints.sql` (0006: chiave di invio del modulo; 0007: vincoli); la prossima deve avere il numero successivo e non modificare le precedenti;
 - dominio canonico scelto dal titolare: `https://www.agriturismolavolta.com` (redirect 301 dal dominio senza www, da configurare sull'hosting: `docs/RELEASE_GUIDE.md` §7);
 - **restano NOT RUN**: prove manuali (`docs/MANUAL_CHECKLIST.md`), installazione su hosting reale, consegna email reale, HTTPS reale, reindirizzamenti e pagina di manutenzione `.htaccess`, Lighthouse/axe/penetration test;
 - da fare **prima di pubblicare** (a carico del titolare): autorizzazioni A1–A8, hosting e dominio, HTTPS, credenziali SMTP, contenuti (listino, testi, servizi, foto, recapiti, WhatsApp), testi legali, periodo di conservazione dei dati, `APP_SECRET`;
@@ -228,70 +229,70 @@ Bloccanti/dati mancanti che non dipendono dal codice (vedi `docs/MISSING_DATA.md
 
 ## Finding della review 2026-10-07
 
-Fonte: `docs/REVIEW_PRE_ROADMAP.md` (tabella "Dove si chiude ciascun finding"; i numeri di prompt sono quelli attuali, 14–32). Nulla è stato corretto nel prompt 14: le correzioni dell'esistente sono nel prompt 15. Stato di tutti: `[ ]` da fare.
+Fonte: `docs/REVIEW_PRE_ROADMAP.md` (tabella "Dove si chiude ciascun finding"; i numeri di prompt sono quelli attuali, 14–32). Il prompt 14 non ha corretto nulla; **il prompt 15 ha chiuso i finding segnati `[x]`** e avviato quelli `[~]` (la parte che resta ha la sua fase). Dettagli e prove: `docs/SECURITY_REVIEW.md` (riesame del 2026-10-07) e `docs/TEST_REPORT.md`.
 
 ### A — Problemi reali
 
-- [ ] A1 Anonimizzazione: testo libero rimasto nello Storico → **15**
-- [ ] A2 Doppio invio del modulo = richieste duplicate → **15**
-- [ ] A3 "Rifiuta richiesta" senza conferma, invia subito l'email → **15**
+- [x] A1 Anonimizzazione: testo libero rimasto nello Storico → **15** — **chiuso nel prompt 15**
+- [x] A2 Doppio invio del modulo = richieste duplicate → **15** — **chiuso nel prompt 15**
+- [x] A3 "Rifiuta richiesta" senza conferma, invia subito l'email → **15** — **chiuso nel prompt 15**
 - [ ] A4 Regole di prezzo "per tutti" e specifica si sommano senza avviso → **23**
 - [ ] A5 Conferma possibile con arrivo già passato → **23**
 - [ ] A6 Disattivare un appartamento con prenotazioni future senza avviso → **20**
-- [ ] A7 `.htaccess` unica barriera davanti a `.env`, sessioni, log → **15**, 26, 28, 32
+- [~] A7 `.htaccess` unica barriera davanti a `.env`, sessioni, log → **15**, 26, 28, 32 — fatto in 15: `.htaccess` di negazione; restano 26, 28, 32
 - [ ] A8 `LimitRequestBody` può dare 500 con `AllowOverride` ridotto → **28**, 31
-- [ ] A9 Nessun redirect all'host canonico (moduli in 403 su `www`) → **15**
-- [ ] A10 Rate limit: race e IP condivisi → **15**, 24
-- [ ] A11 Lo splitter delle migrazioni rompe testi con `;` → **15**
-- [ ] A12 Migrazioni senza lock, checksum, tracciamento dei fallimenti → **15**, 27
+- [x] A9 Nessun redirect all'host canonico (moduli in 403 su `www`) → **15** — **chiuso nel prompt 15**
+- [~] A10 Rate limit: race e IP condivisi → **15**, 24 — fatto in 15: race e proxy (D4 = A); resta 24
+- [x] A11 Lo splitter delle migrazioni rompe testi con `;` → **15** — **chiuso nel prompt 15**
+- [~] A12 Migrazioni senza lock, checksum, tracciamento dei fallimenti → **15**, 27 — fatto in 15: lock e `CHECKSUMS`; resta 27
 - [ ] A13 Il prompt 26 contraddice `AGENTS.md` (password SMTP nel DB) → **26**
-- [ ] A14 Lavoro "dopo la risposta" senza PHP-FPM → **15**, 26
-- [ ] A15 Messaggi di errore del DB nei log → **15**
-- [ ] A16 `APP_ENV` sbagliato spegne le protezioni → **15**
-- [ ] A17 Pagina "ricevuta" mostra qualsiasi riferimento passato nell'URL → **15**
-- [ ] A18 Nessun avviso su cosa non scrivere in "motivo" e "note" → **15**
+- [~] A14 Lavoro "dopo la risposta" senza PHP-FPM → **15**, 26 — fatto in 15: LiteSpeed e `ignore_user_abort`; resta 26
+- [x] A15 Messaggi di errore del DB nei log → **15** — **chiuso nel prompt 15**
+- [x] A16 `APP_ENV` sbagliato spegne le protezioni → **15** — **chiuso nel prompt 15**
+- [x] A17 Pagina "ricevuta" mostra qualsiasi riferimento passato nell'URL → **15** — **chiuso nel prompt 15**
+- [x] A18 Nessun avviso su cosa non scrivere in "motivo" e "note" → **15** — **chiuso nel prompt 15**
 
 ### B — Migliorie pre-release
 
-- [ ] B1 Verifica di coerenza dei dati (sola lettura) → **15** (servizio, comando), 26 (pagina, banner)
-- [ ] B2 Test di immutabilità delle migrazioni (`CHECKSUMS`) → **15**
-- [ ] B3 Test architetturale (niente `exec`/`eval`, URL esterne, Node) → **15**
-- [ ] B4 Idempotenza dell'invio pubblico → **15**
-- [ ] B5 Conferma del rifiuto con anteprima → **15**
+- [~] B1 Verifica di coerenza dei dati (sola lettura) → **15** (servizio, comando), 26 (pagina, banner) — fatto in 15: servizio e comando; restano pagina e banner in 26
+- [x] B2 Test di immutabilità delle migrazioni (`CHECKSUMS`) → **15** — **chiuso nel prompt 15**
+- [x] B3 Test architetturale (niente `exec`/`eval`, URL esterne, Node) → **15** — **chiuso nel prompt 15**
+- [x] B4 Idempotenza dell'invio pubblico → **15** — **chiuso nel prompt 15**
+- [x] B5 Conferma del rifiuto con anteprima → **15** — **chiuso nel prompt 15**
 - [ ] B6 Email dell'ospite ben visibile + suggerimento sui domini → **25**
 - [ ] B7 Avviso sulle regole di prezzo che si sommano → **23**
 - [ ] B8 Listino dei prossimi 12 mesi in dashboard → **25**
-- [ ] B9 Redirect all'host canonico → **15**
+- [x] B9 Redirect all'host canonico → **15** — **chiuso nel prompt 15**
 - [ ] B10 Avvisi quando una modifica tocca prenotazioni esistenti → **20**, 23
 - [ ] B11 Blocco/avviso su richieste scadute → **23**
 - [ ] B12 Pagina 503 quando il DB non risponde → **18**
 - [ ] B13 Cache su file delle impostazioni → **18**
 - [ ] B14 Blocco ottimistico sui moduli admin → **18** (poi 20, 21, 23)
-- [ ] B15 Supporto LiteSpeed + `ignore_user_abort` → **15**
-- [ ] B16 Whitelist di `APP_ENV` → **15**
-- [ ] B17 Sanificazione delle eccezioni PDO nei log → **15**
+- [x] B15 Supporto LiteSpeed + `ignore_user_abort` → **15** — **chiuso nel prompt 15**
+- [x] B16 Whitelist di `APP_ENV` → **15** — **chiuso nel prompt 15**
+- [x] B17 Sanificazione delle eccezioni PDO nei log → **15** — **chiuso nel prompt 15**
 - [ ] B18 "Esci da tutti i dispositivi" → **17**
 - [ ] B19 Email al titolare dopo molti login falliti → **24**
-- [ ] B20 Riferimento nella pagina "ricevuta" solo se reale → **15**
-- [ ] B21 Caratteri invisibili e di direzione rimossi → **15**
+- [x] B20 Riferimento nella pagina "ricevuta" solo se reale → **15** — **chiuso nel prompt 15**
+- [x] B21 Caratteri invisibili e di direzione rimossi → **15** — **chiuso nel prompt 15**
 - [ ] B22 Normalizzazione Unicode NFC → **24**
 - [ ] B23 Etichetta "inglese da aggiornare" → **25**
 - [ ] B24 Avviso su prezzi implausibili → **23**
 
 ### C — Difesa in profondità
 
-- [ ] C1 Race e ritardo globale nel rate limit → **15**
+- [x] C1 Race e ritardo globale nel rate limit → **15** — **chiuso nel prompt 15**
 - [ ] C2, C4, C5, C6 Riautenticazione riusabile, password comuni, accessi sospetti, TOTP → **17**
 - [ ] C3, C20, C21, C23, C53–C57, C62, C64–C67 Sessioni, SMTP, registro errori, log, permessi, fuso orario, proxy → **26**
-- [ ] C8 `.htaccess` di negazione + controllo HTTP → **15**, 26, 28, 32
+- [~] C8 `.htaccess` di negazione + controllo HTTP → **15**, 26, 28, 32 — fatto in 15: file di negazione; restano 26, 28, 32
 - [ ] C9, C10, C22 Intestazioni, limite URL, `Message-ID` → **28**
 - [ ] C11 `security.txt` → **31**
-- [ ] C12–C15, C17 Vincoli `CHECK` nel DB, audit senza testo libero → **15**
+- [x] C12–C15, C17 Vincoli `CHECK` nel DB, audit senza testo libero → **15** — **chiuso nel prompt 15** (C17: la conservazione a tempo dello Storico non è stata impostata; nessuna scadenza decisa)
 - [ ] C16 Unicità delle notti garantita dal DB (consigliato: non ora) → **28**
 - [ ] C18, C19 Indici per la ricerca; email "ricevuta" senza testo dell'ospite e con tetti → **24**
 - [ ] C24–C39 Libreria foto (pixel/memoria, HEIC, scrittura atomica, `.htaccess` PHP-FPM, CMYK, animati, EXIF, quota, nomi) → **19**
 - [ ] C40–C52 Aggiornamenti DB e backup (lock, backup obbligatorio, manutenzione, prova di ripristino, zip) → **27**
-- [ ] C58–C63 Privacy: Storico, backup, CSV, casella email, pulizie, pagina "Dati di un ospite" → **15**, 24, 27, 29, 31
+- [~] C58–C63 Privacy: Storico, backup, CSV, casella email, pulizie, pagina "Dati di un ospite" → **15**, 24, 27, 29, 31 — fatto in 15: Storico (C58); restano 24, 27, 29, 31
 
 ### D, E, F, G, J, K
 

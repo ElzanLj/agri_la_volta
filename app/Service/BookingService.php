@@ -127,8 +127,12 @@ final class BookingService
      * Stores a public request as `pending`. Dates already unavailable are refused up front;
      * the binding check happens when the admin confirms.
      *
+     * An optional `submission_key` (64 hex characters, built by the public form from its token and the
+     * data sent) makes the call idempotent: sending the same key again stores nothing and queues no
+     * e-mail, and returns the request stored the first time with `duplicate` set to true.
+     *
      * @param array<string, mixed> $input
-     * @return array{id: int, reference: string}
+     * @return array{id: int, reference: string, duplicate: bool}
      * @throws ValidationException|ConflictException|StateException
      */
     public function createRequest(array $input): array
@@ -137,9 +141,55 @@ final class BookingService
          'firstName' => $firstName, 'lastName' => $lastName, 'email' => $email, 'phone' => $phone,
          'notes' => $notes, 'locale' => $locale] = $this->prepareRequest($input);
 
+        $submissionKey = self::str($input, 'submission_key');
+        $submissionKey = preg_match('/^[0-9a-f]{64}\z/', $submissionKey) === 1 ? $submissionKey : null;
+
         $outboxIds = [];
-        $result = $this->transactional(function () use (&$outboxIds, $apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote): array {
+        try {
+            $result = $this->storeRequest($outboxIds, $submissionKey, $apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote);
+        } catch (PDOException $e) {
+            // Two identical submissions at the same moment: the second one loses the race on the unique
+            // key. Its transaction is already rolled back; it answers with the request of the winner.
+            $existing = $submissionKey === null || !self::isSubmissionKeyDuplicate($e) ? null : $this->bookings->requestBySubmissionKey($submissionKey);
+            if ($existing === null) {
+                throw $e;
+            }
+            return $existing + ['duplicate' => true];
+        }
+
+        $this->runAfterCommit($outboxIds); // after the commit, outside the transaction
+        return $result;
+    }
+
+    private static function isSubmissionKeyDuplicate(PDOException $e): bool
+    {
+        return ($e->errorInfo[1] ?? 0) === self::MYSQL_DUPLICATE_ENTRY && str_contains($e->getMessage(), 'submission_key');
+    }
+
+    /**
+     * @param list<int> $outboxIds filled with the queued e-mails
+     * @return array{id: int, reference: string, duplicate: bool}
+     */
+    private function storeRequest(
+        array &$outboxIds,
+        ?string $submissionKey,
+        int $apartmentId,
+        StayDates $stay,
+        GuestCounts $guests,
+        string $firstName,
+        string $lastName,
+        string $email,
+        string $phone,
+        string $notes,
+        string $locale,
+        PriceQuote $quote,
+    ): array {
+        return $this->transactional(function () use (&$outboxIds, $submissionKey, $apartmentId, $stay, $guests, $firstName, $lastName, $email, $phone, $notes, $locale, $quote): array {
+            if ($submissionKey !== null && ($existing = $this->bookings->requestBySubmissionKey($submissionKey)) !== null) {
+                return $existing + ['duplicate' => true];
+            }
             $row = [
+                'submission_key' => $submissionKey,
                 'apartment_id' => $apartmentId,
                 'check_in' => $stay->checkIn,
                 'check_out' => $stay->checkOut,
@@ -163,7 +213,8 @@ final class BookingService
                     $id = $this->bookings->insertRequest($row);
                     break;
                 } catch (PDOException $e) {
-                    if (($e->errorInfo[1] ?? 0) !== self::MYSQL_DUPLICATE_ENTRY || $attempt >= 4) {
+                    // Only a clash on the random reference is retried; a clash on the submission key is final.
+                    if (($e->errorInfo[1] ?? 0) !== self::MYSQL_DUPLICATE_ENTRY || self::isSubmissionKeyDuplicate($e) || $attempt >= 4) {
                         throw $e;
                     }
                 }
@@ -183,11 +234,8 @@ final class BookingService
             // The notification is queued with the request: a plain INSERT, no SMTP involved.
             $this->queueMail($outboxIds, 'new_request_admin', $id, null, $locale);
 
-            return ['id' => $id, 'reference' => $row['reference']];
+            return ['id' => $id, 'reference' => $row['reference'], 'duplicate' => false];
         });
-
-        $this->runAfterCommit($outboxIds); // after the commit, outside the transaction
-        return $result;
     }
 
     /**
@@ -499,7 +547,9 @@ final class BookingService
             }
 
             $this->audit->record('booking', $bookingId, 'status_changed', 'Prenotazione confirmed → cancelled',
-                ['status' => 'confirmed'], ['status' => 'cancelled', 'reason' => $reason]);
+                // The reason itself stays on the booking (and goes with it when the guest is anonymised):
+                // the history only records that one was written, never free text.
+                ['status' => 'confirmed'], ['status' => 'cancelled', 'reason_present' => $reason !== null]);
         });
     }
 
@@ -524,7 +574,7 @@ final class BookingService
 
             $blockId = $this->bookings->insertBlock($apartmentId, $stay->checkIn, $stay->checkOut, $reason);
             $this->audit->record('availability_block', $blockId, 'created', 'Blocco disponibilità creato', null, [
-                'apartment_id' => $apartmentId, 'start_date' => $stay->checkIn, 'end_date' => $stay->checkOut, 'reason' => $reason,
+                'apartment_id' => $apartmentId, 'start_date' => $stay->checkIn, 'end_date' => $stay->checkOut, 'reason_present' => $reason !== null,
             ]);
             return $blockId;
         });
@@ -542,7 +592,7 @@ final class BookingService
                 'apartment_id' => (int) $block['apartment_id'],
                 'start_date' => (string) $block['start_date'],
                 'end_date' => (string) $block['end_date'],
-                'reason' => $block['reason'],
+                'reason_present' => $block['reason'] !== null && $block['reason'] !== '',
             ], null);
         });
     }

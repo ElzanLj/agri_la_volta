@@ -34,7 +34,7 @@ app/Site/                 Routes, Locale, Text, Format, Contacts, Amenities, For
 app/Support/              Logger, AuditLog, Csv, WhatsApp, DeferredWork, ProductionCheck
 templates/                layout.php, error.php, public/, admin/
 content/it.php, en.php    testi fissi del sito pubblico (chiavi identiche, verificato da un test)
-migrations/               0001 schema, 0002 appartamenti, 0003 prezzi, 0004 coda email, 0005 servizi degli appartamenti
+migrations/               0001 schema, 0002 appartamenti, 0003 prezzi, 0004 coda email, 0005 servizi degli appartamenti, 0006 chiave di invio del modulo, 0007 vincoli sui dati
 bin/                      migrate, create-admin, send-queued-mail, privacy, check-production, optimize-images
 storage/                  logs/, sessions/, mail/ (non versionati)
 tests/                    Unit, Integration, Http, Concurrency, Support

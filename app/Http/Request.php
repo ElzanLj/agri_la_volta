@@ -33,8 +33,18 @@ final class Request
         return new self(strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')), $path, $_POST, $_SERVER, $_GET);
     }
 
-    /** Returns a submitted form field as a string ("" when missing or not a string). */
+    /**
+     * Returns a submitted form field as a string ("" when missing or not a string). Invisible and
+     * direction-control characters are removed (see InvisibleChars): they can make a name look different
+     * from what is stored. Use rawInput() for passwords.
+     */
     public function input(string $key): string
+    {
+        return InvisibleChars::strip($this->rawInput($key));
+    }
+
+    /** The field exactly as submitted (passwords must not be altered). */
+    public function rawInput(string $key): string
     {
         $value = $this->post[$key] ?? '';
         return is_string($value) ? $value : '';
@@ -44,7 +54,7 @@ final class Request
     public function query(string $key): string
     {
         $value = $this->query[$key] ?? '';
-        return is_string($value) ? $value : '';
+        return is_string($value) ? InvisibleChars::strip($value) : '';
     }
 
     /** True when a query parameter was sent as an array (e.g. ?stato[]=x). */
