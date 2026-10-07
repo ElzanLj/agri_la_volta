@@ -12,7 +12,7 @@
 | Prompt | Fase | Stato al 2026-10-07 |
 |---|---|---|
 | 02–13 | fondamenta, booking, pricing, admin, email, frontend, SEO/a11y, sicurezza, test, documentazione, review finale | completati |
-| `14_STATE_SYNC_CONTENT_AUDIT.md` | verifica di 12–13, sync, guardrail e strategia Git, finding della review, inventario contenuti | da eseguire |
+| `14_STATE_SYNC_CONTENT_AUDIT.md` | verifica di 12–13, sync, guardrail e strategia Git, finding della review, inventario contenuti | in corso (Parti A–E fatte, da rivedere) |
 | `15_EXISTING_FIXES.md` | **correzioni dell'esistente** (anonimizzazione dello Storico, rifiuto con conferma, doppio invio, rate limit, host canonico, migrazioni sicure, coerenza dei dati) e test-guardiani | |
 | `16_CONTENT_MODEL_DESIGN.md` | progetto della gestione contenuti, contratto dei campi, threat model | |
 | `17_ADMIN_ACCOUNT_NO_SSH.md` | cambio password dall'admin, procedura senza SSH, riautenticazione riusabile | |

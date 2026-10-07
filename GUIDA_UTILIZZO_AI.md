@@ -424,11 +424,15 @@ Quando: pensi che il progetto sia quasi finito.
 
 Aggiorna la matrice di accettazione.
 
-## `14_RELEASE_PREP_NO_DEPLOY`
+## `14`–`32`: roadmap pre-release
 
-Quando: consegna pronta.
+Dopo il prompt 13 la sequenza continua con i prompt 14–32 (sync dello stato, correzioni dell'esistente, gestione contenuti, strumenti di sistema, hardening, documentazione, review, rilascio, verifica). L'elenco e l'ordine sono in `prompts/README.md`, le motivazioni in `docs/PRE_RELEASE_ROADMAP.md`, le regole comuni in `docs/GUARDRAIL_FASI.md`.
 
-Prepara release e checklist, **senza pubblicare**.
+## `31_RELEASE_PREP_NO_DEPLOY` (ex 14)
+
+Quando: consegna pronta (dopo il prompt 30).
+
+Prepara release e checklist, **senza pubblicare**. Il vecchio `14_RELEASE_PREP_NO_DEPLOY` è stato sostituito da questo prompt.
 
 ---
 
@@ -1106,7 +1110,7 @@ Negli ultimi giorni usa questa sequenza:
 3. `12_DOCUMENTATION`;
 4. `13_FINAL_REVIEW`;
 5. correggi solo gap reali/ad alto impatto;
-6. `14_RELEASE_PREP_NO_DEPLOY`.
+6. `31_RELEASE_PREP_NO_DEPLOY` (ex 14; con la roadmap 14–32 vale la sequenza di `prompts/README.md`).
 
 Controlla `docs/ACCEPTANCE_MATRIX.md` riga per riga.
 

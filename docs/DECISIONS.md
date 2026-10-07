@@ -195,6 +195,19 @@ Piano approvato dall'utente il 2026-10-06 (G1-G6).
 | 2026-10-06 | `git rm -r legacy` dei soli file tracciati (97): codice morto e asset inutilizzati; recuperabili dalla cronologia (`ae3129e`); i file non tracciati sul disco non sono toccati | tenerla fino alle foto | decisione P4 (dopo la Fase 5) e SPEC §33 | `docs/IMAGES.md`, `README.md` |
 | 2026-10-06 | Recapiti (telefono, email, WhatsApp) solo nel piè di pagina; l'intestazione non cambia | riga di contatti nell'intestazione | il layout sarà ridisegnato con il nuovo design del titolare | nessuna modifica |
 
+## Decisioni prompt 14 — sync, guardrail, strategia Git (2026-10-07)
+
+Risposte dell'utente in chat il 2026-10-07: "consigliate" per D1 e D2 (valgono le risposte ✅ del prompt). D1 è una domanda [titolare]: la risposta "consigliate" è stata data esplicitamente per questa fase.
+
+| Data | Decisione | Alternative considerate | Motivo | Impatto/file |
+|---|---|---|---|---|
+| 2026-10-07 | **D1 = A**: un ramo per fase (`fase-NN-nome`), unito a mano dall'utente a `main` dopo la prova; mai `git push` né force senza frase esplicita in chat. Prima fase: `fase-14-state-sync` | B: tag `prima-fase-NN`; C: nessuna precauzione | `main` resta sempre funzionante e si può tornare indietro | `docs/GUARDRAIL_FASI.md` §2, `SESSION_STATE` |
+| 2026-10-07 | **D2 = A**: sezione breve in `AGENTS.md` che rimanda a `docs/GUARDRAIL_FASI.md` e ne riassume i divieti. Il testo è mostrato all'utente prima del salvataggio | B: solo documento; C: nessuno | valgono anche nelle sessioni fuori dai prompt di fase | `AGENTS.md` (testo approvato dall'utente e salvato il 2026-10-07) |
+| 2026-10-07 | Adottata la **roadmap pre-release 14–32** (`docs/PRE_RELEASE_ROADMAP.md`); il vecchio `14_RELEASE_PREP_NO_DEPLOY` è sostituito dal `31_RELEASE_PREP_NO_DEPLOY` (eliminato con `git rm` nel commit `3068327`) | tenere la numerazione precedente | la gestione contenuti e le correzioni dell'esistente vanno prima del rilascio | `PLAN.md` (mappa 00–32), `prompts/README.md` |
+| 2026-10-07 | **P4 (eliminazione di `legacy/`): ancora aperta, da chiudere nel prompt 28.** Stato reale: i 97 file tracciati sono già stati rimossi con `git rm` il 2026-10-06 (commit `523dbd2`, vedi sopra) e la cartella non è presente sul disco; restano da decidere le foto legacy eventualmente caricate nel DB locale (prompt 19 D4) e il testo definitivo della decisione. Nessuna eliminazione eseguita in questa fase | chiudere P4 ora | il prompt 14 non deve eliminare nulla; il 28 verifica e chiude | `DECISIONS` P4, prompt 28 D6 |
+| 2026-10-07 | Il contenuto dell'ex `legacy/` si consulta **solo dalla cronologia Git** (`git show ae3129e^:<percorso>`), in sola lettura; `legacy/src/EmailStatus/.env` non si apre | ripristinare la cartella | nessun file legacy torna nel working tree | inventario contenuti |
+| 2026-10-07 | Nel `README.md` risolti i marcatori di conflitto lasciati dal merge `3f26b2b` (righe 1–7 e 46–57), tenendo il testo del progetto reale; la riga "AI Prompt Pack V2.1" resta rimossa | tenere il lato remoto (solo titolo, senza la tabella delle variabili e l'intestazione "Struttura del progetto") | il lato remoto cancellava contenuto utile; correzione solo di formattazione | `README.md` |
+
 ## Template nuova decisione
 
 - **Data:** YYYY-MM-DD

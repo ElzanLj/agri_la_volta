@@ -2,7 +2,7 @@
 
 > **Questo documento non autorizza e non esegue nessuna pubblicazione.** Contiene la sequenza da seguire **dopo** che il titolare ha autorizzato esplicitamente ogni passaggio che coinvolge un servizio esterno. Nulla di quanto descritto qui è stato eseguito su hosting, dominio, DNS o posta reali (vedi §14).
 
-Stato: **PREPARATA, NON ESEGUITA** — 2026-10-07 (prompt 14).
+Stato: **PREPARATA, NON ESEGUITA** — 2026-10-07 (vecchio prompt 14, oggi `31_RELEASE_PREP_NO_DEPLOY`: sarà aggiornata nel prompt 31 dopo le fasi 15–30).
 
 Indirizzo canonico del sito: **`https://www.agriturismolavolta.com`** (scelta del titolare). Casella di posta indicata dalla SPEC: `info@agriturismolavolta.com`. Entrambi compaiono qui solo come testo negli esempi: nessun servizio è stato contattato.
 

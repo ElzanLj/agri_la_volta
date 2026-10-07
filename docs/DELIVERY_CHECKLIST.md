@@ -1,5 +1,7 @@
 # Checklist di consegna / pubblicazione
 
+> **Da riaprire:** la review del 2026-10-07 (`docs/REVIEW_PRE_ROADMAP.md`) ha trovato punti non coperti (vedi `docs/TODO.md`, sezione "Finding della review 2026-10-07"); si ricontrollano nei prompt 15 e 30. Gli stati PASS sotto non sono stati modificati.
+
 Questa checklist non autorizza il deploy. Pubblicazione, DNS e servizi esterni richiedono autorizzazione esplicita.
 
 Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e verificato** (evidenza indicata); `[~]` fatto in parte; `[ ]` da fare / non eseguito. Per ogni criterio funzionale l'evidenza completa è in `docs/ACCEPTANCE_MATRIX.md`.
@@ -75,7 +77,7 @@ Aggiornata il 2026-10-06 (prompt 12, documentazione). Legenda: `[x]` fatto **e v
 - [ ] `php bin/check-production.php --strict` senza errori sull'installazione reale
 - [ ] Prova di fumo del §10 di `docs/RELEASE_GUIDE.md` superata
 - [ ] Record DNS web richiesti e reindirizzamento `non-www → https://www.agriturismolavolta.com` attivo (`docs/RELEASE_GUIDE.md` §7; richiede autorizzazione A4)
-- [x] Guida di rilascio compilata (`docs/RELEASE_GUIDE.md`, prompt 14: preparata, non eseguita)
+- [x] Guida di rilascio compilata (`docs/RELEASE_GUIDE.md`, vecchio prompt 14 → oggi 31: preparata, non eseguita)
 
 ## Handoff finale
 

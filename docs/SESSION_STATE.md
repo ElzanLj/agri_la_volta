@@ -6,15 +6,18 @@
 
 - **Data aggiornamento:** 2026-10-07
 - **Agente/strumento ultimo utilizzato:** Claude Code
-- **Branch:** `main`
-- **Commit di riferimento:** `523dbd2` (review finale); la preparazione al rilascio è nel commit successivo
-- **Fase corrente:** preparazione alla pubblicazione, **senza deploy** (prompt 14): **COMPLETATA** — `docs/RELEASE_GUIDE.md`
-- **Prompt corrente:** `prompts/14_RELEASE_PREP_NO_DEPLOY.md` (completato)
+- **Branch:** `fase-14-state-sync` (strategia Git D1 = A: un ramo per fase, unito a mano dall'utente a `main`; `main` = `3068327`, nessun push)
+- **Commit di riferimento:** `3068327` (roadmap 14–32); le modifiche del prompt 14 sono nel working tree, **non committate**
+- **Fase corrente:** roadmap pre-release, **prompt 14** (sync dello stato, guardrail, audit dei contenuti): Parti A–E fatte, in attesa della revisione dell'utente; `AGENTS.md` (D2 = A) salvato dopo approvazione
+- **Prompt corrente:** `prompts/14_STATE_SYNC_CONTENT_AUDIT.md`
+- **Fase precedente completata:** preparazione alla pubblicazione senza deploy (vecchio prompt 14, oggi `31_RELEASE_PREP_NO_DEPLOY`): `docs/RELEASE_GUIDE.md`
 - **Stato complessivo:** 791 test PASS; 23 criteri di accettazione PASS, 4 PARTIAL (18, 19, 20, 24), 0 FAIL. Guida di rilascio compilata (prerequisiti, autorizzazioni A1–A8, pacchetto, permessi, DNS da richiedere, prova di fumo, HSTS graduale, rollback) e simulazione di produzione eseguita in locale. **Non pubblicato; nessun servizio esterno contattato; tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
 
 ## Obiettivo corrente
 
-Nessuno aperto per lo sviluppo. Il passo successivo dipende dal titolare: contenuti e dati (`docs/MISSING_DATA.md`), autorizzazioni (`docs/RELEASE_GUIDE.md` §2), scelta dell'hosting, prove manuali (`docs/MANUAL_CHECKLIST.md`). Il dominio canonico è `https://www.agriturismolavolta.com`.
+Prompt 14 (solo documentazione, nessun codice). Risposte dell'utente (2026-10-07, "consigliate"): D1 = A, D2 = A. Baseline del 2026-10-07 prima di modificare i file: `docker compose exec web composer test` → 791 test, 10055 asserzioni, PASS (6 min 34 s); `composer test -- --order-by=random` (seme `1791397690`, PHP 8.2.34) → 791 test, 10054 asserzioni, PASS (6 min 33 s). La differenza di una asserzione fra i due ordini è da indagare nel prompt 15 (i test sono tutti verdi). Verifica di 12–13: documenti presenti; trovato e risolto nel `README.md` un conflitto di merge non risolto (`3f26b2b`). Dopo il 14: **prompt 15**.
+
+Fino ad allora, per le attività del titolare, il passo successivo dipende dal titolare: contenuti e dati (`docs/MISSING_DATA.md`), autorizzazioni (`docs/RELEASE_GUIDE.md` §2), scelta dell'hosting, prove manuali (`docs/MANUAL_CHECKLIST.md`). Il dominio canonico è `https://www.agriturismolavolta.com`.
 
 ## Ultimo lavoro completato
 
@@ -29,7 +32,7 @@ Nessuno aperto per lo sviluppo. Il passo successivo dipende dal titolare: conten
 - **Incomplete/non verificabili ora:** prove manuali (tastiera, screen reader, mobile, desktop, zoom), installazione su hosting reale, DNS, consegna email reale, HTTPS reale, reindirizzamenti e pagina di manutenzione `.htaccess` (non provati), strumenti esterni (Lighthouse, axe, ZAP), foto reali, contenuti e dati del titolare.
 ## Working tree / modifiche locali da preservare
 
-- Nessuna modifica locale non committata a fine fase.
+- Modifiche locali del prompt 14, tutte `.md` e non committate: `README.md` (conflitto di merge risolto), `GUIDA_UTILIZZO_AI.md`, `docs/{PLAN,DECISIONS,MISSING_DATA,TODO,SESSION_STATE,CONTENT_INVENTORY,FINAL_REVIEW,DELIVERY_CHECKLIST,PRE_RELEASE_ROADMAP,PROMPT_PACK,RELEASE_GUIDE,TEST_REPORT}.md`, `prompts/README.md`.
 - `vendor/` e `.phpunit.cache/` locali, `storage/mail/` per `MAIL_TRANSPORT=log` (ignorati da Git). Il `.env` locale usa `MAIL_TRANSPORT=log`; i recapiti `PUBLIC_*` e `WHATSAPP_NUMBER` locali sono vuoti.
 - `.env` locale con password DB casuali di sviluppo (ignorato).
 - Password admin locale impostata dall'utente; volumi Docker vecchi puliti dall'utente.
@@ -50,7 +53,9 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4,
 
 ## Prossimo passo esatto
 
-nessuno aperto per lo sviluppo: dipende dal titolare (vedi `docs/RELEASE_GUIDE.md` e il promemoria in `docs/TODO.md`).
+1. L'utente rivede le modifiche del prompt 14, approva il testo per `AGENTS.md` (D2) e dice esplicitamente in chat se committare (nessun commit, push o deploy senza una sua frase).
+2. Poi `prompts/15_EXISTING_FIXES.md` (correzioni dell'esistente), in un nuovo ramo `fase-15-existing-fixes`; le sue domande (D1–D8) vanno prima all'utente.
+3. Le attività del titolare (contenuti, autorizzazioni, hosting) restano indicate in `docs/TODO.md` e `docs/RELEASE_GUIDE.md`.
 
 ## Note per il prossimo agente
 

@@ -98,7 +98,7 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
-## Preparazione al rilascio, senza deploy (prompt 14, 2026-10-07)
+## Preparazione al rilascio, senza deploy (vecchio prompt 14, oggi 31, 2026-10-07)
 
 Obiettivo: preparare istruzioni e controlli per una futura pubblicazione autorizzata, senza modificare né contattare servizi esterni. Documento: `docs/RELEASE_GUIDE.md`. Nuovo strumento: `bin/check-production.php` (classe `App\Support\ProductionCheck`), di **sola lettura**.
 

@@ -121,3 +121,46 @@ Il piano può essere aggiornato dopo l'audit, ma non devono essere eliminati req
 Nelle sessioni più brevi scegli un obiettivo principale completabile e testabile. Usa le sessioni più lunghe per migrazioni, flussi end-to-end, concorrenza, sicurezza e review trasversali.
 
 Se il progetto è in ritardo rispetto all'obiettivo indicativo, ripianifica le fasi senza saltare i controlli critici. Riduci prima attività non essenziali come refactor estetici, animazioni, miglioramenti non richiesti, integrazioni future e automazioni non necessarie.
+
+## Mappa prompt ↔ fase (00–32)
+
+Questa è l'unica mappa valida. Le fasi 0–9 sono completate; la roadmap 14–32 è descritta in `docs/PRE_RELEASE_ROADMAP.md` (motivazioni e priorità) e le regole comuni sono in `docs/GUARDRAIL_FASI.md`.
+
+| Prompt | Fase | Stato al 2026-10-07 |
+|---|---|---|
+| 00 | Bootstrap | completato |
+| 01 | Fase 0: audit e baseline | completato |
+| 02 | Fase 1: architettura, DB e fondamenta | completato |
+| 03 | Fase 1b: migrazione controllata | completato |
+| 04 | Fase 2A: booking e disponibilità | completato |
+| 05 | Fase 2B: pricing | completato |
+| 06 | Fase 3: area amministrativa | completato |
+| 07 | Fase 4: email e WhatsApp | completato |
+| 08 | Fase 5: frontend pubblico e flusso richiesta | completato |
+| 09 | Fase 6: IT/EN, SEO, accessibilità, prestazioni, immagini | completato (con PARTIAL) |
+| 10 | Fase 7: sicurezza, privacy tecnica, antispam | completato |
+| 11 | Fase 8: test e regressioni | completato |
+| 12 | Fase 8: documentazione | completato |
+| 13 | Fase 9: review finale | completato |
+| 14 | Sync dello stato, guardrail, audit dei contenuti | in corso |
+| 15 | Correzioni dell'esistente | da fare |
+| 16 | Progetto della gestione contenuti | da fare |
+| 17 | Account admin senza SSH | da fare |
+| 18 | Impostazioni del sito | da fare |
+| 19 | Libreria foto | da fare |
+| 20 | Foto, servizi e dettagli degli appartamenti | da fare |
+| 21 | Pagine amministrabili | da fare |
+| 22 | Migrazione dei contenuti e testi nuovi | da fare |
+| 23 | Regole di prenotazione e strumenti per il listino | da fare |
+| 24 | Operatività e comunicazione con l'ospite | da fare |
+| 25 | Usabilità admin e rifiniture pubbliche | da fare |
+| 26 | Stato del sistema, email, manutenzione | da fare |
+| 27 | Aggiornamenti, backup, conservazione dei dati | da fare |
+| 28 | Hardening pre-release | da fare |
+| 29 | Aggiornamento della documentazione | da fare |
+| 30 | Aggiornamento della review finale | da fare |
+| 31 | Preparazione pubblicazione, senza deploy (ex 14) | da fare |
+| 32 | Verifica dopo la pubblicazione | da fare (dopo un deploy autorizzato) |
+| 90–95 | Utility di sessione, review, bugfix, handoff | invariati |
+
+Nota: la "Fase 9" qui sopra (review finale) corrisponde ai prompt 13 e al vecchio 14; da ora la preparazione al rilascio è il prompt 31.

@@ -50,7 +50,8 @@ prompts/
   11_TEST_REGRESSION.md         # test e bugfix
   12_DOCUMENTATION.md           # documentazione di consegna
   13_FINAL_REVIEW.md            # verifica requisiti
-  14_RELEASE_PREP_NO_DEPLOY.md  # preparazione pubblicazione, senza deploy
+  14_STATE_SYNC_CONTENT_AUDIT.md … 32_POST_DEPLOY_VERIFICATION.md  # roadmap pre-release (vedi prompts/README.md)
+                                # 31_RELEASE_PREP_NO_DEPLOY.md = ex 14, preparazione pubblicazione senza deploy
   90_SESSION_START.md           # apertura di una sessione di lavoro
   91_SESSION_END.md             # checkpoint di fine sessione
   92_CODE_REVIEW.md             # review di modifiche già fatte

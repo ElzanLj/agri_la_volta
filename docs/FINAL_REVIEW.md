@@ -1,5 +1,7 @@
 # Final review
 
+> **Da riaprire:** la review del 2026-10-07 (`docs/REVIEW_PRE_ROADMAP.md`) ha trovato punti non coperti (vedi `docs/TODO.md`, sezione "Finding della review 2026-10-07"); si ricontrollano nei prompt 15 e 30. Gli stati PASS sotto non sono stati modificati. Questo documento descrive il progetto **prima** della gestione contenuti: sarà aggiornato nel prompt 30, non riscritto.
+
 Stato: **ESEGUITA il 2026-10-06** (prompt 13), sul repository reale, rileggendo `docs/SPEC.md` per intero (§1–§41) e confrontandola con il codice, i test e i documenti. Nessun deploy è stato eseguito né è autorizzato da questo documento.
 
 ## Sintesi

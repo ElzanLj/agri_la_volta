@@ -154,7 +154,7 @@ Il dettaglio dei finding della review è in `docs/REVIEW_PRE_ROADMAP.md`; le alt
 | 31 | `31_RELEASE_PREP_NO_DEPLOY.md` (ex 14) | release | Guida di rilascio e checklist, senza deploy | 30 |
 | 32 | `32_POST_DEPLOY_VERIFICATION.md` | verification | Verifica sull'hosting reale dopo una pubblicazione autorizzata (ripetibile) | 31 + deploy autorizzato |
 
-Rinumerazione: il vecchio `14_RELEASE_PREP_NO_DEPLOY.md` è sostituito dal nuovo `31_RELEASE_PREP_NO_DEPLOY.md` (il vecchio si elimina con `git rm`, non si rinomina: vedi `COME_APPLICARE.md` e prompt 14).
+Rinumerazione: il vecchio `14_RELEASE_PREP_NO_DEPLOY.md` è sostituito dal nuovo `31_RELEASE_PREP_NO_DEPLOY.md` (il vecchio è stato eliminato con `git rm` nel commit `3068327`, senza rinomina; vedi prompt 14).
 
 Ogni prompt dal 14 contiene "Domande per l'utente" con risposte possibili e consiglio (✅), di due tipi: **[titolare]** (l'agente non risponde mai al posto tuo) e **[tecnica]** (vale ✅ se dici "consigliate"). Ogni prompt di implementazione termina con "Prova tu".
 
