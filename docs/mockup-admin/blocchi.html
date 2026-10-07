@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Blocchi · La Volta (bozza)</title>
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="mockup.css">
+</head>
+<body class="admin">
+<a class="skip-link" href="#main">Salta al contenuto</a>
+<div class="mock-banner"><div class="container"><p>Bozza statica con dati inventati: i pulsanti non salvano nulla. Questa schermata: esiste già; "tutti gli appartamenti" dal prompt 23. <a href="leggimi.html">Come leggere la bozza</a></p></div></div>
+<header class="site-header">
+<div class="container">
+<div class="header-row"><span class="brand">La Volta · Amministrazione</span><button type="button" class="button button-secondary button-small">Esci</button></div>
+<nav class="nav-groups" aria-label="Amministrazione"><div class="nav-group"><span class="nav-group-label" id="g-Gestione">Gestione</span><ul aria-labelledby="g-Gestione"><li><a href="index.html">Home</a></li><li><a href="richieste.html">Richieste</a></li><li><a href="prenotazioni.html">Prenotazioni</a></li><li><a href="arrivi.html">Arrivi e partenze</a></li><li><a href="calendario.html">Calendario</a></li><li><a href="blocchi.html" aria-current="page">Blocchi</a></li></ul></div><div class="nav-group"><span class="nav-group-label" id="g-Listino">Listino</span><ul aria-labelledby="g-Listino"><li><a href="listino.html">Listino</a></li><li><a href="simulatore.html">Simulatore prezzi</a></li></ul></div><div class="nav-group"><span class="nav-group-label" id="g-Sito">Sito</span><ul aria-labelledby="g-Sito"><li><a href="pagine.html">Pagine</a></li><li><a href="appartamenti.html">Appartamenti</a></li><li><a href="servizi.html">Servizi</a></li><li><a href="foto.html">Foto</a></li><li><a href="impostazioni.html">Impostazioni</a></li></ul></div><div class="nav-group"><span class="nav-group-label" id="g-Sistema">Sistema</span><ul aria-labelledby="g-Sistema"><li><a href="email.html">Email</a></li><li><a href="statistiche.html">Statistiche</a></li><li><a href="storico.html">Storico</a></li><li><a href="export.html">Export</a></li><li><a href="manutenzione.html">Manutenzione</a></li><li><a href="coerenza.html">Coerenza dati</a></li><li><a href="account.html">Account</a></li></ul></div></nav>
+</div>
+</header>
+<main id="main" class="container" tabindex="-1">
+<h1>Blocchi</h1><p class="lead-admin">Date chiuse per manutenzione, uso privato o ferie. Un blocco non può sovrapporsi a una prenotazione.</p><h2>Nuovo blocco</h2><form onsubmit="return false"><div class="form-grid">
+<div class="field"><label for="ba">Appartamento</label><select id="ba"><option>Tutti gli appartamenti</option><option>Margherita</option><option>Girasole</option><option>Rosa</option><option>Mimosa</option><option>Ciclamino</option><option>Viola</option></select><span class="hint"><span class="tag tag-prop">Tutti gli appartamenti: prompt 23</span></span></div>
+<div class="field"><label for="bf">Dal</label><input type="date" id="bf" value="2027-01-07" ></div><div class="field"><label for="bt">Al (escluso)</label><input type="date" id="bt" value="2027-02-15" ></div><div class="field"><label for="br">Motivo (facoltativo)</label><input type="text" id="br" value="Chiusura invernale" ></div></div>
+<button type="button" class="button">Crea il blocco</button></form><h2>Blocchi attivi</h2><div class="table-wrap"><table class="cards"><thead><tr><th scope="col">Appartamento</th><th scope="col">Dal</th><th scope="col">Al</th><th scope="col">Motivo</th><th scope="col"></th></tr></thead><tbody><tr><td data-label="Appartamento"><span class="cell">Mimosa</span></td><td data-label="Dal"><span class="cell">1 ott 2026</span></td><td data-label="Al"><span class="cell">3 ott 2026</span></td><td data-label="Motivo"><span class="cell">Manutenzione caldaia</span></td><td data-label=""><span class="cell"><button type="button" class="button-link">Rimuovi</button></span></td></tr><tr><td data-label="Appartamento"><span class="cell">Tutti</span></td><td data-label="Dal"><span class="cell">24 dic 2026</span></td><td data-label="Al"><span class="cell">27 dic 2026</span></td><td data-label="Motivo"><span class="cell">Ferie</span></td><td data-label=""><span class="cell"><button type="button" class="button-link">Rimuovi</button></span></td></tr></tbody></table></div>
+</main>
+</body>
+</html>

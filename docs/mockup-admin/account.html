@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Account · La Volta (bozza)</title>
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="mockup.css">
+</head>
+<body class="admin">
+<a class="skip-link" href="#main">Salta al contenuto</a>
+<div class="mock-banner"><div class="container"><p>Bozza statica con dati inventati: i pulsanti non salvano nulla. Questa schermata: prompt 17. <a href="leggimi.html">Come leggere la bozza</a></p></div></div>
+<header class="site-header">
+<div class="container">
+<div class="header-row"><span class="brand">La Volta · Amministrazione</span><button type="button" class="button button-secondary button-small">Esci</button></div>
+<nav class="nav-groups" aria-label="Amministrazione"><div class="nav-group"><span class="nav-group-label" id="g-Gestione">Gestione</span><ul aria-labelledby="g-Gestione"><li><a href="index.html">Home</a></li><li><a href="richieste.html">Richieste</a></li><li><a href="prenotazioni.html">Prenotazioni</a></li><li><a href="arrivi.html">Arrivi e partenze</a></li><li><a href="calendario.html">Calendario</a></li><li><a href="blocchi.html">Blocchi</a></li></ul></div><div class="nav-group"><span class="nav-group-label" id="g-Listino">Listino</span><ul aria-labelledby="g-Listino"><li><a href="listino.html">Listino</a></li><li><a href="simulatore.html">Simulatore prezzi</a></li></ul></div><div class="nav-group"><span class="nav-group-label" id="g-Sito">Sito</span><ul aria-labelledby="g-Sito"><li><a href="pagine.html">Pagine</a></li><li><a href="appartamenti.html">Appartamenti</a></li><li><a href="servizi.html">Servizi</a></li><li><a href="foto.html">Foto</a></li><li><a href="impostazioni.html">Impostazioni</a></li></ul></div><div class="nav-group"><span class="nav-group-label" id="g-Sistema">Sistema</span><ul aria-labelledby="g-Sistema"><li><a href="email.html">Email</a></li><li><a href="statistiche.html">Statistiche</a></li><li><a href="storico.html">Storico</a></li><li><a href="export.html">Export</a></li><li><a href="manutenzione.html">Manutenzione</a></li><li><a href="coerenza.html">Coerenza dati</a></li><li><a href="account.html" aria-current="page">Account</a></li></ul></div></nav>
+</div>
+</header>
+<main id="main" class="container" tabindex="-1">
+<h1>Account <span class="tag tag-new">Nuovo, prompt 17</span></h1><p>Ultimo accesso riuscito: <strong>7 ott 2026, 09:12</strong>. Tentativi di accesso falliti nelle ultime 24 ore: <strong>2</strong>. <span class="tag tag-prop">segnalazioni, prompt 17 D6</span></p>
+<h2>Cambia la password</h2>
+<form onsubmit="return false" style="max-width:30rem"><div class="field"><label for="p0">Password attuale</label><input type="password" id="p0" value="" autocomplete="current-password"></div><div class="field"><label for="p1">Nuova password</label><input type="password" id="p1" value="" autocomplete="new-password"><span class="hint" id="p1-h">Almeno 12 caratteri. Non può essere una password comune (es. "Agriturismo2026!") né contenere il nome utente. <span class="tag tag-prop">D4</span></span></div><div class="field"><label for="p2">Ripeti la nuova password</label><input type="password" id="p2" value="" autocomplete="new-password"></div>
+<button type="button" class="button">Cambia la password</button></form>
+<p class="hint">Dopo il cambio, gli altri dispositivi collegati vengono disconnessi.</p><section class="block block-prop"><h2>Esci da tutti i dispositivi <span class="tag tag-prop">Proposta, prompt 17 D5: da approvare</span></h2><p>Se hai perso il telefono o hai mostrato la password a qualcuno: chiudi tutte le altre sessioni senza cambiare la password. Ti viene chiesta la password attuale.</p><div class="filters"><div class="field"><label for="ex">Password attuale</label><input type="password" id="ex" autocomplete="current-password"></div><button type="button" class="button button-secondary">Esci da tutti gli altri dispositivi</button></div></section><section class="block block-prop"><h3>Conferma della password (riautenticazione) <span class="tag tag-prop">Prompt 17: usata dai prompt 24, 26 e 27</span></h3><p class="alert alert-info" role="status">Esempio: le azioni sensibili (salvare la configurazione email, applicare un aggiornamento, scaricare un backup, anonimizzare dati) ti chiedono di nuovo la password. La conferma vale <strong>5 minuti</strong>.</p><div class="filters"><div class="field"><label for="rp2">Conferma la tua password</label><input type="password" id="rp2" autocomplete="current-password"></div><button type="button" class="button">Conferma e continua</button></div></section><h2>Password dimenticata?</h2><p>Non esiste un recupero via email. La procedura senza SSH (generare il comando sul computer dello sviluppatore e importarlo in phpMyAdmin) è descritta nel manuale.</p>
+</main>
+</body>
+</html>
