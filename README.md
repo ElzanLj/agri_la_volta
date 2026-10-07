@@ -1,6 +1,4 @@
-# Agriturismo La Volta — AI Prompt Pack V2.1
-
-Pacchetto **AI-agnostic** per lavorare sul repository con **Codex, Claude Code o Cursor** senza cambiare metodo, specifiche o documentazione.
+# Agriturismo La Volta 
 
 **Prima di iniziare:** leggi `START_HERE.md`. Per il manuale operativo completo usa `GUIDA_UTILIZZO_AI.md`.
 
