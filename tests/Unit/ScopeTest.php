@@ -131,7 +131,19 @@ final class ScopeTest extends TestCase
         }
         sort($suspicious);
 
-        self::assertSame(['GET /admin/login', 'POST /admin/login', 'POST /admin/logout'], $suspicious);
+        // Reviewed, one by one. Login and logout are the only ways in. The rest is the admin's own Account page
+        // (prompt 17): change the password, close the other sessions, confirm the password again. They all sit
+        // behind the admin guards, none of them creates an account or sends a reset by e-mail.
+        self::assertSame([
+            'GET /admin/account',
+            'GET /admin/conferma-password',
+            'GET /admin/login',
+            'POST /admin/account/esci-ovunque',
+            'POST /admin/account/password',
+            'POST /admin/conferma-password',
+            'POST /admin/login',
+            'POST /admin/logout',
+        ], $suspicious);
     }
 
     public function testOnlyTheAdminControllersCanDecideAboutRequestsAndStays(): void

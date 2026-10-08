@@ -22,7 +22,7 @@ final class AdminController extends BasePage
 {
     private const LOGIN_BUCKET = 'admin_login';
     /** Failed logins only, never cleared by a success: the dashboard counts them over 24 hours. */
-    public const FAILED_BUCKET = 'admin_login_failed';
+    public const FAILED_BUCKET = \App\Security\AdminAuth::FAILED_BUCKET;
     private const LOGIN_MAX_FAILURES = 5;
     private const LOGIN_WINDOW_SECONDS = 900;
 

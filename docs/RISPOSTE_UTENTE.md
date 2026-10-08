@@ -216,48 +216,48 @@ File: `prompts/17_ADMIN_ACCOUNT_NO_SSH.md`
 
 ### D1 — Creare o recuperare l'account senza SSH [tecnica]
 
-- [ ] A. `php bin/create-admin.php --print-sql` sul computer dello sviluppatore, poi import del SQL in phpMyAdmin *(consigliata)*
+- [x] A. `php bin/create-admin.php --print-sql` sul computer dello sviluppatore, poi import del SQL in phpMyAdmin *(consigliata)*
 - [ ] B. Installer web una tantum che si disattiva dopo l'uso
 - [ ] C. Chiedere all'assistenza dell'hosting
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliato" (la risposta consigliata).
 
 ### D2 — Cambio del nome utente dall'admin [tecnica]
 
-- [ ] A. No, solo password *(consigliata)*
+- [x] A. No, solo password *(consigliata)*
 - [ ] B. Sì
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliato" (la risposta consigliata).
 
 ### D3 — Secondo fattore di accesso (codice da app, TOTP) [titolare]
 
-- [ ] A. Non ora *(consigliata)*
+- [x] A. Non ora *(consigliata)*
 - [ ] B. Sì
 - [ ] C. Solo se l'admin sarà usato da una sola persona
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliato" (la risposta consigliata).
 
 ### D4 — Controllo delle password comuni [tecnica]
 
-- [ ] A. La nuova password viene rifiutata se è in un piccolo elenco di password comuni (file nel repository), contiene il nome utente o il nome dell'agriturismo *(consigliata)*
+- [x] A. La nuova password viene rifiutata se è in un piccolo elenco di password comuni (file nel repository), contiene il nome utente o il nome dell'agriturismo *(consigliata)*
 - [ ] B. Solo la lunghezza minima di 12 caratteri
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliato" (la risposta consigliata).
 
 ### D5 — "Esci da tutti i dispositivi" [tecnica]
 
-- [ ] A. Pulsante nella pagina Account (chiede la password attuale): chiude ogni altra sessione senza cambiare la password *(consigliata)*
+- [x] A. Pulsante nella pagina Account (chiede la password attuale): chiude ogni altra sessione senza cambiare la password *(consigliata)*
 - [ ] B. Non serve: basta cambiare la password
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliato" (la risposta consigliata).
 
 ### D6 — Segnalare accessi sospetti [titolare]
 
 - [ ] A. Niente
-- [ ] B. Mostrare in Account la data dell'ultimo accesso riuscito e il numero di tentativi falliti recenti (già in dashboard dal prompt 15) *(consigliata)*
+- [x] B. Mostrare in Account la data dell'ultimo accesso riuscito e il numero di tentativi falliti recenti (già in dashboard dal prompt 15) *(consigliata)*
 - [ ] C. Anche un'email "nuovo accesso" quando l'IP non è mai stato visto
 
-Note: 
+Note: Risposta in chat il 2026-10-07: "consigliato" (la risposta consigliata).
 
 ## Prompt 18 — Impostazioni del sito
 

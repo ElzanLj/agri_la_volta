@@ -75,6 +75,9 @@ Legenda impatto: **A** = dati personali o credenziali esposti · **B** = sito co
 | A2 | Sessione dimenticata su un computer/telefono perso | B | Scadenza inattiva 2 h e assoluta 12 h; "esci da tutti i dispositivi"; sessione legata all'impronta della password | esistente, 17 |
 | A3 | Un secondo account per ogni persona (tracciabilità) | — | **Non adottato** per scelta della SPEC: un solo account condiviso | — |
 | A4 | Rotte admin aggiunte senza guardie | B | Tre guardie sull'intero prefisso `/admin` (default-deny) e matrice delle rotte riviste in `AdminAccessTest` | esistente, 15 |
+| A5 | Il parametro `to` della pagina «Conferma la password» usato per mandare la persona su un sito falso (open redirect) | B | Solo percorsi semplici sotto `/admin` (niente schema, host, `//`, `..`, query, a capo); in caso contrario si va a `/admin` | 17 |
+| A6 | Il file `admin.sql` (con l'impronta della password) lasciato sul computer o caricato per errore | A | Contiene solo l'hash, mai la password; la procedura dice di cancellarlo; il file non è mai nel repository (non viene scritto da solo) | 17 |
+| A7 | Indovinare la password attuale dalla pagina Account con una sessione rubata | B | Limite di tentativi proprio (5 in 15 minuti), conteggio tra gli accessi falliti, nessuna differenza di risposta utile all'attaccante | 17 |
 
 ## 7. Calendari, ricerca ed esportazioni — prompt 24
 

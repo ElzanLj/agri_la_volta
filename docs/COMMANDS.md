@@ -238,11 +238,49 @@ Sola lettura: controlla `APP_ENV`, `APP_URL` https, `APP_SECRET`, PHP e estensio
 
 ## Amministratore
 
+C'è **un solo account**. Non esiste registrazione pubblica né recupero via email.
+
+**Cambiare la password** (la cosa che si fa di solito): *Admin → Account → Cambia la password*. Servono la password attuale e la nuova due volte; dopo il cambio gli altri dispositivi collegati vengono disconnessi e questo no. *Esci da tutti i dispositivi* (stessa pagina) chiude le altre sessioni senza cambiare la password; la pagina mostra anche l'accesso riuscito precedente a questo e i tentativi falliti delle ultime 24 ore.
+
+**Regole della password** (Account e comando): almeno 12 caratteri; rifiutata se è una password comune (anche con maiuscole, numeri o simboli aggiunti, o con caratteri "somiglianti" come `@` per `a`), se contiene il nome utente o il nome dell'agriturismo, se è troppo ripetitiva o uguale a quella attuale. Una frase lunga va benissimo. L'elenco delle password comuni è il file `app/Security/common-passwords.txt`.
+
+### Creare l'account o recuperare la password
+
+**Con SSH** (o in locale con accesso al database):
+
 ```bash
-php bin/create-admin.php [username]
+php bin/create-admin.php [nome-utente]
 ```
 
-Crea l'unico account admin o, se esiste già, ne cambia nome utente e password. Password minimo 12 caratteri, letta da terminale (nascosta su Linux/macOS) o da due righe di standard input; mai come argomento.
+Crea l'account oppure, se esiste già, ne cambia nome utente e password. La password è letta da terminale (nascosta su Linux/macOS) o da due righe di standard input; **mai come argomento** (un secondo argomento viene rifiutato).
+
+**Senza SSH** (hosting condiviso con solo phpMyAdmin) — vale sia per creare l'account sia per recuperare una password dimenticata, e non richiede la vecchia password:
+
+1. Sul computer di chi ha il progetto (PHP oppure Docker; **non serve il database**), nella cartella del progetto:
+   ```bash
+   docker compose exec web php bin/create-admin.php nome-utente --print-sql > admin.sql
+   ```
+   (senza Docker: `php bin/create-admin.php nome-utente --print-sql > admin.sql`).
+2. Scrivi la password due volte quando richiesto (le domande compaiono a video, il file contiene solo SQL).
+3. Apri `admin.sql`: contiene tre istruzioni (aggiorna l'account se c'è, lo crea solo se la tabella è vuota, registra l'evento nello Storico) e **l'impronta (hash) della password, mai la password**.
+4. In phpMyAdmin scegli il database del sito → scheda *SQL* → incolla il contenuto (oppure *Importa* il file) → *Esegui*.
+5. Cancella `admin.sql` e accedi da `/admin`. Se l'account esisteva, le sessioni aperte si chiudono da sole.
+
+Gli stessi controlli della pagina Account valgono per il comando: una password debole viene rifiutata **prima** di scrivere qualsiasi SQL. Se hai troppi tentativi falliti il login si blocca per 15 minuti per quell'indirizzo; per sbloccare subito: `DELETE FROM rate_limit_hits;`.
+
+**Niente installer web**: non esiste una pagina che crea l'amministratore e non verrà aggiunta.
+
+### Per chi sviluppa: chiedere di nuovo la password per un'azione delicata
+
+`App\Security\ReauthGuard` ricorda per **5 minuti**, solo nella sessione corrente, che la persona ha riscritto la password. La conferma finisce con la sessione, con il cambio password e con "Esci da tutti i dispositivi"; gli errori hanno un limite di tentativi proprio (5 in 15 minuti) e contano tra gli accessi falliti. In un controller di `app/Http/Controllers/Admin`, all'inizio dell'azione:
+
+```php
+if ($redirect = $this->needsReauth('/admin/pagina-con-il-modulo')) {
+    return $redirect;
+}
+```
+
+La persona va alla pagina «Conferma la tua password» e poi torna a `/admin/pagina-con-il-modulo` (solo percorsi sotto `/admin`, nessun indirizzo esterno); l'azione non viene rieseguita da sola. Un modulo che chiede già la password attuale (come Account) può chiamare direttamente `ReauthGuard::confirm()`. Ogni rotta nuova va comunque nella matrice di `AdminAccessTest::REVIEWED_ADMIN_ROUTES`.
 
 ## Verifiche eseguite in Fase 1
 

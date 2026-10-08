@@ -56,7 +56,9 @@ Due file, scaricabili dall'area amministrativa: **Richieste** e **Prenotazioni**
 
 ## 5. Cambiare la password dell'amministratore ✔
 
-Con SSH: `php bin/create-admin.php` (chiede la nuova password due volte). Senza SSH: `UPDATE admin SET password_hash = '…' WHERE username = '…'` con un hash generato in locale (`docs/INSTALL_SHARED_HOSTING.md` §6). In entrambi i casi **tutte le sessioni aperte vengono chiuse**. Se hai dimenticato la password non esiste un "recupero": se ne imposta una nuova allo stesso modo. Se hai troppi tentativi falliti, il login si blocca per 15 minuti per quell'indirizzo; per sbloccare subito: `DELETE FROM rate_limit_hits;`.
+**Se conosci la password attuale:** *Admin → Account → Cambia la password*. Gli altri dispositivi collegati vengono disconnessi. Se hai perso il telefono o hai mostrato la password a qualcuno, nella stessa pagina c'è *Esci da tutti i dispositivi*.
+
+**Se l'hai dimenticata:** non esiste un recupero via email. Serve una persona con il progetto sul computer che prepari il comando `php bin/create-admin.php nome-utente --print-sql > admin.sql` e lo importi in phpMyAdmin (`docs/COMMANDS.md`, «Amministratore»); funziona anche senza SSH. Con SSH basta `php bin/create-admin.php`. In ogni caso le sessioni aperte si chiudono. Se hai troppi tentativi falliti, il login si blocca per 15 minuti per quell'indirizzo; per sbloccare subito: `DELETE FROM rate_limit_hits;`.
 
 ## 6. Privacy: esportare e anonimizzare i dati di una persona ✔
 

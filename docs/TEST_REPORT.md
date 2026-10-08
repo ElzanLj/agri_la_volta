@@ -98,6 +98,36 @@ Limiti noti:
 - Nessun vincolo di esclusione a livello DB (MariaDB/MySQL non li supportano): l'invariante regge perché ogni scrittura passa da `BookingService`. Scritture dirette via SQL possono violarla.
 - Il pricing è solo l'interfaccia `PriceQuoter` (implementazione nulla): `quoted_total_cents` resta NULL fino alla Fase 2B.
 
+## Prompt 17 — account admin gestibile senza SSH (2026-10-08)
+
+Ramo `fase-17-admin-account`, PHP 8.2.34, MariaDB 10.11. Tutti i comandi nel container sono eseguiti come `www-data` (`docker compose exec -u www-data web ...`), come Apache.
+
+**Baseline prima delle modifiche:** nessuna suite rieseguita all'inizio; vale l'ultima completa del prompt 16 (**906 test, 10919 asserzioni, PASS**), perché `git diff c424b28 HEAD` su `app`, `bin`, `public`, `templates`, `migrations`, `tests` era vuoto (il prompt 16 ha cambiato solo documenti). Dichiarato in `DECISIONS`.
+
+**Dopo le modifiche:**
+
+| Comando | Esito |
+|---|---|
+| `docker compose exec -u www-data web composer test` (unit, integration, http, concurrency) | **1005 test, 11494 asserzioni, PASS** (7 min 42 s). Per suite: unit 429, integration 326, http 236, concurrency 14 |
+| `composer test -- --order-by=random`, seme `1791415114` | **1005 test, 11498 asserzioni, PASS** (7 min 41 s) |
+
+Nuovi: 99 test. Non eseguiti (**NOT RUN**): MySQL 8, hosting reale, import dell'SQL in un vero phpMyAdmin (l'SQL è importato statement per statement con lo stesso parser delle migrazioni su un database di prova), prove manuali dei passi «Prova tu».
+
+**Un giro intermedio con 2 fallimenti, corretti (non difetti del codice):** il primo giro completo ha avuto 2 fallimenti in test esistenti che presumevano lo stato precedente. `ScopeTest::testTheOnlyLoginIsTheAdminLoginAndThereIsNoSignUp` (guardiano delle rotte di accesso) ha segnalato le 5 rotte nuove di Account e di conferma: riviste e aggiunte all'elenco con il motivo. `DataConstraintsMigrationTest` presumeva che la `0007` fosse l'ultima migrazione: ora usa solo le precedenti e controlla la `0007` per nome.
+
+**Nuovi test per area:**
+
+| Area | File | Cosa prova |
+|---|---|---|
+| Regole della password | `Unit/PasswordPolicyTest` (31) | minimo 12 e massimo 1024; comune anche con maiuscole, cifre, simboli o caratteri «somiglianti» (`P@ssw0rd`), nome utente (anche senza trattino o con spazi), nome dell'agriturismo (anche `Agr1tur1sm0`), ripetitiva, solo cifre, uguale all'attuale; una frase lunga con la parola «famiglia» è accettata; l'elenco è un file di sole lettere minuscole senza doppioni |
+| Riautenticazione | `Integration/ReauthGuardTest` (26) | valida 5 minuti esatti e non oltre; un orologio all'indietro non la rende valida; password sbagliata = nessuna conferma, tentativo contato e tra gli accessi falliti; 5 errori e anche la password giusta è rifiutata (429), altri indirizzi non toccati; un successo azzera gli errori; indirizzo di ritorno ammesso solo se percorso semplice sotto `/admin` (16 casi ostili: altro sito, `//`, `..`, query, a capo, backslash, `javascript:`) |
+| Pagina Account (HTTP reale) | `Http/AccountTest` (33) | accesso negato senza login (303/401); POST senza token, con token sbagliato o da un altro sito = 403 e nulla cambia; accessi (precedente, questo, falliti 24 h); password attuale errata, nuova troppo corta/vuota/diversa/comune/con nome utente/uguale: nessun cambio e messaggio chiaro; un modulo con errore evidente non consuma tentativi; successo: vecchia password rifiutata, nuova accettata, **altro dispositivo disconnesso, sessione corrente valida con nuovo id**; password mai in Storico né nei log (cercata nell'intero file); limite di tentativi (429 anche con la password giusta); «Esci da tutti» (3 dispositivi: gli altri decadono, questo no, password invariata, richiede la password); pagina di conferma: durata 5 minuti, non valida in un'altra sessione, azzerata da cambio password e da «Esci da tutti», limite proprio, 5 indirizzi ostili sostituiti da `/admin` |
+| Riga di comando | `Integration/CreateAdminCommandTest` (9) | `--print-sql` non tocca il database (provato con host irraggiungibile), la password non passa dagli argomenti (un secondo argomento è rifiutato), solo SQL in uscita e domande sull'errore standard, l'hash verifica la password, SQL su tabella vuota crea l'account, su account esistente lo aggiorna **senza crearne un secondo** anche importandolo due volte, stesse regole della pagina (5 password deboli: nessun SQL stampato), conferma diversa, opzione sconosciuta e nome utente non valido rifiutati |
+
+**Prove di sensibilità** (violazione introdotta di proposito, il test deve fallire; file ripristinati e verificati): password comuni non più rifiutate · nome utente non più rifiutato · conferma che non scade mai · qualsiasi indirizzo di ritorno accettato · password sbagliata che conferma lo stesso · nessun limite ai tentativi di conferma · controllo di «Esci da tutti» tolto · sessione corrente non riallineata dopo il cambio · conferma che sopravvive al cambio password · password scritta nello Storico · password debole accettata dal comando · `--print-sql` che apre il database · password attuale errata accettata → **13 su 13 rilevate**. (Due mutazioni non si erano applicate per un errore di quoting dello script e le ho rifatte a mano: rilevate anch'esse.)
+
+**Altre verifiche:** migrazione `0008` applicata al database di sviluppo e di test e aggiunta a `CHECKSUMS`; scansione segreti del diff: solo nomi di campo e testi (nessun `.env*`, nessun valore).
+
 ## Prompt 16 — progetto della gestione contenuti (2026-10-07)
 
 Fase di **soli documenti** (nessun codice, migrazione o test modificati; `git diff` contiene solo file `.md`). Ramo `fase-16-content-model`, PHP 8.2.34, MariaDB 10.11.

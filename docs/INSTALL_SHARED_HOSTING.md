@@ -86,15 +86,13 @@ php bin/create-admin.php admin
 
 Lo stesso comando, se l'account esiste già, ne cambia nome utente e password e **chiude tutte le sessioni aperte**.
 
-**Senza SSH** ✔ (phpMyAdmin): 1) sul tuo computer genera l'hash della password, per esempio `php -r "echo password_hash('LA-TUA-PASSWORD-LUNGA', PASSWORD_DEFAULT);"` (o con Docker: `docker compose exec web php -r "…"`); il risultato inizia con `$2y$`. 2) In phpMyAdmin, scheda *SQL* del database:
+**Senza SSH** ✔ (phpMyAdmin): sul tuo computer, nella cartella del progetto, genera il SQL con il comando (non serve il database):
 
-```sql
-INSERT INTO admin (username, password_hash) VALUES ('admin', 'INCOLLA-QUI-L-HASH');
--- se l'account esiste già:
--- UPDATE admin SET password_hash = 'INCOLLA-QUI-L-HASH' WHERE username = 'admin';
+```bash
+docker compose exec web php bin/create-admin.php nome-utente --print-sql > admin.sql
 ```
 
-Verificato: un hash inserito così permette l'accesso (password sbagliata → rifiutata, giusta → pannello). Non conservare la password in chiaro nella cronologia della shell o in file; la lunghezza minima di 12 caratteri è imposta solo dal comando `create-admin`, quindi in questo caso rispettala tu.
+(senza Docker: `php bin/create-admin.php nome-utente --print-sql > admin.sql`). Scrivi la password due volte; il comando applica le stesse regole della pagina Account (almeno 12 caratteri, non comune, senza il nome utente né il nome dell'agriturismo) e produce solo SQL con l'impronta (hash) della password. In phpMyAdmin, scheda *SQL* del database del sito, incolla il contenuto di `admin.sql` (o *Importa* il file) ed esegui. Poi cancella `admin.sql`. Funziona anche se l'account esiste già (lo aggiorna senza crearne un secondo): è la procedura di **recupero** di una password dimenticata. Dettagli in `docs/COMMANDS.md`, «Amministratore».
 
 Poi accedi da `https://tuodominio.it/admin`.
 

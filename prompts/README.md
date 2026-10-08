@@ -15,7 +15,7 @@
 | `14_STATE_SYNC_CONTENT_AUDIT.md` | verifica di 12–13, sync, guardrail e strategia Git, finding della review, inventario contenuti | completato |
 | `15_EXISTING_FIXES.md` | **correzioni dell'esistente** (anonimizzazione dello Storico, rifiuto con conferma, doppio invio, rate limit, host canonico, migrazioni sicure, coerenza dei dati) e test-guardiani | completato (da committare) |
 | `16_CONTENT_MODEL_DESIGN.md` | progetto della gestione contenuti, contratto dei campi, threat model | completato (da committare) |
-| `17_ADMIN_ACCOUNT_NO_SSH.md` | cambio password dall'admin, procedura senza SSH, riautenticazione riusabile | |
+| `17_ADMIN_ACCOUNT_NO_SSH.md` | cambio password dall'admin, procedura senza SSH, riautenticazione riusabile | completato (da committare) |
 | `18_SITE_SETTINGS.md` | impostazioni del sito (recapiti, dati aziendali, link, avviso globale, valori comuni), cache e pagina 503 | |
 | `19_MEDIA_LIBRARY.md` | libreria foto sicura (+ prova facoltativa con foto legacy in locale) | |
 | `20_APARTMENT_PHOTOS_SERVICES.md` | foto, servizi e dettagli degli appartamenti | |

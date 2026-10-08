@@ -39,7 +39,7 @@ final class DataConstraintsMigrationTest extends TestCase
         $this->dir = sys_get_temp_dir() . '/constraints-test-' . bin2hex(random_bytes(6));
         mkdir($this->dir);
         foreach (glob(dirname(__DIR__, 2) . '/migrations/*.sql') ?: [] as $path) {
-            if (basename($path) !== '0007_data_constraints.sql') {
+            if ((int) substr(basename($path), 0, 4) < 7) { // the migrations before 0007; later ones are not part of this scenario
                 copy($path, $this->dir . '/' . basename($path));
             }
         }
@@ -84,7 +84,7 @@ final class DataConstraintsMigrationTest extends TestCase
             self::assertStringContainsString('Non è stato modificato nulla', $e->getMessage());
         }
         self::assertSame(0, $this->constraintCount(), 'not a single constraint was added');
-        self::assertSame(['0007_data_constraints' => false], array_slice((new Migrator($this->scratch, $this->dir))->status(), -1, 1, true));
+        self::assertFalse((new Migrator($this->scratch, $this->dir))->status()['0007_data_constraints'], 'and the migration is not recorded as applied');
 
         // Once the data is fixed the same migration goes through.
         $this->scratch->exec("UPDATE bookings SET cancelled_at = UTC_TIMESTAMP() WHERE status = 'cancelled'");

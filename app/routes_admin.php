@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\App;
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\ApartmentController;
 use App\Http\Controllers\Admin\AuditController;
 use App\Http\Controllers\Admin\BlockController;
@@ -43,11 +44,18 @@ return static function (Router $router, App $app): void {
     $audit = new AuditController($app);
     $export = new ExportController($app);
     $email = new EmailController($app);
+    $account = new AccountController($app);
 
     $router->get('/admin', [$home, 'dashboard']);
     $router->get('/admin/login', [$home, 'loginForm']);
     $router->post('/admin/login', [$home, 'login']);
     $router->post('/admin/logout', [$home, 'logout']);
+
+    $router->get('/admin/account', [$account, 'index']);
+    $router->post('/admin/account/password', [$account, 'changePassword']);
+    $router->post('/admin/account/esci-ovunque', [$account, 'closeAllSessions']);
+    $router->get('/admin/conferma-password', [$account, 'confirmForm']); // "enter your password again" for sensitive actions
+    $router->post('/admin/conferma-password', [$account, 'confirm']);
 
     $router->get('/admin/richieste', [$requests, 'index']);
     $router->get('/admin/richieste/{id}', [$requests, 'show']);

@@ -15,7 +15,8 @@ La sequenza operativa ora è **14 → 32** (`prompts/README.md`, `docs/PRE_RELEA
 - [x] 14 — sync dello stato, guardrail, audit dei contenuti (commit `c8aec3d` sul ramo `fase-14-state-sync`)
 - [x] 15 — correzioni dell'esistente (commit `c424b28` sul ramo `fase-15-existing-fixes`; 905 test PASS, poi 906 con il test del Logger)
 - [x] 16 — progetto della gestione contenuti (ramo `fase-16-content-model`; `docs/CMS_DESIGN.md`, `docs/THREAT_MODEL.md`, `docs/CAMPI_CONTENUTI.md` approvato; **nel working tree, non committato**)
-- [ ] 17 — account admin senza SSH (**prossimo passo**) · 18–30 · 31 (ex 14) · 32 (dopo un deploy autorizzato)
+- [x] 17 — account admin senza SSH (ramo `fase-17-admin-account`; **nel working tree, non committato**)
+- [ ] 18 — impostazioni del sito (**prossimo passo**) · 19–30 · 31 (ex 14) · 32 (dopo un deploy autorizzato)
 
 ### Promemoria per le fasi 17–27 (dal design del prompt 16)
 
@@ -281,7 +282,7 @@ Fonte: `docs/REVIEW_PRE_ROADMAP.md` (tabella "Dove si chiude ciascun finding"; i
 - [x] B15 Supporto LiteSpeed + `ignore_user_abort` → **15** — **chiuso nel prompt 15**
 - [x] B16 Whitelist di `APP_ENV` → **15** — **chiuso nel prompt 15**
 - [x] B17 Sanificazione delle eccezioni PDO nei log → **15** — **chiuso nel prompt 15**
-- [ ] B18 "Esci da tutti i dispositivi" → **17**
+- [x] B18 "Esci da tutti i dispositivi" → **17** — **chiuso nel prompt 17**
 - [ ] B19 Email al titolare dopo molti login falliti → **24**
 - [x] B20 Riferimento nella pagina "ricevuta" solo se reale → **15** — **chiuso nel prompt 15**
 - [x] B21 Caratteri invisibili e di direzione rimossi → **15** — **chiuso nel prompt 15**
@@ -292,7 +293,10 @@ Fonte: `docs/REVIEW_PRE_ROADMAP.md` (tabella "Dove si chiude ciascun finding"; i
 ### C — Difesa in profondità
 
 - [x] C1 Race e ritardo globale nel rate limit → **15** — **chiuso nel prompt 15**
-- [ ] C2, C4, C5, C6 Riautenticazione riusabile, password comuni, accessi sospetti, TOTP → **17**
+- [~] C2 Riautenticazione riusabile (`ReauthGuard`, 5 minuti) → **17** — fatto in 17 (classe, pagina di conferma, test); la applicano i prompt 24, 26, 27 alle loro azioni
+- [x] C4 Password comuni rifiutate → **17** — **chiuso nel prompt 17**
+- [x] C5 Segnalare accessi sospetti → **17** — **chiuso nel prompt 17** nella forma D6 = B (accesso precedente e tentativi falliti nella pagina Account); l'email «nuovo accesso» non è stata scelta
+- [x] C6 Secondo fattore TOTP → **17** — **deciso: non ora** (D3 = A); da riconsiderare se l'admin resta di una persona sola
 - [ ] C3, C20, C21, C23, C53–C57, C62, C64–C67 Sessioni, SMTP, registro errori, log, permessi, fuso orario, proxy → **26**
 - [~] C8 `.htaccess` di negazione + controllo HTTP → **15**, 26, 28, 32 — fatto in 15: file di negazione; restano 26, 28, 32
 - [ ] C9, C10, C22 Intestazioni, limite URL, `Message-ID` → **28**

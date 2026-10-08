@@ -156,6 +156,7 @@ Pagine che ammettono sezioni: **home, agriturismo, dintorni, privacy, cookie**. 
 | Nuova password | Sì | almeno 12 caratteri, massimo 1024; rifiutata se è in un elenco di password comuni, contiene il nome utente o il nome dell'agriturismo; mai uguale all'attuale | rifiutata | errore sul campo con la ragione |
 | Ripeti la nuova password | Sì | uguale alla nuova | rifiutata | errore sul campo |
 | "Esci da tutti i dispositivi" | — | richiede la password attuale | chiude le altre sessioni senza cambiare la password | messaggio di conferma |
+| Conferma della password (pagina «Conferma la tua password») | Sì | la password dell'admin; vale 5 minuti, solo in questa sessione; 5 errori in 15 minuti bloccano (429) | l'azione delicata non prosegue | errore sul campo; conta tra gli accessi falliti |
 
 La password non entra mai nello Storico, nei log, nell'audit né nei messaggi di errore.
 

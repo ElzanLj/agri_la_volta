@@ -14,6 +14,9 @@ use App\Http\Admin\Flash;
 use App\Http\Response;
 use App\Http\View;
 use App\Repository\AdminQueryRepository;
+use App\Security\AdminAuth;
+use App\Security\RateLimiter;
+use App\Security\ReauthGuard;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -41,6 +44,20 @@ abstract class BasePage
     protected function redirect(string $path): Response
     {
         return Response::redirect(url($path));
+    }
+
+    /**
+     * For a sensitive action: null when the admin confirmed the password in the last five minutes, otherwise the
+     * redirect to the "confirm your password" page, which brings the person back to $returnTo (the page that
+     * holds the action's form). See App\Security\ReauthGuard.
+     */
+    protected function needsReauth(string $returnTo): ?Response
+    {
+        $db = $this->app->db();
+        if ((new ReauthGuard(new AdminAuth($db), new RateLimiter($db)))->isFresh()) {
+            return null;
+        }
+        return $this->redirect('/admin/conferma-password?to=' . rawurlencode(ReauthGuard::safeTarget($returnTo)));
     }
 
     protected function notFound(): Response

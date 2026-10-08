@@ -46,6 +46,20 @@ La review `docs/REVIEW_PRE_ROADMAP.md` ha trovato punti che la Fase 7 non copriv
 | C12–C15 | Media | Stati impossibili possibili nel database | Migrazione `0007` con `CHECK` (cancellata ⇔ data di cancellazione, decisione ⇔ stato, limiti degli ospiti, email inviata ⇒ data di invio); la migrazione si ferma prima di toccare nulla se i dati esistenti li violano | **Corretto** |
 | — | — | Test architetturali | Cinque guardiani sempre attivi: checksum delle migrazioni, ogni `<?=` dei template è escapato o in elenco, nessuna funzione che esegue comandi o codice in `app/`, nessun indirizzo esterno in `templates/` e `public/`, rotte admin in una matrice rivista | **Attivi** |
 
+## Account e riautenticazione (prompt 17, 2026-10-08)
+
+| Controllo | Come funziona | Prova |
+|---|---|---|
+| Cambio password dall'admin | `/admin/account`: password attuale + nuova due volte; tutte le regole di `PasswordPolicy`; la nuova password è controllata **prima** (un modulo con un errore evidente non consuma un tentativo); la password attuale è verificata con confronto a tempo costante (`password_verify`) | `AccountTest`, `PasswordPolicyTest` |
+| Tentativi sulla password attuale | stesso `RateLimiter` (`attempt()`, 5 in 15 minuti per indirizzo, bucket proprio `admin_reauth`); anche con la password giusta, finché il limite è attivo, risposta 429; ogni errore conta tra gli accessi falliti (dashboard e Account) | `AccountTest`, `ReauthGuardTest` |
+| Sessioni | un cambio password riallinea la sessione **corrente** (nuovo id, nuovo token CSRF, nuova impronta) e fa decadere le altre alla richiesta successiva; «Esci da tutti i dispositivi» alza `admin.session_version` (migrazione `0008`) senza cambiare la password | `AccountTest` |
+| Riautenticazione riusabile (`ReauthGuard`) | conferma valida **5 minuti**, solo nella sessione che l'ha fatta; azzerata da cambio password, «Esci da tutti» e da un errore; indirizzo di ritorno ammesso solo se è un percorso semplice sotto `/admin` (niente schema, host, `//`, `..`, query), altrimenti `/admin`; orologio all'indietro non rende valida una conferma | `ReauthGuardTest` (26 test), `AccountTest` |
+| Storico e log | «password cambiata» e «sessioni chiuse» senza hash, password né valori; i log non contengono mai le password (test che le cerca nell'intero file) | `AccountTest::testThePasswordIsNeverWrittenAnywhere` |
+| Senza SSH | `create-admin.php --print-sql`: nessun accesso al database (provato con un database irraggiungibile), password mai tra gli argomenti (un secondo argomento è rifiutato), output solo SQL con l'hash, stesse regole della pagina; l'SQL crea l'account se la tabella è vuota, altrimenti aggiorna l'unico esistente, e si può importare due volte senza creare un secondo account | `CreateAdminCommandTest` |
+| Nessun installer web | non esiste una pagina che crei l'amministratore | — |
+
+Decisioni: D3 = A (nessun secondo fattore per ora, da riconsiderare se l'admin resta di una persona sola) e D6 = B (data dell'accesso precedente e accessi falliti in Account; nessuna email «nuovo accesso»). Il blocco del login resta per indirizzo (F5): per un attacco distribuito vedi l'email dopo molti tentativi nel prompt 24.
+
 ### Rischi che restano aperti dopo il prompt 15
 
 1. **Blocco del login per IP** (F5): in dashboard si vede il numero di accessi falliti nelle ultime 24 ore; l'email al titolare dopo molti tentativi è nel prompt 24.
@@ -60,7 +74,7 @@ La review `docs/REVIEW_PRE_ROADMAP.md` ha trovato punti che la Fase 7 non copriv
 - [x] **Validazione server-side:** `BookingService` valida tutto (date, ospiti, capienza, email, telefono, lunghezze, consenso); il browser non decide prezzo, stato, appartamento né lingua; tetti anti-abuso (60 notti, 20 persone…)
 - [x] **CSRF:** admin con token di sessione + `Origin` su ogni metodo non sicuro (guardia di prefisso, nessuna eccezione); moduli pubblici con token firmato + `Origin`
 - [x] **Sessioni/cookie:** `HttpOnly`, `SameSite=Lax`, `Secure` in HTTPS, `use_strict_mode`, rigenerazione dell'id al login, scadenza inattiva 2 h e assoluta 12 h, sessione legata all'impronta della password, nessun cookie ai visitatori (`AdminSessionTest`, `PublicPagesTest`)
-- [x] **Password admin:** `password_hash` (bcrypt/default) con riesame automatico, minimo 12 caratteri, impostata solo da riga di comando, cambio password chiude le sessioni
+- [x] **Password admin:** `password_hash` (bcrypt/default) con riesame automatico, minimo 12 caratteri, non comune né contenente nome utente o nome dell'agriturismo (`PasswordPolicy`), cambiabile dalla pagina Account (password attuale richiesta, limite di tentativi) e dalla riga di comando (anche con `--print-sql` per hosting senza SSH); un cambio chiude le altre sessioni
 - [x] **Autorizzazione admin lato server:** default-deny su tutto `/admin` (anche URL inesistenti), matrice su ogni rotta registrata (`AdminAccessTest`)
 - [x] **Rate limiting / limiti richiesta:** login admin (5/15 min per IP), invio richieste (6/ora per IP), corpo massimo 1 MB (applicazione e Apache)
 - [x] **Upload:** non presenti

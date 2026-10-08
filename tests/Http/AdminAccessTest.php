@@ -46,6 +46,8 @@ final class AdminAccessTest extends HttpTestCase
         'POST /admin/listino/regole/{id}', 'POST /admin/listino/regole/{id}/elimina',
         'GET /admin/storico',
         'GET /admin/export', 'GET /admin/export/richieste.csv', 'GET /admin/export/prenotazioni.csv',
+        'GET /admin/account', 'POST /admin/account/password', 'POST /admin/account/esci-ovunque',
+        'GET /admin/conferma-password', 'POST /admin/conferma-password',
     ];
 
     public function testEveryAdminRouteIsInTheReviewedMatrix(): void

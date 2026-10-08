@@ -20,6 +20,7 @@ $nav = [
     '/admin/email' => 'Email',
     '/admin/storico' => 'Storico',
     '/admin/export' => 'Export',
+    '/admin/account' => 'Account',
 ];
 ?>
 <!doctype html>

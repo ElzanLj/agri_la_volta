@@ -145,7 +145,7 @@ Questa è l'unica mappa valida. Le fasi 0–9 sono completate; la roadmap 14–3
 | 14 | Sync dello stato, guardrail, audit dei contenuti | completato |
 | 15 | Correzioni dell'esistente | completato (da committare) |
 | 16 | Progetto della gestione contenuti | completato (da committare) |
-| 17 | Account admin senza SSH | da fare |
+| 17 | Account admin senza SSH | completato (da committare) |
 | 18 | Impostazioni del sito | da fare |
 | 19 | Libreria foto | da fare |
 | 20 | Foto, servizi e dettagli degli appartamenti | da fare |
