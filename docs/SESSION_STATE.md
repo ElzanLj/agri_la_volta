@@ -6,9 +6,9 @@
 
 - **Data aggiornamento:** 2026-10-08
 - **Agente/strumento ultimo utilizzato:** Claude Code
-- **Branch:** `fase-17-admin-account` (strategia Git D1 = A: un ramo per fase, unito a mano dall'utente a `main`; partito da `fase-16-content-model`). Nessun push.
-- **Commit di riferimento:** `48477d1` (prompt 16); prompt 15 `c424b28`, prompt 14 `c8aec3d`. Le modifiche del prompt 17 sono nel working tree, **non committate** (serve una frase esplicita dell'utente in chat)
-- **Fase corrente:** roadmap pre-release, **prompt 17** (account admin gestibile senza SSH): **COMPLETATO nel working tree**, in attesa della revisione dell'utente e del suo «Prova tu»
+- **Branch:** `main` (strategia Git D1 = A: un ramo per fase, unito dall'utente a `main`). Il 2026-10-08, su richiesta dell'utente, `fase-14-state-sync`, `fase-15-existing-fixes`, `fase-16-content-model` e `fase-17-admin-account` sono stati uniti a `main` con un fast-forward (nessun commit di merge, nessun conflitto); i rami di fase restano come riferimento e non sono stati cancellati. **Nessun push**: `origin/main` è indietro rispetto a `main` locale. Il prossimo ramo di fase parte da `main`.
+- **Commit di riferimento:** prompt 17 `d6048ed`, prompt 16 `48477d1`, prompt 15 `c424b28`, prompt 14 `c8aec3d` (tutti dentro `main`); l'ultimo commit di `main` è il checkpoint di fine sessione
+- **Fase corrente:** roadmap pre-release, **prompt 17** (account admin gestibile senza SSH): **COMPLETATO e committato** (`d6048ed`); l'utente deve ancora eseguire il suo «Prova tu»
 - **Prompt corrente:** `prompts/17_ADMIN_ACCOUNT_NO_SSH.md` (completato); prossimo: `prompts/18_SITE_SETTINGS.md`
 - **Stato complessivo:** 1005 test PASS (ordine normale e casuale); 23 criteri di accettazione PASS, 4 PARTIAL (18, 19, 20, 24), 0 FAIL (matrice non rivista dopo i prompt 15–17: se ne occupa il prompt 30). **Non pubblicato; nessun servizio esterno contattato; tutte le prove manuali e l'installazione su hosting reale sono NOT RUN**
 
@@ -38,7 +38,7 @@ Per le attività del titolare, il passo successivo dipende da lui: contenuti e d
 
 ## Working tree / modifiche locali da preservare
 
-- Modifiche del prompt 17 non committate: `app/Security/{PasswordPolicy,ReauthGuard}.php` + `common-passwords.txt`, `app/Service/AccountService.php`, `app/Http/Controllers/Admin/AccountController.php`, `AdminAuth`, `BasePage`, `AdminController`, `routes_admin.php`, `bin/create-admin.php`, `migrations/0008_admin_session_version.sql` + `CHECKSUMS`, `templates/admin/account/`, voce «Account» nel menu, test (`AccountTest`, `PasswordPolicyTest`, `ReauthGuardTest`, `CreateAdminCommandTest`, adattamenti a `ScopeTest`, `AdminAccessTest`, `DataConstraintsMigrationTest`) e documenti.
+- Il prompt 17 è nel commit `d6048ed` (elenco dei file: `git show --stat d6048ed`): `app/Security/{PasswordPolicy,ReauthGuard}.php` + `common-passwords.txt`, `app/Service/AccountService.php`, `app/Http/Controllers/Admin/AccountController.php`, `AdminAuth`, `BasePage`, `AdminController`, `routes_admin.php`, `bin/create-admin.php`, `migrations/0008_admin_session_version.sql` + `CHECKSUMS`, `templates/admin/account/`, voce «Account» nel menu, test (`AccountTest`, `PasswordPolicyTest`, `ReauthGuardTest`, `CreateAdminCommandTest`, adattamenti a `ScopeTest`, `AdminAccessTest`, `DataConstraintsMigrationTest`) e documenti.
 - `vendor/` e `.phpunit.cache/` locali, `storage/mail/` per `MAIL_TRANSPORT=log` (ignorati da Git). Il `.env` locale usa `MAIL_TRANSPORT=log`; i recapiti `PUBLIC_*` e `WHATSAPP_NUMBER` locali sono vuoti.
 - `.env` locale con password DB casuali di sviluppo (ignorato). Le migrazioni `0006`, `0007` e `0008` sono già applicate al database di sviluppo e a quello di test.
 - Password admin locale impostata dall'utente: **le prove sono su un database di test separato e non l'hanno toccata**. Volumi Docker vecchi puliti dall'utente. I container Docker sono in esecuzione (avviati in questa sessione). C'è una cartella locale `legacy/` non tracciata, mai aperta.
@@ -61,8 +61,8 @@ Vedi `docs/DECISIONS.md`: P1–P7 approvate; decisioni Fase 1, 1b, 2A, 2B, 3, 4,
 
 ## Prossimo passo esatto
 
-1. L'utente rivede le modifiche del prompt 17, esegue il «Prova tu» (riepilogo finale di questa sessione) e dice esplicitamente in chat se committare (nessun commit, push o deploy senza una sua frase).
-2. Poi `prompts/18_SITE_SETTINGS.md` (impostazioni del sito: recapiti, dati aziendali, link, avviso globale, cache e pagina 503, blocco ottimistico), in un nuovo ramo `fase-18-site-settings` (partendo da `fase-17-admin-account`); le sue domande D1–D9 vanno prima all'utente. Leggere prima `docs/CMS_DESIGN.md` §3.1, §6, §7 e la tabella Impostazioni di `CAMPI_CONTENUTI.md`.
+1. L'utente esegue il «Prova tu» del prompt 17 (riepilogo della sessione) e decide se e quando fare `git push` di `main` (nessun push o deploy senza una sua frase esplicita).
+2. Poi `prompts/18_SITE_SETTINGS.md` (impostazioni del sito: recapiti, dati aziendali, link, avviso globale, cache e pagina 503, blocco ottimistico), in un nuovo ramo `fase-18-site-settings` (partendo da `main`); le sue domande D1–D9 vanno prima all'utente. Leggere prima `docs/CMS_DESIGN.md` §3.1, §6, §7 e la tabella Impostazioni di `CAMPI_CONTENUTI.md`.
 3. Promemoria per i prompt 19 e 26 (consenso per l'immagine Docker, conferma sul master delle foto, eccezione ad `AGENTS.md` per l'SMTP): `docs/TODO.md`.
 4. Le attività del titolare (contenuti, autorizzazioni, hosting) restano indicate in `docs/TODO.md` e `docs/RELEASE_GUIDE.md`.
 
