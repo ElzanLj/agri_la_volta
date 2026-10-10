@@ -33,7 +33,7 @@ Registra ogni scelta in `docs/DECISIONS.md`. In `docs/RISPOSTE_UTENTE.md` (casel
 | Risposta | Pro / contro |
 |---|---|
 | A. Tenere l'aspetto attuale (condiviso col sito) e rifinire | Pochissimo lavoro; l'admin resta una pagina del sito, senza componenti da lavoro |
-| B. ✅ Stile dedicato, come nelle bozze di `docs/mockup-admin-grafica/`: sfondo chiaro, verde bosco per menu e intestazioni, **ocra scuro per l'azione principale di ogni pagina**, colori di stato (nuova, in attesa, confermata, rifiutata, avviso, errore) ben distinti, azioni distruttive riconoscibili | Più chiaro per chi lavora ogni giorno; richiede un foglio di stile in più |
+| B. ✅ Stile dedicato, come nelle bozze di `docs/mockup-admin-grafica/`: sfondo chiaro quasi bianco, testo scuro, menu laterale chiaro con la voce corrente evidenziata, **viola scuro (uva) solo per l'azione principale di ogni pagina e per i link**, verde bosco per le azioni secondarie, sezioni a due colonne (titolo e spiegazione a sinistra, campi a destra), colori di stato (nuova, in attesa, confermata, rifiutata, avviso, errore) ben distinti, azioni distruttive riconoscibili | Più chiaro per chi lavora ogni giorno; richiede un foglio di stile in più |
 | C. Stile molto personalizzato, con illustrazioni e identità forte | Più impatto; più lavoro, più rischio, poco utile in un'area di lavoro |
 
 **Consiglio: B.**
@@ -63,7 +63,7 @@ Qui si decide solo **come appare** il menu; il raggruppamento in Gestione, Listi
 
 | Risposta | Pro / contro |
 |---|---|
-| A. ✅ Caratteri di sistema (serif per i titoli, sans per il testo, come nelle bozze); nessuna libreria di icone: solo testo e pochi simboli SVG scritti nel progetto (al massimo dieci) | Nessun file in più, nessuna dipendenza, massima velocità |
+| A. ✅ Caratteri di sistema (un solo sans-serif per titoli e testo, come nelle bozze); nessuna libreria di icone: solo testo e pochi simboli SVG scritti nel progetto (al massimo dieci) | Nessun file in più, nessuna dipendenza, massima velocità |
 | B. Libreria di icone o font esterno | **Vietata**: nuova dipendenza e richieste esterne |
 
 **Consiglio: A.**
